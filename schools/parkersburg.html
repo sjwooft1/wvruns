@@ -25,8 +25,9 @@
     </section>
 
     <section class="roster">
-      <h2>Roster (2025)</h2>
-      <table>
+      <h2>Roster</h2>
+      <div id="roster-loading">Loading roster...</div>
+      <table id="roster-table" style="display: none;">
         <thead>
           <tr>
             <th>Name</th>
@@ -34,24 +35,16 @@
             <th>Gender</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td>Calli Angelos</td><td>2028</td><td>F</td></tr>
-          <tr><td>Jon Ash</td><td>2025</td><td>M</td></tr>
-          <tr><td>Abbie Bacorn</td><td>2027</td><td>F</td></tr>
-          <tr><td>Christian Ball</td><td>2028</td><td>M</td></tr>
-          <tr><td>Jo Barclay</td><td>2025</td><td>F</td></tr>
-          <!-- add more athletes as needed from the roster source -->
+        <tbody id="roster-tbody">
         </tbody>
       </table>
-      <p><em>Roster sourced from Milesplit listing for Parkersburg. :contentReference[oaicite:2]{index=2}</em></p>
+      <p id="no-athletes" style="display: none;"><em>No athletes found. Add them via the admin page.</em></p>
     </section>
 
     <section class="events">
       <h2>Recent Meets & Results</h2>
-      <ul>
-        <li><strong>2025 State Cross Country Meet</strong> — Location: Ona, WV — Date: November 1. </li>
-        <li><strong>2025 Region 1 XC Championship</strong> — Date: October 19 — … (results to be added) </li>
-        <li><strong>2025 Big Reds Invitational</strong> — Date: (TBD) — Location: Parkersburg, WV — … </li>
+      <ul id="meets-list">
+        <!-- Meets will be loaded here -->
       </ul>
       <p>Click a meet to view full results. More data will be loaded dynamically.</p>
     </section>
@@ -65,7 +58,55 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Configuration -->
   <script src="../supabase-config.js"></script>
-  <!-- Application Script -->
-  <script src="../script.js"></script>
+  
+  <script>
+    // Load athletes for Parkersburg
+    async function loadRoster() {
+      const schoolSlug = 'parkersburg'; // This could be dynamic based on the page
+      
+      try {
+        const { data: athletes, error } = await supabase
+          .from('athletes')
+          .select('*')
+          .eq('school_slug', schoolSlug)
+          .order('name');
+        
+        if (error) {
+          console.error('Error loading athletes:', error);
+          document.getElementById('roster-loading').textContent = 'Error loading roster';
+          return;
+        }
+        
+        const tbody = document.getElementById('roster-tbody');
+        const loadingDiv = document.getElementById('roster-loading');
+        const table = document.getElementById('roster-table');
+        const noAthletes = document.getElementById('no-athletes');
+        
+        if (athletes && athletes.length > 0) {
+          athletes.forEach(athlete => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${athlete.name}</td>
+              <td>${athlete.grade || 'N/A'}</td>
+              <td>${athlete.gender || 'N/A'}</td>
+            `;
+            tbody.appendChild(row);
+          });
+          
+          loadingDiv.style.display = 'none';
+          table.style.display = 'table';
+        } else {
+          loadingDiv.style.display = 'none';
+          noAthletes.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error loading roster:', error);
+        document.getElementById('roster-loading').textContent = 'Error loading roster';
+      }
+    }
+    
+    // Load roster when page loads
+    loadRoster();
+  </script>
 </body>
 </html>

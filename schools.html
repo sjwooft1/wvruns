@@ -133,7 +133,7 @@
               <h3>${s.name}</h3>
             `;
             card.addEventListener("click", () => {
-              window.location.href = "schools/" + s.slug + ".html";
+              window.location.href = "school.html?school=" + s.slug;
             });
             grid.appendChild(card);
           });

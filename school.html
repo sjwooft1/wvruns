@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School – WV Runs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <img id="school-logo" src="" alt="School Logo" class="team-logo" style="height: 60px; display: none;" />
+      <h1 id="school-name" style="margin: 0;">Loading...</h1>
+    </div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="schools.html">Schools</a>
+      <a href="meets.html">Meets</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="team-intro">
+      <h2>About the Team</h2>
+      <p id="school-description">Loading school information...</p>
+    </section>
+
+    <section class="roster">
+      <h2>Roster</h2>
+      <div id="roster-loading">Loading roster...</div>
+      <table id="roster-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Grade</th>
+            <th>Gender</th>
+          </tr>
+        </thead>
+        <tbody id="roster-tbody">
+        </tbody>
+      </table>
+      <p id="no-athletes" style="display: none;"><em>No athletes found. Add them via the admin page.</em></p>
+    </section>
+
+    <section class="events">
+      <h2>Recent Meets & Results</h2>
+      <ul id="meets-list">
+        <!-- Meets will be loaded here -->
+      </ul>
+      <p>Click a meet to view full results. More data will be loaded dynamically.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+  </footer>
+
+  <!-- Supabase Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Configuration -->
+  <script src="supabase-config.js"></script>
+  
+  <script>
+    // Get school slug from URL parameter
+    function getSchoolSlug() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('school');
+    }
+
+    // Load school information from Supabase
+    async function loadSchoolInfo() {
+      const schoolSlug = getSchoolSlug();
+      
+      if (!schoolSlug) {
+        document.getElementById('school-name').textContent = 'School Not Found';
+        document.getElementById('school-description').textContent = 'Please select a school from the schools page.';
+        return null;
+      }
+
+      try {
+        // Try to load from Supabase first
+        const { data: schools, error: schoolError } = await supabase
+          .from('schools')
+          .select('*')
+          .eq('slug', schoolSlug)
+          .single();
+
+        let schoolData = null;
+
+        if (!schoolError && schools) {
+          schoolData = schools;
+        } else {
+          // Fallback to local JSON
+          const response = await fetch('data/schools.json');
+          const allSchools = await response.json();
+          schoolData = allSchools.find(s => s.slug === schoolSlug);
+        }
+
+        if (schoolData) {
+          document.getElementById('school-name').textContent = schoolData.name;
+          document.getElementById('school-description').textContent = `The ${schoolData.name} team represents ${schoolData.name} in West Virginia.`;
+          
+          // Try to load school logo
+          const logo = document.getElementById('school-logo');
+          logo.src = `assets/team logos/${schoolSlug}.png`;
+          logo.alt = `${schoolData.name} Logo`;
+          logo.onerror = function() {
+            // Logo not found, hide it
+            this.style.display = 'none';
+          };
+          logo.onload = function() {
+            this.style.display = 'block';
+          };
+        } else {
+          document.getElementById('school-name').textContent = 'School Not Found';
+          document.getElementById('school-description').textContent = 'This school does not exist.';
+        }
+
+        return schoolSlug;
+      } catch (error) {
+        console.error('Error loading school info:', error);
+        document.getElementById('school-name').textContent = 'Error Loading School';
+        return null;
+      }
+    }
+
+    // Load meets for the school
+    async function loadMeets(schoolSlug) {
+      try {
+        // First, get results for this school to find which meets they participated in
+        const { data: results, error: resultsError } = await supabase
+          .from('results')
+          .select('meet_slug')
+          .eq('school_slug', schoolSlug);
+        
+        if (resultsError || !results || results.length === 0) {
+          document.getElementById('meets-list').innerHTML = '<li>No meets yet. Add results via the admin page.</li>';
+          return;
+        }
+
+        // Get unique meet slugs
+        const meetSlugs = [...new Set(results.map(r => r.meet_slug).filter(Boolean))];
+        
+        if (meetSlugs.length === 0) {
+          document.getElementById('meets-list').innerHTML = '<li>No meets yet. Add results via the admin page.</li>';
+          return;
+        }
+
+        // Load meet details
+        const { data: meets, error } = await supabase
+          .from('meets')
+          .select('*')
+          .in('slug', meetSlugs)
+          .order('date', { ascending: false })
+          .limit(5);
+        
+        if (error) {
+          console.error('Error loading meets:', error);
+          document.getElementById('meets-list').innerHTML = '<li>Error loading meets</li>';
+          return;
+        }
+        
+        const meetsList = document.getElementById('meets-list');
+        meetsList.innerHTML = ''; // Clear existing content
+        
+        if (meets && meets.length > 0) {
+          meets.forEach(meet => {
+            const li = document.createElement('li');
+            const date = meet.date ? new Date(meet.date).toLocaleDateString() : 'Date TBD';
+            li.innerHTML = `
+              <strong>${meet.name}</strong> 
+              ${meet.location ? `— Location: ${meet.location}` : ''} 
+              — Date: ${date}
+            `;
+            meetsList.appendChild(li);
+          });
+        } else {
+          meetsList.innerHTML = '<li>No meets found for this school.</li>';
+        }
+      } catch (error) {
+        console.error('Error loading meets:', error);
+        document.getElementById('meets-list').innerHTML = '<li>Error loading meets</li>';
+      }
+    }
+
+    // Load athletes roster
+    async function loadRoster(schoolSlug) {
+      try {
+        const { data: athletes, error } = await supabase
+          .from('athletes')
+          .select('*')
+          .eq('school_slug', schoolSlug)
+          .order('name');
+        
+        if (error) {
+          console.error('Error loading athletes:', error);
+          document.getElementById('roster-loading').textContent = 'Error loading roster';
+          return;
+        }
+        
+        const tbody = document.getElementById('roster-tbody');
+        const loadingDiv = document.getElementById('roster-loading');
+        const table = document.getElementById('roster-table');
+        const noAthletes = document.getElementById('no-athletes');
+        
+        if (athletes && athletes.length > 0) {
+          tbody.innerHTML = ''; // Clear any existing rows
+          athletes.forEach(athlete => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${athlete.name}</td>
+              <td>${athlete.grade || 'N/A'}</td>
+              <td>${athlete.gender || 'N/A'}</td>
+            `;
+            tbody.appendChild(row);
+          });
+          
+          loadingDiv.style.display = 'none';
+          table.style.display = 'table';
+        } else {
+          loadingDiv.style.display = 'none';
+          noAthletes.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error loading roster:', error);
+        document.getElementById('roster-loading').textContent = 'Error loading roster';
+      }
+    }
+
+    // Initialize page
+    async function init() {
+      const schoolSlug = await loadSchoolInfo();
+      if (schoolSlug) {
+        loadRoster(schoolSlug);
+        loadMeets(schoolSlug);
+      } else {
+        document.getElementById('roster-loading').style.display = 'none';
+      }
+    }
+
+    // Run when page loads
+    init();
+  </script>
+</body>
+</html>
+

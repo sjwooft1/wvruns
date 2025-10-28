@@ -1,0 +1,53 @@
+-- Copy everything below and paste into Supabase SQL Editor
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS schools (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS meets (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  date DATE NOT NULL,
+  location TEXT,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS athletes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  school_slug TEXT REFERENCES schools(slug) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  grade INTEGER,
+  gender TEXT CHECK (gender IN ('M', 'F')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS results (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  meet_slug TEXT REFERENCES meets(slug) ON DELETE SET NULL,
+  school_slug TEXT REFERENCES schools(slug) ON DELETE SET NULL,
+  athlete_name TEXT NOT NULL,
+  time DECIMAL(10, 2),
+  distance DECIMAL(5, 2),
+  place INTEGER,
+  gender TEXT CHECK (gender IN ('M', 'F')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+INSERT INTO schools (name, slug) VALUES
+  ('Morgantown High', 'morgantown'),
+  ('University High', 'university-high'),
+  ('Bridgeport High', 'bridgeport'),
+  ('Parkersburg High', 'parkersburg')
+ON CONFLICT (slug) DO NOTHING;
+
+ALTER TABLE schools DISABLE ROW LEVEL SECURITY;
+ALTER TABLE meets DISABLE ROW LEVEL SECURITY;
+ALTER TABLE athletes DISABLE ROW LEVEL SECURITY;
+ALTER TABLE results DISABLE ROW LEVEL SECURITY;
+
