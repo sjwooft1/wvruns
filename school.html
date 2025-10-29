@@ -16,7 +16,6 @@
       <a href="home.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
-      <a href="admin.html">Admin</a>
     </nav>
   </header>
 
@@ -60,8 +59,24 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Configuration -->
   <script src="supabase-config.js"></script>
-  
   <script>
+    const USE_WORD_GRADE_LABELS = false;
+
+    // Convert graduation year to grade label (9th–12th or words) based on current academic year
+    function formatGrade(gradYear) {
+      if (!gradYear) return 'N/A';
+      const yearNum = parseInt(gradYear, 10);
+      if (Number.isNaN(yearNum)) return 'N/A';
+      const now = new Date();
+      const month = now.getMonth(); // 0=Jan ... 11=Dec
+      const currentYear = now.getFullYear();
+      const academicEndYear = month >= 7 ? currentYear + 1 : currentYear;
+      const gradeNum = 12 - (yearNum - academicEndYear);
+      const numLabels = { 9: '9th', 10: '10th', 11: '11th', 12: '12th' };
+      const wordLabels = { 9: 'Freshman', 10: 'Sophomore', 11: 'Junior', 12: 'Senior' };
+      const dict = USE_WORD_GRADE_LABELS ? wordLabels : numLabels;
+      return dict[gradeNum] || 'N/A';
+    }
     // Get school slug from URL parameter
     function getSchoolSlug() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -169,7 +184,7 @@
             const li = document.createElement('li');
             const date = meet.date ? new Date(meet.date).toLocaleDateString() : 'Date TBD';
             li.innerHTML = `
-              <strong>${meet.name}</strong> 
+              <a href="meet.html?slug=${meet.slug}" style="font-weight:bold">${meet.name}</a>
               ${meet.location ? `— Location: ${meet.location}` : ''} 
               — Date: ${date}
             `;
@@ -210,7 +225,7 @@
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>${athlete.name}</td>
-              <td>${athlete.grade || 'N/A'}</td>
+              <td>${formatGrade(athlete.grade)}</td>
               <td>${athlete.gender || 'N/A'}</td>
             `;
             tbody.appendChild(row);

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Meet Results</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <a href="meets.html">← Back to Meets</a>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="schools.html">Schools</a>
+      <a href="meets.html">Meets</a>
+    </nav>
+  </header>
+  <main>
+    <h1 id="meet-title">Meet Results</h1>
+    <div id="meet-meta"></div>
+    <div id="error" style="color:red;display:none;"></div>
+    <div id="results-box"></div>
+  </main>
+  <footer>
+    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    async function getMeetBySlug(slug) {
+      const { data, error } = await supabase.from('meets').select('*').eq('slug', slug).single();
+      if (error) return null;
+      return data;
+    }
+    async function getResultsByMeet(meetSlug) {
+      const { data, error } = await supabase.from('results').select('*').eq('meet_slug', meetSlug);
+      if (error) return [];
+      return data || [];
+    }
+    function formatTime(seconds) {
+      if (!seconds && seconds !== 0) return '';
+      const sec = Number(seconds);
+      if (Number.isNaN(sec)) return seconds;
+      const ms = Math.floor((sec % 1) * 100);
+      const totalSeconds = Math.floor(sec);
+      const minutes = Math.floor(totalSeconds / 60);
+      const remainingSeconds = totalSeconds % 60;
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+    }
+    function renderTable(title, rows) {
+      if (!rows.length) return '';
+      // sort by place (asc when present), then by time (asc)
+      const sorted = [...rows].sort((a,b)=>{
+        const ap = a.place ? Number(a.place) : null;
+        const bp = b.place ? Number(b.place) : null;
+        if (ap && bp) return ap - bp;
+        if (ap && !bp) return -1;
+        if (!ap && bp) return 1;
+        const at = Number(a.time);
+        const bt = Number(b.time);
+        if (!Number.isNaN(at) && !Number.isNaN(bt)) return at - bt;
+        return 0;
+      });
+      const body = sorted.map(r => `
+        <tr>
+          <td>${r.athlete_name || ''}</td>
+          <td>${r.school_slug || ''}</td>
+          <td>${r.gender || ''}</td>
+          <td>${formatTime(r.time)}</td>
+          <td>${r.distance || ''}</td>
+          <td>${r.place || ''}</td>
+        </tr>
+      `).join('');
+      return `
+        <section style="margin: 1.5em 0;">
+          <h2>${title}</h2>
+          <table border="1" style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th>Athlete</th>
+                <th>School</th>
+                <th>Gender</th>
+                <th>Time</th>
+                <th>Distance</th>
+                <th>Place</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        </section>
+      `;
+    }
+    async function loadMeetPage() {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get('slug');
+      const errorDiv = document.getElementById('error');
+      if (!slug) {
+        errorDiv.textContent = 'No meet specified!';
+        errorDiv.style.display = '';
+        return;
+      }
+      const meet = await getMeetBySlug(slug);
+      if (!meet) {
+        errorDiv.textContent = 'Meet not found!';
+        errorDiv.style.display = '';
+        return;
+      }
+      document.getElementById('meet-title').textContent = meet.name || slug;
+      document.getElementById('meet-meta').innerHTML = `
+        ${meet.date ? 'Date: ' + new Date(meet.date).toLocaleDateString() + '<br>' : ''}
+        ${meet.location ? 'Location: ' + meet.location + '<br>' : ''}
+        ${meet.description ? meet.description + '<br>' : ''}
+      `;
+      const results = await getResultsByMeet(slug);
+      const container = document.getElementById('results-box');
+      if (!results.length) {
+        container.innerHTML = '<p>No results for this meet.</p>';
+        return;
+      }
+      const male = results.filter(r => (r.gender || '').toString().toUpperCase() === 'M');
+      const female = results.filter(r => (r.gender || '').toString().toUpperCase() === 'F');
+      const other = results.filter(r => !r.gender || !['M','F'].includes(r.gender.toString().toUpperCase()));
+      let html = '';
+      html += renderTable('Male Results', male);
+      html += renderTable('Female Results', female);
+      if (!male.length && !female.length) {
+        html += renderTable('Results', other);
+      }
+      container.innerHTML = html || '<p>No results for this meet.</p>';
+    }
+    loadMeetPage();
+  </script>
+</body>
+</html>

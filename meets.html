@@ -14,26 +14,51 @@
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
       <a href="rankings.html">Rankings</a>
-      <a href="admin.html">Admin</a>
     </nav>
   </header>
-
   <main>
     <h1>Meets</h1>
     <p>Browse all cross country and track meets in West Virginia.</p>
-    <div id="meets-list"></div>
+    <div id="meets-list">Loading meets...</div>
   </main>
-
   <footer>
     <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
   </footer>
-
-  <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Supabase Configuration -->
   <script src="supabase-config.js"></script>
-  <!-- Application Script -->
-  <script src="script.js"></script>
+  <script>
+    async function loadMeets() {
+      const container = document.getElementById('meets-list');
+      try {
+        const { data, error } = await supabase
+          .from('meets')
+          .select('*')
+          .order('date', { ascending: false });
+        if (error) throw error;
+        const meets = data || [];
+        if (!meets.length) {
+          container.innerHTML = '<p>No meets found.</p>';
+          return;
+        }
+        container.innerHTML = '<ul style="list-style:none; padding:0; margin:0;">' +
+          meets.map(meet => {
+            const date = meet.date ? new Date(meet.date).toLocaleDateString() : 'Date TBD';
+            const location = meet.location ? ` — ${meet.location}` : '';
+            return `
+              <li style="margin-bottom: 1em;">
+                <a href="meet.html?slug=${meet.slug}" style="font-weight:bold; font-size:1.1em;">${meet.name}</a>
+                <div style="color:#666;">${date}${location}</div>
+                ${meet.description ? `<div style=\"color:#888; font-size:.95em;\">${meet.description}</div>` : ''}
+              </li>
+            `;
+          }).join('') + '</ul>';
+      } catch (e) {
+        console.error('Error loading meets:', e);
+        container.innerHTML = '<p>Error loading meets.</p>';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadMeets);
+  </script>
 </body>
 </html>
 

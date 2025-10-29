@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rankings – WV Runs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="schools.html">Schools</a>
+      <a href="meets.html">Meets</a>
+      <a href="rankings.html">Rankings</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Statewide Rankings</h1>
+    <p>Fastest overall times recorded in the database.</p>
+    <section style="margin-bottom:2em;">
+      <h2>Male Leaderboard</h2>
+      <div id="male-loading">Loading...</div>
+      <table id="male-table" style="display:none; width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Athlete</th>
+            <th>School</th>
+            <th>Time</th>
+            <th>Meet</th>
+            <th>Distance</th>
+            <th>Place</th>
+          </tr>
+        </thead>
+        <tbody id="male-tbody"></tbody>
+      </table>
+      <div id="male-empty" style="display:none;color:#888;">No male results found.</div>
+    </section>
+    <section>
+      <h2>Female Leaderboard</h2>
+      <div id="female-loading">Loading...</div>
+      <table id="female-table" style="display:none; width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Athlete</th>
+            <th>School</th>
+            <th>Time</th>
+            <th>Meet</th>
+            <th>Distance</th>
+            <th>Place</th>
+          </tr>
+        </thead>
+        <tbody id="female-tbody"></tbody>
+      </table>
+      <div id="female-empty" style="display:none;color:#888;">No female results found.</div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    function formatTime(val) {
+      if (!val && val !== 0) return '';
+      const sec = Number(val);
+      if (Number.isNaN(sec)) return val;
+      const minutes = Math.floor(sec / 60);
+      const seconds = Math.floor(sec % 60);
+      const ms = Math.round((sec - Math.floor(sec)) * 100);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+    }
+    async function fetchMany(gender) {
+      // Fetch a larger set, then refine client-side
+      const { data, error } = await supabase
+        .from('results')
+        .select('*')
+        .eq('gender', gender)
+        .not('time', 'is', null)
+        .limit(2000); // safety cap
+      if (error) return [];
+      return data || [];
+    }
+    function bestPerAthlete(rows, topN = 50) {
+      const valid = rows.filter(r => {
+        const t = Number(r.time);
+        return !Number.isNaN(t) && t > 0;
+      });
+      valid.sort((a,b) => Number(a.time) - Number(b.time));
+      const seen = new Set();
+      const best = [];
+      for (const r of valid) {
+        const key = (r.athlete_name || '').toLowerCase();
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        best.push(r);
+        if (best.length >= topN) break;
+      }
+      return best;
+    }
+    async function loadRankings() {
+      // Male
+      const maleLoading = document.getElementById('male-loading');
+      const maleTable = document.getElementById('male-table');
+      const maleTbody = document.getElementById('male-tbody');
+      const maleEmpty = document.getElementById('male-empty');
+      const maleRows = await fetchMany('M');
+      const maleBest = bestPerAthlete(maleRows, 50);
+      if (!maleBest.length) {
+        maleLoading.style.display = 'none';
+        maleEmpty.style.display = '';
+      } else {
+        maleLoading.style.display = 'none';
+        maleTable.style.display = '';
+        maleTbody.innerHTML = maleBest.map((r, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${r.athlete_name || ''}</td>
+            <td>${r.school_slug || ''}</td>
+            <td>${formatTime(r.time)}</td>
+            <td><a href="meet.html?slug=${r.meet_slug}">${r.meet_slug || ''}</a></td>
+            <td>${r.distance || ''}</td>
+            <td>${r.place || ''}</td>
+          </tr>
+        `).join('');
+      }
+      // Female
+      const femaleLoading = document.getElementById('female-loading');
+      const femaleTable = document.getElementById('female-table');
+      const femaleTbody = document.getElementById('female-tbody');
+      const femaleEmpty = document.getElementById('female-empty');
+      const femaleRows = await fetchMany('F');
+      const femaleBest = bestPerAthlete(femaleRows, 50);
+      if (!femaleBest.length) {
+        femaleLoading.style.display = 'none';
+        femaleEmpty.style.display = '';
+      } else {
+        femaleLoading.style.display = 'none';
+        femaleTable.style.display = '';
+        femaleTbody.innerHTML = femaleBest.map((r, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${r.athlete_name || ''}</td>
+            <td>${r.school_slug || ''}</td>
+            <td>${formatTime(r.time)}</td>
+            <td><a href="meet.html?slug=${r.meet_slug}">${r.meet_slug || ''}</a></td>
+            <td>${r.distance || ''}</td>
+            <td>${r.place || ''}</td>
+          </tr>
+        `).join('');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadRankings);
+  </script>
+</body>
+</html>

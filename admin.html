@@ -196,7 +196,6 @@
       <a href="home.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
-      <a href="admin.html">Admin</a>
     </nav>
   </header>
 
@@ -213,6 +212,7 @@
         <button class="tab" onclick="showTab('meets')">Meets</button>
         <button class="tab" onclick="showTab('athletes')">Athletes</button>
         <button class="tab" onclick="showTab('results')">Results</button>
+        <button class="tab" onclick="showTab('csv-import')">CSV Import</button>
       </div>
 
       <!-- Schools Tab -->
@@ -376,6 +376,41 @@
           <div id="results-list"></div>
         </div>
       </div>
+
+      <!-- CSV Import Tab -->
+      <div id="csv-import" class="tab-content">
+        <div class="form-section">
+          <h3>Import Meet Results from CSV</h3>
+          <p>Simple import using the exact headers from your RunWV CSV.</p>
+          <p><strong>Required CSV header row (exact order):</strong></p>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li><strong>athlete_name</strong></li>
+            <li><strong>school_slug</strong></li>
+            <li><strong>gender</strong></li>
+            <li><strong>time</strong></li>
+            <li><strong>distance</strong></li>
+            <li><strong>place</strong></li>
+          </ul>
+
+          <div class="form-group">
+            <label>Meet Slug *</label>
+            <input type="text" id="simple-meet-slug" required placeholder="e.g., state-championship-2025" />
+            <small style="color: #666; margin-top: 5px; display: block;"><a href="#" onclick="loadExistingMeets()">Check existing meets</a></small>
+          </div>
+
+          <div class="form-group">
+            <label>CSV File *</label>
+            <input type="file" id="simple-csv-file" accept=".csv" required />
+          </div>
+
+          <button type="button" class="btn btn-primary" onclick="simpleImportCSV()">Import Results</button>
+        </div>
+
+        <div class="data-list">
+          <h3>Import Status</h3>
+          <div id="import-status"></div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -387,8 +422,40 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Configuration -->
   <script src="supabase-config.js"></script>
+  <!-- Supabase Helpers -->
+  <script src="supabase-helpers.js"></script>
   
   <script>
+    // Simple password gate (no storage)
+    (function requirePassword() {
+      const pass = prompt('Enter admin password:');
+      if (pass !== 'phsisbest') {
+        alert('Access denied.');
+        window.location.replace('home.html');
+      }
+    })();
+  </script>
+  <script>
+    // Toggle: set to true to show word labels (freshman–senior)
+    const USE_WORD_GRADE_LABELS = false;
+
+    // Convert graduation year to grade label (9th–12th or words) based on current academic year
+    function formatGrade(gradYear) {
+      if (!gradYear) return 'N/A';
+      const yearNum = parseInt(gradYear, 10);
+      if (Number.isNaN(yearNum)) return 'N/A';
+      const now = new Date();
+      const month = now.getMonth(); // 0=Jan ... 11=Dec
+      const currentYear = now.getFullYear();
+      // Academic year ends the next calendar year if it's Aug (7) or later
+      const academicEndYear = month >= 7 ? currentYear + 1 : currentYear;
+      const gradeNum = 12 - (yearNum - academicEndYear);
+      const numLabels = { 9: '9th', 10: '10th', 11: '11th', 12: '12th' };
+      const wordLabels = { 9: 'Freshman', 10: 'Sophomore', 11: 'Junior', 12: 'Senior' };
+      const dict = USE_WORD_GRADE_LABELS ? wordLabels : numLabels;
+      return dict[gradeNum] || 'N/A';
+    }
+
     // Initialize data on load
     document.addEventListener('DOMContentLoaded', () => {
       loadSchools();
@@ -436,6 +503,7 @@
       
       schoolSelects.forEach(selectId => {
         const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select a school...</option>';
         schools?.forEach(school => {
           const option = document.createElement('option');
           option.value = school.slug;
@@ -447,6 +515,7 @@
       // Load meets for selects
       const { data: meets } = await supabase.from('meets').select('*').order('date', { ascending: false });
       const meetSelect = document.getElementById('result-meet');
+      meetSelect.innerHTML = '<option value="">Select a meet...</option>';
       meets?.forEach(meet => {
         const option = document.createElement('option');
         option.value = meet.slug;
@@ -645,7 +714,7 @@
         item.innerHTML = `
           <div class="data-item-info">
             <h4>${athlete.name}</h4>
-            <p>Grade: ${athlete.grade || 'N/A'} | Gender: ${athlete.gender || 'N/A'}</p>
+            <p>Grade: ${formatGrade(athlete.grade)} | Gender: ${athlete.gender || 'N/A'}</p>
             <p>School: ${athlete.school_slug || 'N/A'}</p>
           </div>
           <div class="data-item-actions">
@@ -823,6 +892,270 @@
         loadResults();
       }
     };
+
+    // ===== CSV IMPORT ENHANCED =====
+    function humanizeSlug(slug) {
+      if (!slug) return '';
+      return slug
+        .toString()
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+    }
+
+    async function ensureSchoolExists(schoolSlug, knownSchools) {
+      if (!schoolSlug) return true;
+      if (knownSchools.has(schoolSlug)) return true;
+      // Check existence first
+      const { data: existing, error: selectErr } = await supabase
+        .from('schools')
+        .select('slug')
+        .eq('slug', schoolSlug)
+        .limit(1);
+      if (!selectErr && existing && existing.length) {
+        knownSchools.add(schoolSlug);
+        return true;
+      }
+      // Insert only if not found
+      const name = humanizeSlug(schoolSlug);
+      const { error: insertErr } = await supabase.from('schools').insert({ name, slug: schoolSlug });
+      if (!insertErr) {
+        knownSchools.add(schoolSlug);
+        return true;
+      }
+      return false;
+    }
+
+    async function ensureAthleteExists(athleteName, schoolSlug, knownAthletes) {
+      if (!athleteName) return true;
+      const key = `${athleteName}||${schoolSlug || ''}`;
+      if (knownAthletes.has(key)) return true;
+      // Check existence first
+      const { data: existing, error: selectErr } = await supabase
+        .from('athletes')
+        .select('name, school_slug')
+        .eq('name', athleteName)
+        .eq('school_slug', schoolSlug || null)
+        .limit(1);
+      if (!selectErr && existing && existing.length) {
+        knownAthletes.add(key);
+        return true;
+      }
+      // Insert only if not found
+      const { error: insertErr } = await supabase
+        .from('athletes')
+        .insert({ name: athleteName, school_slug: schoolSlug || null });
+      if (!insertErr) {
+        knownAthletes.add(key);
+        return true;
+      }
+      return false;
+    }
+
+    async function bulkInsertResults(meetSlug, csvData) {
+      const results = { success: 0, errors: [], total: csvData.length };
+
+      // Fetch known schools and athletes into sets for quick checks
+      const { data: schoolRows } = await supabase.from('schools').select('slug');
+      const knownSchools = new Set((schoolRows || []).map(s => s.slug));
+
+      // Athletes set: we will grow it as we insert to avoid huge initial fetch; but seed with a small snapshot
+      const { data: athleteRows } = await supabase.from('athletes').select('name, school_slug').limit(5000);
+      const knownAthletes = new Set((athleteRows || []).map(a => `${a.name}||${a.school_slug || ''}`));
+
+      const requiredFields = ['athlete_name'];
+      const validRows = [];
+
+      for (let i = 0; i < csvData.length; i++) {
+        const row = { ...csvData[i] };
+        const missingFields = requiredFields.filter(field => !row[field]);
+        if (missingFields.length > 0) {
+          results.errors.push(`Row ${i + 1}: Missing required fields: ${missingFields.join(', ')}`);
+          continue;
+        }
+
+        // Ensure school exists
+        if (row.school_slug) {
+          const okSchool = await ensureSchoolExists(row.school_slug, knownSchools);
+          if (!okSchool) {
+            results.errors.push(`Row ${i + 1}: Unable to create or find school '${row.school_slug}'.`);
+            continue;
+          }
+        }
+
+        // Ensure athlete exists
+        const okAthlete = await ensureAthleteExists(row.athlete_name, row.school_slug || null, knownAthletes);
+        if (!okAthlete) {
+          results.errors.push(`Row ${i + 1}: Unable to create or find athlete '${row.athlete_name}'.`);
+          continue;
+        }
+
+        // Attach meet slug
+        row.meet_slug = meetSlug;
+
+        // Convert numeric fields (time, distance, place)
+        if (row.time) {
+          const parsed = parseTimeToSeconds(row.time);
+          if (isNaN(parsed)) {
+            results.errors.push(`Row ${i + 1}: Invalid time value: ${row.time}`);
+            continue;
+          }
+          row.time = Math.round(parsed * 100) / 100;
+          if (row.time > 36000) {
+            results.errors.push(`Row ${i + 1}: Time seems unusually long (${row.time}s).`);
+            continue;
+          }
+        }
+        if (row.distance) {
+          const d = parseFloat(row.distance);
+          if (isNaN(d)) {
+            results.errors.push(`Row ${i + 1}: Invalid distance value: ${row.distance}`);
+            continue;
+          }
+          row.distance = d;
+        }
+        if (row.place) {
+          const p = parseInt(row.place, 10);
+          if (isNaN(p)) {
+            results.errors.push(`Row ${i + 1}: Invalid place value: ${row.place}`);
+            continue;
+          }
+          row.place = p;
+        }
+        if (row.gender) {
+          const g = row.gender.toString().toUpperCase();
+          if (!['M', 'F'].includes(g)) {
+            results.errors.push(`Row ${i + 1}: Invalid gender value: ${row.gender}`);
+            continue;
+          }
+          row.gender = g;
+        }
+
+        validRows.push(row);
+      }
+
+      if (validRows.length === 0) return results;
+
+      const { error } = await supabase.from('results').insert(validRows);
+      if (error) {
+        results.errors.push(`Database error inserting results: ${error.message}`);
+      } else {
+        results.success = validRows.length;
+      }
+      return results;
+    }
+
+    function displayImportResults(result) {
+      const statusDiv = document.getElementById('import-status');
+      let html = `
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <h4>Import Summary</h4>
+          <p><strong>Total rows processed:</strong> ${result.total}</p>
+          <p><strong>Successfully imported:</strong> ${result.success}</p>
+          <p><strong>Errors:</strong> ${result.errors.length}</p>
+        </div>
+      `;
+      if (result.errors.length > 0) {
+        html += `
+          <div style="background: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb;">
+            <h4 style="color: #721c24; margin-top: 0;">Import Errors</h4>
+            <ul style="color: #721c24; margin: 0;">
+              ${result.errors.map(e => `<li>${e}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+      statusDiv.innerHTML = html;
+    }
+
+    async function simpleImportCSV() {
+      const meetSlug = document.getElementById('simple-meet-slug').value;
+      const fileInput = document.getElementById('simple-csv-file');
+
+      if (!meetSlug || !fileInput.files[0]) {
+        showStatus('Enter a meet slug and choose a CSV file.', 'error');
+        return;
+      }
+
+      try {
+        showStatus('Importing CSV...', 'info');
+        const file = fileInput.files[0];
+        const csvText = await readFileAsText(file);
+
+        const headers = ['athlete_name','school_slug','gender','time','distance','place'];
+        const csvData = parseCSVStrict(csvText, headers);
+
+        if (csvData.length === 0) {
+          showStatus('No valid data found in CSV file.', 'error');
+          return;
+        }
+
+        const importResult = await bulkInsertResults(meetSlug, csvData);
+        displayImportResults(importResult);
+
+        if (importResult.success > 0) {
+          showStatus(`Successfully imported ${importResult.success} results for meet "${meetSlug}"!`, 'success');
+          document.getElementById('simple-meet-slug').value = '';
+          document.getElementById('simple-csv-file').value = '';
+          loadResults();
+        }
+      } catch (error) {
+        console.error('CSV import error:', error);
+        showStatus(`Error importing CSV: ${error.message}`, 'error');
+      }
+    }
+
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = e => reject(e);
+        reader.readAsText(file);
+      });
+    }
+
+    function parseCSVStrict(csvText, headers) {
+      const lines = csvText.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headerRow = lines[0].trim();
+      const fileHeaders = headerRow.split(',').map(h => h.trim());
+      const expected = headers.join(',');
+      if (fileHeaders.join(',') !== expected) {
+        throw new Error(`CSV headers must be exactly: ${expected}`);
+      }
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        if (values.length !== headers.length) continue;
+        const row = {};
+        headers.forEach((h, idx) => { row[h] = values[idx] || null; });
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function parseTimeToSeconds(timeStr) {
+      if (!timeStr) return null;
+      const str = timeStr.toString().trim();
+      if (!isNaN(str) && !str.includes(':')) return parseFloat(str);
+      if (str.includes(':')) {
+        const parts = str.split(':');
+        if (parts.length === 2) {
+          const minutes = parseInt(parts[0]);
+          const seconds = parseFloat(parts[1]);
+          return (minutes * 60) + seconds;
+        }
+        if (parts.length === 3) {
+          const hours = parseInt(parts[0]);
+          const minutes = parseInt(parts[1]);
+          const seconds = parseFloat(parts[2]);
+          return (hours * 3600) + (minutes * 60) + seconds;
+        }
+      }
+      return NaN;
+    }
   </script>
 </body>
 </html>
