@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Management – WV Runs</title>
+  <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
+  <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .admin-container {
@@ -196,6 +201,7 @@
       <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
+      <a href="csv genorater.html" target="_blank">CSV Generator</a>
     </nav>
   </header>
 
@@ -381,6 +387,10 @@
       <div id="csv-import" class="tab-content">
         <div class="form-section">
           <h3>Import Meet Results from CSV</h3>
+          <p style="background: #e3f2fd; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+            <strong>📋 Need to convert RunWV results to CSV format?</strong> 
+            <a href="csv genorater.html" target="_blank" style="color: #1976d2; font-weight: bold; text-decoration: underline;">Use the CSV Generator tool →</a>
+          </p>
           <p>Simple import using the exact headers from your RunWV CSV.</p>
           <p><strong>Required CSV header row (exact order):</strong></p>
           <ul style="margin: 10px 0; padding-left: 20px;">
@@ -926,25 +936,37 @@
       return false;
     }
 
-    async function ensureAthleteExists(athleteName, schoolSlug, knownAthletes) {
+    async function ensureAthleteExists(athleteName, schoolSlug, knownAthletes, gender = null) {
       if (!athleteName) return true;
       const key = `${athleteName}||${schoolSlug || ''}`;
       if (knownAthletes.has(key)) return true;
       // Check existence first
       const { data: existing, error: selectErr } = await supabase
         .from('athletes')
-        .select('name, school_slug')
+        .select('name, school_slug, gender')
         .eq('name', athleteName)
         .eq('school_slug', schoolSlug || null)
         .limit(1);
       if (!selectErr && existing && existing.length) {
+        // If athlete exists but doesn't have gender and we have gender from CSV, update it
+        if (gender && !existing[0].gender) {
+          await supabase
+            .from('athletes')
+            .update({ gender: gender.toUpperCase() })
+            .eq('name', athleteName)
+            .eq('school_slug', schoolSlug || null);
+        }
         knownAthletes.add(key);
         return true;
       }
       // Insert only if not found
+      const athleteData = { name: athleteName, school_slug: schoolSlug || null };
+      if (gender) {
+        athleteData.gender = gender.toUpperCase();
+      }
       const { error: insertErr } = await supabase
         .from('athletes')
-        .insert({ name: athleteName, school_slug: schoolSlug || null });
+        .insert(athleteData);
       if (!insertErr) {
         knownAthletes.add(key);
         return true;
@@ -983,8 +1005,9 @@
           }
         }
 
-        // Ensure athlete exists
-        const okAthlete = await ensureAthleteExists(row.athlete_name, row.school_slug || null, knownAthletes);
+        // Ensure athlete exists (pass gender from CSV)
+        const genderFromCSV = row.gender ? row.gender.toString().toUpperCase() : null;
+        const okAthlete = await ensureAthleteExists(row.athlete_name, row.school_slug || null, knownAthletes, genderFromCSV);
         if (!okAthlete) {
           results.errors.push(`Row ${i + 1}: Unable to create or find athlete '${row.athlete_name}'.`);
           continue;

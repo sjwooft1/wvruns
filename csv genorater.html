@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RunWV Results Converter</title>
+<link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
+<link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
+<link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #fafafa;
+    color: #222;
+    margin: 0;
+    padding: 0;
+  }
+  main {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  textarea {
+    width: 100%;
+    height: 250px;
+    font-family: monospace;
+    margin-bottom: 1rem;
+  }
+  button {
+    background: #ff5722;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+  button:hover {
+    background: #e64a19;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 0.4rem 0.6rem;
+  }
+  th {
+    background: #f0f0f0;
+  }
+  #gender {
+    padding: 0.4rem;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="schools.html">Schools</a>
+      <a href="meets.html">Meets</a>
+      <a href="rankings.html">Rankings</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>RunWV Results Converter</h1>
+<p>Paste the race results below and click <strong>Convert</strong>.</p>
+
+<label>Gender:
+  <select id="gender">
+    <option value="F">Female</option>
+    <option value="M">Male</option>
+  </select>
+</label>
+<br><br>
+
+<textarea id="input" placeholder="Paste RunWV results text here..."></textarea>
+<br>
+<button id="convertBtn">Convert</button>
+<button id="downloadBtn" style="display:none;">Download CSV</button>
+
+<table id="outputTable"></table>
+
+<script>
+const schoolOverrides = {
+  "woodrow wilson": "woodrow",
+  "park. south": "parkersburg-south",
+  "buck-upshur": "buckhannon",
+  "geo. washington": "george-washington"
+};
+
+function slugifySchool(name) {
+  const lower = name.trim().toLowerCase();
+  for (const key in schoolOverrides) {
+    if (lower.includes(key)) {
+      return schoolOverrides[key];
+    }
+  }
+  return lower.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+
+function cleanTime(timeStr) {
+  return timeStr.replace(/\*/g, '').trim();
+}
+
+document.getElementById('convertBtn').addEventListener('click', () => {
+  const text = document.getElementById('input').value.trim();
+  const gender = document.getElementById('gender').value;
+  if (!text) return alert("Please paste some data first.");
+
+  const lines = text.split('\n').filter(l => /^\d/.test(l.trim()));
+  const results = [];
+  for (const line of lines) {
+    const parts = line.trim().split(/\s{2,}|\t+/);
+    if (parts.length < 4) continue;
+
+    const place = parseInt(parts[0]);
+    const name = parts[1].trim();
+    const year = parts[2];
+    const team = parts[3].trim();
+    const time = cleanTime(parts[4] ? parts[4].trim() : parts[parts.length - 1]);
+    const schoolSlug = slugifySchool(team);
+
+    results.push({
+      athlete_name: name,
+      school_slug: schoolSlug,
+      gender: gender,
+      time: time,
+      distance: 5000,
+      place: place
+    });
+  }
+
+  const table = document.getElementById('outputTable');
+  table.innerHTML = '';
+  if (results.length === 0) {
+    table.innerHTML = '<tr><td>No results parsed.</td></tr>';
+    return;
+  }
+
+  const header = `<tr>
+    <th>athlete_name</th><th>school_slug</th><th>gender</th><th>time</th><th>distance</th><th>place</th>
+  </tr>`;
+  table.innerHTML = header + results.map(r => 
+    `<tr><td>${r.athlete_name}</td><td>${r.school_slug}</td><td>${r.gender}</td><td>${r.time}</td><td>${r.distance}</td><td>${r.place}</td></tr>`
+  ).join('');
+
+  document.getElementById('downloadBtn').style.display = 'inline-block';
+  document.getElementById('downloadBtn').onclick = () => {
+    const csv = [
+      'athlete_name,school_slug,gender,time,distance,place',
+      ...results.map(r => 
+        `${r.athlete_name},${r.school_slug},${r.gender},${r.time},${r.distance},${r.place}`
+      )
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'results.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+});
+</script>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+  </footer>
+</body>
+</html>
