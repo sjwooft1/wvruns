@@ -57,17 +57,31 @@
       border: 1px solid #ccc;
       font-size: 1em;
     }
+
+    @media (max-width: 768px) {
+      .schools-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+      }
+      .search-bar input {
+        width: 100%;
+        max-width: 300px;
+      }
+      .school-card img {
+        width: 60px;
+        height: 60px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
     <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
     <nav>
-      <a href="home.html">Home</a>
+      <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
       <a href="rankings.html">Rankings</a>
-      <a href="admin.html">Admin</a>
     </nav>
   </header>
 

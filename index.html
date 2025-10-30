@@ -10,11 +10,10 @@
   <header>
     <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
     <nav>
-      <a href="home.html">Home</a>
+      <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
       <a href="rankings.html">Rankings</a>
-      <a href="admin.html">Admin</a>
     </nav>
   </header>
 
@@ -26,7 +25,7 @@
 
     <section id="featured-meets">
       <h2>Recent Meets</h2>
-      <div id="meet-list"></div>
+      <div id="meet-list">Loading recent meets...</div>
     </section>
   </main>
 
@@ -38,7 +37,38 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Configuration -->
   <script src="supabase-config.js"></script>
-  <!-- Application Script -->
-  <script src="script.js"></script>
+  <script>
+    async function loadRecentMeets() {
+      const container = document.getElementById('meet-list');
+      try {
+        const { data, error } = await supabase
+          .from('meets')
+          .select('*')
+          .order('date', { ascending: false })
+          .limit(6);
+        if (error) throw error;
+        const meets = data || [];
+        if (!meets.length) {
+          container.innerHTML = '<p>No recent meets found.</p>';
+          return;
+        }
+        container.innerHTML = meets.map(meet => {
+          const date = meet.date ? new Date(meet.date).toLocaleDateString() : 'Date TBD';
+          const location = meet.location || '';
+          return `
+            <a href="meet.html?slug=${meet.slug}" class="meet-card">
+              <h3>${meet.name}</h3>
+              <p><strong>Date:</strong> ${date}</p>
+              ${location ? `<p><strong>Location:</strong> ${location}</p>` : ''}
+            </a>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Error loading meets:', e);
+        container.innerHTML = '<p>Error loading recent meets.</p>';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadRecentMeets);
+  </script>
 </body>
 </html>

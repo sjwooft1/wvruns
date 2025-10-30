@@ -10,7 +10,7 @@
   <header>
     <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
     <nav>
-      <a href="home.html">Home</a>
+        <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
       <a href="rankings.html">Rankings</a>
@@ -30,8 +30,6 @@
             <th>School</th>
             <th>Time</th>
             <th>Meet</th>
-            <th>Distance</th>
-            <th>Place</th>
           </tr>
         </thead>
         <tbody id="male-tbody"></tbody>
@@ -49,8 +47,6 @@
             <th>School</th>
             <th>Time</th>
             <th>Meet</th>
-            <th>Distance</th>
-            <th>Place</th>
           </tr>
         </thead>
         <tbody id="female-tbody"></tbody>
@@ -123,8 +119,6 @@
             <td>${r.school_slug || ''}</td>
             <td>${formatTime(r.time)}</td>
             <td><a href="meet.html?slug=${r.meet_slug}">${r.meet_slug || ''}</a></td>
-            <td>${r.distance || ''}</td>
-            <td>${r.place || ''}</td>
           </tr>
         `).join('');
       }
@@ -148,8 +142,6 @@
             <td>${r.school_slug || ''}</td>
             <td>${formatTime(r.time)}</td>
             <td><a href="meet.html?slug=${r.meet_slug}">${r.meet_slug || ''}</a></td>
-            <td>${r.distance || ''}</td>
-            <td>${r.place || ''}</td>
           </tr>
         `).join('');
       }
