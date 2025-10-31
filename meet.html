@@ -46,6 +46,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>
+    const schoolNameCache = {};
+    
     async function getMeetBySlug(slug) {
       const { data, error } = await supabase.from('meets').select('*').eq('slug', slug).single();
       if (error) return null;
@@ -55,6 +57,26 @@
       const { data, error } = await supabase.from('results').select('*').eq('meet_slug', meetSlug);
       if (error) return [];
       return data || [];
+    }
+    async function getSchoolNameBySlug(slug) {
+      if (!slug) return slug || '';
+      if (schoolNameCache[slug]) return schoolNameCache[slug];
+      const { data, error } = await supabase.from('schools').select('name').eq('slug', slug).single();
+      if (error || !data) {
+        schoolNameCache[slug] = slug;
+        return slug;
+      }
+      schoolNameCache[slug] = data.name;
+      return data.name;
+    }
+    async function getSchoolNames(slugs) {
+      const uniqueSlugs = [...new Set(slugs.filter(s => s))];
+      const results = await Promise.all(uniqueSlugs.map(slug => getSchoolNameBySlug(slug)));
+      const nameMap = {};
+      uniqueSlugs.forEach((slug, i) => {
+        nameMap[slug] = results[i];
+      });
+      return nameMap;
     }
     function formatTime(seconds) {
       if (!seconds && seconds !== 0) return '';
@@ -66,7 +88,96 @@
       const remainingSeconds = totalSeconds % 60;
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
     }
-    function renderTable(title, rows) {
+    function calculateTeamScores(results) {
+      // Sort by place (asc), then by time (asc) if no place
+      const sorted = [...results].sort((a,b)=>{
+        const ap = a.place ? Number(a.place) : null;
+        const bp = b.place ? Number(b.place) : null;
+        if (ap && bp) return ap - bp;
+        if (ap && !bp) return -1;
+        if (!ap && bp) return 1;
+        const at = Number(a.time);
+        const bt = Number(b.time);
+        if (!Number.isNaN(at) && !Number.isNaN(bt)) return at - bt;
+        return 0;
+      });
+      
+      // Assign place if missing (1-based, so 1st = 0 points, 2nd = 1 point, etc.)
+      let currentPlace = 1;
+      sorted.forEach((r, idx) => {
+        if (!r.place) {
+          r.place = currentPlace;
+        } else {
+          currentPlace = Number(r.place);
+        }
+        currentPlace++;
+      });
+      
+      // Group by school
+      const teams = {};
+      sorted.forEach(r => {
+        const school = r.school_slug || 'unknown';
+        if (!teams[school]) {
+          teams[school] = [];
+        }
+        teams[school].push(r);
+      });
+      
+      // Calculate scores for each team
+      const teamScores = [];
+      for (const [schoolSlug, runners] of Object.entries(teams)) {
+        // Sort runners by place
+        const sortedRunners = [...runners].sort((a, b) => Number(a.place) - Number(b.place));
+        
+        // Get top 5 scores (1st = 1, 2nd = 2, 3rd = 3, etc.)
+        const top5 = sortedRunners.slice(0, 5);
+        const top5Scores = top5.map(r => Number(r.place));
+        const top5Total = top5Scores.reduce((sum, score) => sum + score, 0);
+        
+        // Get 6th and 7th runner scores if available (for tiebreaker)
+        const sixthRunner = sortedRunners[5]; // index 5 = 6th runner (0-indexed)
+        const seventhRunner = sortedRunners[6]; // index 6 = 7th runner (0-indexed)
+        const sixthScore = sixthRunner ? Number(sixthRunner.place) : null;
+        const seventhScore = seventhRunner ? Number(seventhRunner.place) : null;
+        
+        teamScores.push({
+          schoolSlug,
+          runners: sortedRunners,
+          top5: top5,
+          top5Total,
+          sixthScore,
+          seventhScore,
+          total: top5Total
+        });
+      }
+      
+      // Check for ties and calculate 7-runner totals if needed
+      const teamScoresWithTiebreaker = teamScores.map(team => {
+        // Calculate sum of all 7 runners if available (for tiebreaker)
+        const top7 = team.runners.slice(0, 7);
+        const top7Scores = top7.map(r => Number(r.place));
+        const top7Total = top7Scores.reduce((sum, score) => sum + score, 0);
+        return {
+          ...team,
+          top7Total: top7.length >= 7 ? top7Total : null
+        };
+      });
+      
+      // Sort by total score (ascending - lower is better)
+      teamScoresWithTiebreaker.sort((a, b) => {
+        if (a.total !== b.total) return a.total - b.total;
+        // If tied on top 5, use sum of all 7 runners' scores
+        if (a.top7Total !== null && b.top7Total !== null) {
+          return a.top7Total - b.top7Total;
+        }
+        if (a.top7Total !== null) return -1;
+        if (b.top7Total !== null) return 1;
+        return 0;
+      });
+      
+      return teamScoresWithTiebreaker;
+    }
+    async function renderTable(title, rows, schoolNames) {
       if (!rows.length) return '';
       // sort by place (asc when present), then by time (asc)
       const sorted = [...rows].sort((a,b)=>{
@@ -80,34 +191,85 @@
         if (!Number.isNaN(at) && !Number.isNaN(bt)) return at - bt;
         return 0;
       });
+      
+      // Calculate team scores
+      const teamScores = calculateTeamScores(rows);
+      
       const body = sorted.map(r => `
         <tr>
-          <td>${r.athlete_name || ''}</td>
-          <td>${r.school_slug || ''}</td>
-          <td>${r.gender || ''}</td>
-          <td>${formatTime(r.time)}</td>
-          <td>${r.distance || ''}</td>
           <td>${r.place || ''}</td>
+          <td>${r.athlete_name || ''}</td>
+          <td>${schoolNames[r.school_slug] || r.school_slug || ''}</td>
+          <td>${formatTime(r.time)}</td>
         </tr>
       `).join('');
+      
+      // Create team scores table
+      let teamScoresHtml = '';
+      if (teamScores.length > 0) {
+        teamScoresHtml = `
+          <h3 style="margin-top: 1em;">Team Scores</h3>
+          <p style="font-size: 0.9em; color: #666; margin-bottom: 0.5em;">
+            *7-Runner Total is used as a tiebreaker when teams are tied on top 5 scores.
+          </p>
+          <table border="1" style="width:100%;border-collapse:collapse;margin-bottom:1em;">
+            <thead>
+              <tr>
+                <th>Place</th>
+                <th>Team</th>
+                <th>Score (Top 5)</th>
+                <th>7-Runner Total*</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${teamScores.map((team, idx) => {
+                // Check if this team is tied with the previous team
+                const isTied = idx > 0 && teamScores[idx - 1].total === team.total;
+                return `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td>${schoolNames[team.schoolSlug] || team.schoolSlug}</td>
+                  <td>${team.total}</td>
+                  <td>${team.top7Total !== null ? team.top7Total : '—'}</td>
+                </tr>
+              `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+      
       return `
         <section style="margin: 1.5em 0;">
           <h2>${title}</h2>
+          ${teamScoresHtml}
           <table border="1" style="width:100%;border-collapse:collapse;">
             <thead>
               <tr>
+                <th>Place</th>
                 <th>Athlete</th>
                 <th>School</th>
-                <th>Gender</th>
                 <th>Time</th>
-                <th>Distance</th>
-                <th>Place</th>
               </tr>
             </thead>
             <tbody>${body}</tbody>
           </table>
         </section>
       `;
+    }
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      // Parse date string in local time to avoid timezone shift
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const day = parseInt(parts[2], 10);
+        const date = new Date(year, month, day);
+        return date.toLocaleDateString();
+      }
+      // Fallback to original method if format is unexpected
+      return new Date(dateString).toLocaleDateString();
     }
     async function loadMeetPage() {
       const params = new URLSearchParams(window.location.search);
@@ -126,7 +288,7 @@
       }
       document.getElementById('meet-title').textContent = meet.name || slug;
       document.getElementById('meet-meta').innerHTML = `
-        ${meet.date ? 'Date: ' + new Date(meet.date).toLocaleDateString() + '<br>' : ''}
+        ${meet.date ? 'Date: ' + formatDate(meet.date) + '<br>' : ''}
         ${meet.location ? 'Location: ' + meet.location + '<br>' : ''}
         ${meet.description ? meet.description + '<br>' : ''}
       `;
@@ -139,11 +301,20 @@
       const male = results.filter(r => (r.gender || '').toString().toUpperCase() === 'M');
       const female = results.filter(r => (r.gender || '').toString().toUpperCase() === 'F');
       const other = results.filter(r => !r.gender || !['M','F'].includes(r.gender.toString().toUpperCase()));
+      
+      // Get all school names
+      const allSlugs = [...new Set(results.map(r => r.school_slug).filter(s => s))];
+      const schoolNames = await getSchoolNames(allSlugs);
+      
       let html = '';
-      html += renderTable('Male Results', male);
-      html += renderTable('Female Results', female);
+      if (male.length) {
+        html += await renderTable('Male Results', male, schoolNames);
+      }
+      if (female.length) {
+        html += await renderTable('Female Results', female, schoolNames);
+      }
       if (!male.length && !female.length) {
-        html += renderTable('Results', other);
+        html += await renderTable('Results', other, schoolNames);
       }
       container.innerHTML = html || '<p>No results for this meet.</p>';
     }

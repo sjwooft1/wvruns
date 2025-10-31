@@ -62,8 +62,22 @@
           container.innerHTML = '<p>No recent meets found.</p>';
           return;
         }
+        function formatDate(dateString) {
+          if (!dateString) return 'Date TBD';
+          // Parse date string in local time to avoid timezone shift
+          const parts = dateString.split('-');
+          if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+            const day = parseInt(parts[2], 10);
+            const date = new Date(year, month, day);
+            return date.toLocaleDateString();
+          }
+          // Fallback to original method if format is unexpected
+          return new Date(dateString).toLocaleDateString();
+        }
         container.innerHTML = meets.map(meet => {
-          const date = meet.date ? new Date(meet.date).toLocaleDateString() : 'Date TBD';
+          const date = formatDate(meet.date);
           const location = meet.location || '';
           return `
             <a href="meet.html?slug=${meet.slug}" class="meet-card">
