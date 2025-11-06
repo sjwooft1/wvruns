@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Management – WV Runs</title>
+  <title>Data Management – Mountain State Miles</title>
   <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
   <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
@@ -196,7 +196,7 @@
 </head>
 <body>
   <header>
-    <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
+    <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
     <nav>
       <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
@@ -304,8 +304,9 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Grade</label>
-                <input type="number" id="athlete-grade" min="2020" max="2030" />
+                <label>Grade (Graduation Year)</label>
+                <input type="number" id="athlete-grade" min="2020" max="2030" placeholder="e.g. 2026" />
+                <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">Enter the year the athlete will graduate (e.g., 2026 for a current senior)</small>
               </div>
               <div class="form-group">
                 <label>Gender</label>
@@ -425,7 +426,7 @@
   </main>
 
   <footer>
-    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
   </footer>
 
   <!-- Supabase Client Library -->

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meets – WV Runs</title>
+  <title>Meets – Mountain State Miles</title>
   <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
   <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
@@ -12,22 +12,27 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <img src="assets/Wvruns Logo.png" alt="WV Runs Logo" class="logo" />
-    <nav>
+  <div class="content-wrapper">
+    <div class="page-background"></div>
+    <img src="assets/meets background.jpg" alt="" class="page-background-image" />
+    <header>
+      <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
+      <nav>
       <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
       <a href="rankings.html">Rankings</a>
-    </nav>
-  </header>
-  <main>
-    <h1>Meets</h1>
-    <p>Browse all cross country and track meets in West Virginia.</p>
-    <div id="meets-list">Loading meets...</div>
-  </main>
+      <a href="calendar.html">Calendar</a>
+      </nav>
+    </header>
+    <main>
+      <h1>Meets</h1>
+      <p>Browse all cross country and track meets in West Virginia.</p>
+      <div id="meets-list">Loading meets...</div>
+    </main>
+  </div>
   <footer>
-    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>

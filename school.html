@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>School – WV Runs</title>
+  <title>School – Mountain State Miles</title>
   <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
   <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
@@ -12,7 +12,10 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
+  <div class="content-wrapper">
+    <div class="page-background"></div>
+    <img src="assets/meets background.jpg" alt="" class="page-background-image" />
+    <header>
     <div style="display: flex; align-items: center; gap: 10px;">
       <img id="school-logo" src="" alt="School Logo" class="team-logo" style="height: 60px; display: none;" />
       <h1 id="school-name" style="margin: 0;">Loading...</h1>
@@ -21,6 +24,8 @@
       <a href="index.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
+      <a href="rankings.html">Rankings</a>
+      <a href="calendar.html">Calendar</a>
     </nav>
   </header>
 
@@ -57,7 +62,7 @@
   </main>
 
   <footer>
-    <p>&copy; 2025 WV Runs — Built by runners, for runners.</p>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
   </footer>
 
   <!-- Supabase Client Library -->
@@ -243,7 +248,7 @@
           athletes.forEach(athlete => {
             const row = document.createElement('tr');
             row.innerHTML = `
-              <td>${athlete.name}</td>
+              <td><a href="athlete.html?name=${encodeURIComponent(athlete.name)}" style="color: #0056b3; text-decoration: none; font-weight: 600;">${athlete.name}</a></td>
               <td>${formatGrade(athlete.grade)}</td>
               <td>${athlete.gender || 'N/A'}</td>
             `;
@@ -276,6 +281,7 @@
     // Run when page loads
     init();
   </script>
+  </div>
 </body>
 </html>
 
