@@ -179,22 +179,79 @@
         schools = await res.json();
       }
 
+      async function extractMainColor(logoUrl) {
+        return new Promise(resolve=>{
+          const img = new window.Image();
+          img.crossOrigin = 'Anonymous';
+          img.src = logoUrl;
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img,0,0);
+              const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+              const hist = {};
+              for (let i = 0; i < data.length; i += 4) {
+                const r = data[i],g = data[i+1],b = data[i+2],a = data[i+3];
+                if(a<120) continue;
+                if(r>230&&g>230&&b>230) continue; // skip near-white
+                if(r<28 && g<28 && b<28) continue; // skip near-black
+                const max = Math.max(r,g,b), min = Math.min(r,g,b);
+                if(max-min<18) continue; // skip grayish
+                const key = `${Math.round(r/12)*12},${Math.round(g/12)*12},${Math.round(b/12)*12}`;
+                hist[key] = (hist[key]||0)+1;
+              }
+              // find most-used color(s)
+              let maxCount = 0, bestColors = [];
+              Object.entries(hist).forEach(([k,v])=>{
+                if(v>maxCount) { maxCount=v; bestColors=[k.split(',').map(Number)]; }
+                else if(v===maxCount) bestColors.push(k.split(',').map(Number));
+              });
+              let col = [44, 95, 125];
+              if(bestColors.length && maxCount>0){
+                if(bestColors.length===1) col=bestColors[0];
+                else {
+                  col=[0,0,0]; bestColors.forEach(c=>{col[0]+=c[0];col[1]+=c[1];col[2]+=c[2];});
+                  col=col.map(v=>Math.round(v/bestColors.length));
+                }
+              }
+              resolve(`rgb(${col.join(',')})`);
+            } catch(e){ resolve('#295085'); }
+          };
+          img.onerror = ()=>resolve('#295085');
+        });
+      }
+
       function renderList(filter = "") {
         grid.innerHTML = "";
-        schools
-          .filter(s => s.name.toLowerCase().includes(filter.toLowerCase()))
-          .forEach(s => {
-            const card = document.createElement("div");
-            card.className = "school-card";
-            card.innerHTML = `
-              <img src="assets/team logos/${s.slug}.png" alt="${s.name} Logo">
-              <h3>${s.name}</h3>
-            `;
-            card.addEventListener("click", () => {
-              window.location.href = "school.html?school=" + s.slug;
-            });
-            grid.appendChild(card);
+        for (const s of schools.filter(sc => sc.name.toLowerCase().includes(filter.toLowerCase()))) {
+          const card = document.createElement("div");
+          card.className = "school-card";
+          const logoUrl = `assets/team logos/${s.slug}.png`;
+          card.innerHTML = `
+            <img src="${logoUrl}" alt="${s.name} Logo">
+            <h3>${s.name}</h3>
+          `;
+          // apply coloring after logo is loaded
+          extractMainColor(logoUrl).then(col=>{
+            card.style.setProperty('--school-main', col);
+            card.style.background = `linear-gradient(127deg, var(--school-main, #295085) 18%, #e8f4ff 100%)`;
+            card.style.boxShadow = `0 4px 26px var(--school-main, #29508538)`;
+            card.onmouseover = ()=>{
+              card.style.boxShadow = `0 8px 48px var(--school-main, #29508549)`;
+              card.style.transform = 'translateY(-8px) scale(1.04)';
+            };
+            card.onmouseleave = ()=>{
+              card.style.boxShadow = `0 4px 26px var(--school-main, #29508538)`;
+              card.style.transform = '';
+            };
           });
+          card.addEventListener("click", () => {
+            window.location.href = "school.html?school=" + s.slug;
+          });
+          grid.appendChild(card);
+        }
       }
 
       renderList();

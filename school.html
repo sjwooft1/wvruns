@@ -87,6 +87,60 @@
       const dict = USE_WORD_GRADE_LABELS ? wordLabels : numLabels;
       return dict[gradeNum] || 'N/A';
     }
+    /**
+     * Extracts the most used color from the given logo image (ignoring very light/dark/gray/transparent pixels).
+     * If multiple colors tie for highest count, the theme uses the average (mix) of these colors.
+     */
+    function setSchoolThemeFromLogo(logoEl) {
+      if (!logoEl.complete || logoEl.naturalHeight === 0) {
+        logoEl.onload = () => setSchoolThemeFromLogo(logoEl);
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = logoEl.naturalWidth;
+      canvas.height = logoEl.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(logoEl, 0, 0);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const hist = {};
+      for(let i=0; i<data.length; i+=4) {
+        const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];
+        if(a<120) continue;
+        if(r>230 && g>230 && b>230) continue; // skip near-white
+        if(r<28 && g<28 && b<28) continue; // skip near-black
+        const max = Math.max(r,g,b), min = Math.min(r,g,b);
+        if(max-min<18) continue; // skip grayish
+        const key = `${Math.round(r/12)*12},${Math.round(g/12)*12},${Math.round(b/12)*12}`;
+        hist[key] = (hist[key]||0) + 1;
+      }
+      // Find most-used value(s)
+      let maxCount = 0; let bestColors = [];
+      Object.entries(hist).forEach(([k, v]) => {
+        if(v>maxCount) { maxCount = v; bestColors=[k.split(',').map(Number)]; }
+        else if(v===maxCount) { bestColors.push(k.split(',').map(Number)); }
+      });
+      let dominant = [44,95,125];
+      if(bestColors.length && maxCount>0) {
+        // Average if ties
+        dominant = bestColors[0];
+        if(bestColors.length > 1) {
+          dominant = [0,0,0];
+          bestColors.forEach(c=>{dominant[0]+=c[0];dominant[1]+=c[1];dominant[2]+=c[2];});
+          dominant = dominant.map(v=>Math.round(v/bestColors.length));
+        }
+      }
+      const style = document.getElementById('school-theme') || (()=>{ const s = document.createElement('style'); s.id = 'school-theme'; document.head.appendChild(s); return s; })();
+      style.textContent = `:root{--school-main: rgb(${dominant.join(',')});--school-main-t: rgba(${dominant.join(',')},0.18);}`;
+      document.body.classList.add('school-themed');
+    }
+    function prepareSchoolTheme() {
+      const logoEl = document.getElementById('school-logo');
+      if(logoEl && logoEl.complete && logoEl.naturalHeight!==0) setSchoolThemeFromLogo(logoEl);
+      else if(logoEl) logoEl.onload = ()=>setSchoolThemeFromLogo(logoEl);
+    }
+    document.addEventListener('DOMContentLoaded',()=>{
+      setTimeout(prepareSchoolTheme,400); // run after usual load
+    });
     // Get school slug from URL parameter
     function getSchoolSlug() {
       const urlParams = new URLSearchParams(window.location.search);

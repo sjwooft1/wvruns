@@ -214,7 +214,7 @@ function parseHTMLTables(raw) {
     const results = [];
     
     tables.forEach(table => {
-      const rows = table.querySelectorAll('tr');
+        const rows = table.querySelectorAll('tr');
       let headerRow = null;
       let nameIdx = -1;
       let teamIdx = -1;
@@ -308,7 +308,7 @@ function parseHTMLTables(raw) {
             // Skip if this is the team column
             if (i === teamIdx) continue;
             nameParts.push(cell);
-          }
+  }
           name = nameParts.join(' ').trim();
         }
         
@@ -336,7 +336,7 @@ function parseHTMLTables(raw) {
               if (/^\d+[A-Z]?$/.test(cell)) continue;
               // This might be the team
               schoolParts.push(cell);
-            }
+  }
           }
           
           school = schoolParts.join(' ').trim();
@@ -522,18 +522,18 @@ function parseDelimitedText(raw) {
     
     if (name && timeValue) {
       results.push({
-        athlete_name: name,
+            athlete_name: name,
         school_slug: slugifySchool(school),
         gender: '',
         time: timeToSeconds(timeValue),
         distance: detectDistance(raw, 0),
         place: place || ''
-      });
-    }
+          });
+        }
   });
   
   return results.length > 0 ? results : null;
-}
+      }
 
 /* ============================================
    Line-by-Line Parser (for unstructured text)
@@ -597,7 +597,7 @@ function parseLineByLine(raw, gender, defaultDistance) {
   });
   
   return results.length > 0 ? results : null;
-}
+  }
 
 /* ============================================
    Mashed/No-Space Parser (for continuous text)
@@ -624,29 +624,29 @@ function parseMashedFormat(raw, gender, defaultDistance) {
     
     const beforeTime = text.substring(prevEnd, timeIndex).trim();
     const afterTime = text.substring(timeIndex + timeValue.length, nextStart).trim();
-    
+
     // Extract place
-    let place = '';
+      let place = '';
     const placeMatch = beforeTime.match(/(\d+)(?=\d|$)/);
     if (placeMatch) place = parseInt(placeMatch[1], 10);
-    
+
     // Extract name (remove leading digits, grades)
     let name = beforeTime
       .replace(/^\d+/, '')
       .replace(/\b(FR|SO|JR|SR)\b/gi, '')
       .replace(/^\d+/, '')
       .trim();
-    
+
     // Extract school
     let school = afterTime
       .replace(/^\d+/, '')
       .split(/[A-Z][a-z]/)[0]
       .trim();
-    
+
     // If school looks like next record, truncate
     if (school.match(/^\d+[A-Z]/)) {
       school = '';
-    }
+        }
     
     if (name && timeValue) {
       results.push({
@@ -661,7 +661,7 @@ function parseMashedFormat(raw, gender, defaultDistance) {
   });
   
   return results.length > 0 ? results : null;
-}
+  }
 
 /* ============================================
    Master Parser
@@ -669,9 +669,9 @@ function parseMashedFormat(raw, gender, defaultDistance) {
 function universalParse(raw, gender, defaultDistance) {
   if (!raw || !raw.trim()) {
     showStatus('No input provided', 'error');
-    return [];
-  }
-  
+  return [];
+}
+
   // Try HTML tables first
   if (/<table|<tr|<td|<tbody/i.test(raw)) {
     const htmlResult = parseHTMLTables(raw);
@@ -718,7 +718,7 @@ function renderAndEnableDownload(results, gender) {
     document.getElementById('downloadBtn').style.display = 'none';
     return;
   }
-  
+
   // Add gender to results if not set
   results.forEach(r => {
     if (!r.gender && gender) r.gender = gender;
@@ -732,7 +732,7 @@ function renderAndEnableDownload(results, gender) {
     header.appendChild(th);
   });
   table.appendChild(header);
-  
+
   // Build CSV rows
   const csvRows = ['athlete_name,school_slug,gender,time,distance,place'];
   

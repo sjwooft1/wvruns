@@ -87,7 +87,8 @@
 <body>
   <div class="content-wrapper">
     <div class="page-background"></div>
-    <img src="assets/Wvruns Logo.png" alt="" class="page-background-image" />
+    <div class="mountain-overlay-bg"></div>
+    <img src="assets/girls bg.jpg" alt="" class="page-background-image" />
     <header>
     <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
     <nav>
@@ -99,20 +100,18 @@
     </nav>
   </header>
   <main>
-    <h1 style="color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.3);">Statewide Rankings</h1>
-    <p style="color: rgba(255,255,255,0.95); font-size: 1.1rem; text-shadow: 1px 1px 4px rgba(0,0,0,0.2);">Fastest overall times recorded in the database.</p>
-    
-    <!-- Filters Section -->
-    <section style="background: rgba(255,255,255,0.98); border-radius: 16px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-      <h3 style="color: #002855; margin-top: 0; margin-bottom: 20px; font-size: 1.3rem;">Filters</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+    <h1>Statewide Rankings</h1>
+    <p>Fastest overall times recorded in the database.</p>
+    <section class="filters-section">
+      <h3>Filters</h3>
+      <div class="filters-grid">
         <div>
-          <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 600; font-size: 0.9rem;">Search Athlete</label>
-          <input type="text" id="search-athlete" placeholder="Search by name..." style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+          <label for="search-athlete">Search Athlete</label>
+          <input type="text" id="search-athlete" placeholder="Search by name..." class="input" />
         </div>
         <div>
-          <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 600; font-size: 0.9rem;">Grade</label>
-          <select id="filter-grade" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+          <label for="filter-grade">Grade</label>
+          <select id="filter-grade" class="input">
             <option value="">All Grades</option>
             <option value="9">9th Grade</option>
             <option value="10">10th Grade</option>
@@ -121,20 +120,20 @@
           </select>
         </div>
         <div>
-          <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 600; font-size: 0.9rem;">School</label>
-          <select id="filter-school" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+          <label for="filter-school">School</label>
+          <select id="filter-school" class="input">
             <option value="">All Schools</option>
           </select>
         </div>
         <div>
-          <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 600; font-size: 0.9rem;">Max Time (MM:SS)</label>
-          <input type="text" id="filter-time" placeholder="e.g. 18:00" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+          <label for="filter-time">Max Time (MM:SS)</label>
+          <input type="text" id="filter-time" placeholder="e.g. 18:00" class="input" />
         </div>
       </div>
-      <button id="clear-filters" style="padding: 10px 20px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.3s;">Clear Filters</button>
+      <button id="clear-filters" class="button-clear">Clear Filters</button>
     </section>
 
-    <section style="margin-bottom:2em;">
+    <section class="rankings-section">
       <h2>Male Leaderboard</h2>
       <div id="male-loading">Loading...</div>
       <div class="table-wrapper">
@@ -155,7 +154,8 @@
       </div>
       <div id="male-empty" style="display:none;color:#888;">No male results found.</div>
     </section>
-    <section>
+
+    <section class="rankings-section">
       <h2>Female Leaderboard</h2>
       <div id="female-loading">Loading...</div>
       <div class="table-wrapper">
