@@ -219,6 +219,7 @@
         <button class="tab" onclick="showTab('athletes')">Athletes</button>
         <button class="tab" onclick="showTab('results')">Results</button>
         <button class="tab" onclick="showTab('csv-import')">CSV Import</button>
+        <button onclick="logout()" style="position:fixed; bottom:20px; right:20px;">Logout</button>
       </div>
 
       <!-- Schools Tab -->
@@ -437,16 +438,30 @@
   <script src="supabase-helpers.js"></script>
   
   <script>
-    // Simple password gate (no storage)
     (function requirePassword() {
+      const saved = localStorage.getItem('adminLoggedIn');
+    
+      if (saved === 'true') return; // already logged in ✅
+    
       const pass = prompt('Enter admin password:');
-      if (pass !== 'phsisbest') {
-        alert('Access denied.');
-        window.location.replace('index.html');
+    
+      if (pass === 'phsisbest') {
+        localStorage.setItem('adminLoggedIn', 'true'); // remember login ✅
+        return;
       }
+    
+      alert('Access denied.');
+      window.location.replace('index.html');
     })();
-  </script>
+    </script>
+    <script>
+      function logout() {
+        localStorage.removeItem('adminLoggedIn');
+        window.location.reload();
+      }
+      </script>
   <script>
+    
     // Toggle: set to true to show word labels (freshman–senior)
     const USE_WORD_GRADE_LABELS = false;
 
