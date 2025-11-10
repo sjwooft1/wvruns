@@ -17,9 +17,16 @@
       margin-bottom: 30px;
     }
     .athlete-header h1 {
-      color: white;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-      margin-bottom: 10px;
+      transform: scale(2.0);
+      color: #082054;
+      text-shadow: 20px 20px 50px rgb(252, 11, 7);
+      transition: all 1.5s ease;
+    }
+    .athlete-header:hover h1{
+      transform: scale(0.3) rotate(135deg);
+      color: #082054;
+      text-shadow: 20px 20px 50px rgb(252, 11, 7);
+      transition: all 1.5s ease;
     }
     .athlete-info {
       display: flex;
@@ -111,7 +118,7 @@
 <body>
   <div class="content-wrapper">
     <div class="page-background"></div>
-    <img src="assets/meets background.jpg" alt="" class="page-background-image" />
+    <img src="assets/Wvruns Logo.png" alt="" class="page-background-image" />
     <header>
       <a href="rankings.html" style="color: white; text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; background: rgba(255,255,255,0.1); transition: all 0.3s ease;">← Back to Rankings</a>
       <nav>

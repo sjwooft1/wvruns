@@ -281,13 +281,13 @@ body::before {
 }
 
 .hero-title:hover {
-  transform: scale(1.9);
+  transform: scale(1.9) rotate(10deg);
   color: #204c819f;
-  text-shadow: 20px 20px 50px rgb(82, 87, 20);
-  transition: all 1.5s ease;  
+  text-shadow: 20px 20px 50px rgb(87, 20, 20);
+  transition: all 1.5s; 
 }
 .hero-subtitle {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
