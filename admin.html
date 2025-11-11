@@ -952,16 +952,18 @@
       return false;
     }
 
-    async function ensureAthleteExists(athleteName, schoolSlug, knownAthletes, gender = null) {
+    async function ensureAthleteExists(athleteName, schoolSlug, grade, knownAthletes, gender = null) {
       if (!athleteName) return true;
-      const key = `${athleteName}||${schoolSlug || ''}`;
+      // Include grade in the uniqueness key so athletes with different grades are treated separately
+      const key = `${athleteName}||${schoolSlug || ''}||${grade || ''}`;
       if (knownAthletes.has(key)) return true;
       // Check existence first
       const { data: existing, error: selectErr } = await supabase
         .from('athletes')
-        .select('name, school_slug, gender')
+        .select('name, school_slug, grade, gender')
         .eq('name', athleteName)
         .eq('school_slug', schoolSlug || null)
+        .eq('grade', grade || null)
         .limit(1);
       if (!selectErr && existing && existing.length) {
         // If athlete exists but doesn't have gender and we have gender from CSV, update it
@@ -970,13 +972,14 @@
             .from('athletes')
             .update({ gender: gender.toUpperCase() })
             .eq('name', athleteName)
-            .eq('school_slug', schoolSlug || null);
+            .eq('school_slug', schoolSlug || null)
+            .eq('grade', grade || null);
         }
         knownAthletes.add(key);
         return true;
       }
       // Insert only if not found
-      const athleteData = { name: athleteName, school_slug: schoolSlug || null };
+      const athleteData = { name: athleteName, school_slug: schoolSlug || null, grade: grade || null };
       if (gender) {
         athleteData.gender = gender.toUpperCase();
       }
@@ -998,8 +1001,8 @@
       const knownSchools = new Set((schoolRows || []).map(s => s.slug));
 
       // Athletes set: we will grow it as we insert to avoid huge initial fetch; but seed with a small snapshot
-      const { data: athleteRows } = await supabase.from('athletes').select('name, school_slug').limit(5000);
-      const knownAthletes = new Set((athleteRows || []).map(a => `${a.name}||${a.school_slug || ''}`));
+      const { data: athleteRows } = await supabase.from('athletes').select('name, school_slug, grade').limit(5000);
+      const knownAthletes = new Set((athleteRows || []).map(a => `${a.name}||${a.school_slug || ''}||${a.grade || ''}`));
 
       const requiredFields = ['athlete_name'];
       const validRows = [];
@@ -1021,9 +1024,10 @@
           }
         }
 
-        // Ensure athlete exists (pass gender from CSV)
+        // Ensure athlete exists (pass gender and grade from CSV)
         const genderFromCSV = row.gender ? row.gender.toString().toUpperCase() : null;
-        const okAthlete = await ensureAthleteExists(row.athlete_name, row.school_slug || null, knownAthletes, genderFromCSV);
+        const gradeFromCSV = row.grade ? row.grade.toString() : null;
+        const okAthlete = await ensureAthleteExists(row.athlete_name, row.school_slug || null, gradeFromCSV, knownAthletes, genderFromCSV);
         if (!okAthlete) {
           results.errors.push(`Row ${i + 1}: Unable to create or find athlete '${row.athlete_name}'.`);
           continue;
