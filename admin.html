@@ -954,30 +954,45 @@
 
     async function ensureAthleteExists(athleteName, schoolSlug, grade, knownAthletes, gender = null) {
       if (!athleteName) return true;
-      // Include grade in the uniqueness key so athletes with different grades are treated separately
-      const key = `${athleteName}||${schoolSlug || ''}||${grade || ''}`;
-      if (knownAthletes.has(key)) return true;
-      // Check existence first
-      const { data: existing, error: selectErr } = await supabase
+      
+      // If grade is blank/null from CSV, we should match athletes by name+school only
+      // This prevents creating duplicates when importing partial data
+      const searchKey = `${athleteName}||${schoolSlug || ''}`;
+      const cacheKey = `${athleteName}||${schoolSlug || ''}||${grade || ''}`;
+      
+      if (knownAthletes.has(searchKey)) return true;
+      
+      // Check existence first - if grade is blank, search without grade filter
+      let query = supabase
         .from('athletes')
         .select('name, school_slug, grade, gender')
         .eq('name', athleteName)
-        .eq('school_slug', schoolSlug || null)
-        .eq('grade', grade || null)
-        .limit(1);
+        .eq('school_slug', schoolSlug || null);
+      
+      const { data: existing, error: selectErr } = await query.limit(1);
+      
       if (!selectErr && existing && existing.length) {
-        // If athlete exists but doesn't have gender and we have gender from CSV, update it
+        // Found matching athlete by name+school
+        // If CSV had a grade and athlete doesn't have one, update the grade
+        if (grade && !existing[0].grade) {
+          await supabase
+            .from('athletes')
+            .update({ grade: grade })
+            .eq('name', athleteName)
+            .eq('school_slug', schoolSlug || null);
+        }
+        // If CSV had gender and athlete doesn't have one, update it
         if (gender && !existing[0].gender) {
           await supabase
             .from('athletes')
             .update({ gender: gender.toUpperCase() })
             .eq('name', athleteName)
-            .eq('school_slug', schoolSlug || null)
-            .eq('grade', grade || null);
+            .eq('school_slug', schoolSlug || null);
         }
-        knownAthletes.add(key);
+        knownAthletes.add(searchKey);
         return true;
       }
+      
       // Insert only if not found
       const athleteData = { name: athleteName, school_slug: schoolSlug || null, grade: grade || null };
       if (gender) {
@@ -987,7 +1002,7 @@
         .from('athletes')
         .insert(athleteData);
       if (!insertErr) {
-        knownAthletes.add(key);
+        knownAthletes.add(searchKey);
         return true;
       }
       return false;
