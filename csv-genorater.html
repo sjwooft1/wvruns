@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css" />
+<title>Universal XC Results Converter</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #242a41fe; padding: 2rem; color:#c50404;
+   }
+  textarea { width: 100%; height: 220px; font-family: monospace; margin-bottom: 1rem; }
+  button {
+    background:#ff5722; color:white; border:none; padding:0.6rem 1.2rem;
+    border-radius:6px; cursor:pointer; font-weight:bold; margin-right:0.5rem;
+  }
+  button:hover { background:#e64a19; }
+  table { width:100%; border-collapse:collapse; margin-top:1rem; }
+  th,td { border:1px solid #ddd; padding:0.4rem 0.6rem; }
+  th { background:#f0f0f0; }
+  .section { margin-top:2rem; padding:1rem; background:white; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+  #gender { padding:0.4rem; border-radius:5px; }
+</style>
+</head>
+<body>
+  <header>
+    <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
+    <nav>
+    <a href="index.html">Home</a>
+    <a href="schools.html">Schools</a>
+    <a href="meets.html">Meets</a>
+    <a href="rankings.html">Rankings</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="login.html">back to admin &#x2192;</a>
+    </nav>
+  </header>
+
+<h1>Universal XC Results Converter</h1>
+
+<label>Gender:
+  <select id="gender">
+    <option value="F">Female</option>
+    <option value="M">Male</option>
+  </select>
+</label>
+
+<!-- AthleticLIVE Text Format -->
+<div class="section">
+  <h2>Option 1 — Paste AthleticLIVE Copied Text</h2>
+  <textarea id="inputAthLive" placeholder="Paste AthleticLIVE copied text here..."></textarea>
+  <button id="convertAthLive">Convert AthleticLIVE Text</button>
+</div>
+
+<!-- RunWV / Plain Text -->
+<div class="section">
+  <h2>Option 2 — Paste Plain Text (RunWV style)</h2>
+  <textarea id="inputPlain" placeholder="Paste plain text results here..."></textarea>
+  <button id="convertPlain">Convert Plain Text</button>
+</div>
+
+<!-- HTML Source -->
+<div class="section">
+  <h2>Option 3 — Paste HTML Page Source</h2>
+  <p>View Source → Copy All → Paste here:</p>
+  <textarea id="inputHtml" placeholder="Paste HTML source here..."></textarea>
+  <button id="convertHtml">Parse HTML Source</button>
+</div>
+
+<button id="downloadBtn" style="display:none;">Download CSV</button>
+
+<table id="outputTable"></table>
+<footer>
+  <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+  <a href="login.html"
+     style="
+       display:inline-block;
+       margin-top:8px;
+       background:#6cb5d967;
+       padding:8px 14px;
+       color:white;
+       text-decoration:none;
+       border-radius:6px;
+       font-weight:bold;
+     ">
+     Admin Login
+  </a>
+</footer>
+
+<script>
+/* --------------------
+   SCHOOL SLUG RULES
+---------------------*/
+const schoolOverrides = {
+  "woodrow wilson": "woodrow",
+  "park. south": "parkersburg-south",
+  "parkersburg south": "parkersburg-south",
+  "buck-upshur": "buckhannon",
+  "buckhannon-upshur": "buckhannon",
+  "geo. washington": "george-washington",
+  "george washington": "george-washington"
+};
+
+function slugifySchool(name) {
+  const lower = name.trim().toLowerCase();
+  for (const key in schoolOverrides) {
+    if (lower.includes(key)) return schoolOverrides[key];
+  }
+  return lower.replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+}
+
+/* --------------------
+   TIME CONVERSION
+---------------------*/
+function cleanTime(t){ return t.replace(/\*/g,'').replace("PR","").replace("SB","").trim(); }
+
+function timeToSeconds(t){
+  t = cleanTime(t);
+  const parts = t.split(":");
+  if(parts.length===3) return (parts[0]*3600 + parts[1]*60 + parseFloat(parts[2])).toFixed(2);
+  if(parts.length===2) return (parts[0]*60 + parseFloat(parts[1])).toFixed(2);
+  return parseFloat(t).toFixed(2);
+}
+
+/* --------------------
+   CSV RENDERING
+---------------------*/
+function renderAndEnableDownload(results){
+  const table=document.getElementById("outputTable");
+  table.innerHTML="";
+  if(!results.length){ table.innerHTML="<tr><td>No results parsed.</td></tr>"; return; }
+
+  const header=`<tr>
+    <th>athlete_name</th><th>school_slug</th><th>gender</th>
+    <th>time(sec)</th><th>distance</th><th>place</th>
+  </tr>`;
+  table.innerHTML = header + results.map(r =>
+    `<tr><td>${r.athlete_name}</td><td>${r.school_slug}</td>
+    <td>${r.gender}</td><td>${r.time}</td><td>${r.distance}</td>
+    <td>${r.place}</td></tr>`).join('');
+
+  const csv = [
+    "athlete_name,school_slug,gender,time,distance,place",
+    ...results.map(r =>
+      `${r.athlete_name},${r.school_slug},${r.gender},${r.time},${r.distance},${r.place}`)
+  ].join("\n");
+
+  const btn=document.getElementById("downloadBtn");
+  btn.style.display="inline-block";
+  btn.onclick=()=>{
+    const blob=new Blob([csv],{type:"text/csv"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download="results.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+}
+
+/* ------------------------------
+   PARSER 1 — ATHLETICLIVE TEXT
+-------------------------------*/
+function parseAthLiveText(raw, gender) {
+  const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length);
+
+  const results = [];
+  for (let i = 0; i < lines.length; i++) {
+
+    if (/^\d+$/.test(lines[i])) { // place
+      const place = parseInt(lines[i]);
+      const name = lines[i+1];
+      const team = lines[i+2];
+      const time = cleanTime(lines[i+3]);
+
+      results.push({
+        athlete_name: name,
+        school_slug: slugifySchool(team),
+        gender,
+        time: timeToSeconds(time),
+        distance: 5000,
+        place
+      });
+    }
+  }
+  return results;
+}
+
+/* ------------------------------
+   PARSER 2 — PLAIN TEXT (RunWV)
+-------------------------------*/
+function parsePlainText(text, gender) {
+  const lines=text.split("\n").filter(l=>/^\d+/.test(l.trim()));
+  const out=[];
+  for(const l of lines){
+    const p=l.trim().split(/\s{2,}|\t+/);
+    if(p.length<4) continue;
+    out.push({
+      athlete_name:p[1],
+      school_slug:slugifySchool(p[3]),
+      gender,
+      time:timeToSeconds(p[p.length-1]),
+      distance:5000,
+      place:parseInt(p[0])
+    });
+  }
+  return out;
+}
+
+/* ------------------------------
+   PARSER 3 — HTML SOURCE
+-------------------------------*/
+function parseHtmlSource(html, gender){
+  const rows=[];
+  const nameMatches=[...html.matchAll(/class="name"[^>]*>(.*?)</g)];
+  const teamMatches=[...html.matchAll(/class="team"[^>]*>(.*?)</g)];
+  const timeMatches=[...html.matchAll(/(\d{1,2}:\d{2}\.\d{1,2})/g)];
+
+  const count=Math.min(nameMatches.length,teamMatches.length,timeMatches.length);
+  for(let i=0;i<count;i++){
+    rows.push({
+      athlete_name:nameMatches[i][1].trim(),
+      school_slug:slugifySchool(teamMatches[i][1].trim()),
+      gender,
+      time:timeToSeconds(timeMatches[i][1]),
+      distance:5000,
+      place:i+1
+    });
+  }
+  return rows;
+}
+
+/* ------------------------------
+   BUTTON HOOKS
+-------------------------------*/
+document.getElementById("convertAthLive").onclick=()=>{
+  const gender=document.getElementById("gender").value;
+  const text=document.getElementById("inputAthLive").value;
+  renderAndEnableDownload(parseAthLiveText(text, gender));
+};
+
+document.getElementById("convertPlain").onclick=()=>{
+  const gender=document.getElementById("gender").value;
+  const text=document.getElementById("inputPlain").value;
+  renderAndEnableDownload(parsePlainText(text, gender));
+};
+
+document.getElementById("convertHtml").onclick=()=>{
+  const gender=document.getElementById("gender").value;
+  const html=document.getElementById("inputHtml").value;
+  renderAndEnableDownload(parseHtmlSource(html, gender));
+};
+</script>
+
+</body>
+</html>
