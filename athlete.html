@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+  <link rel="canonical" href="https://mountainstatemiles.com/athlete.html" />
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,6 +13,44 @@
   <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <!-- Dynamic SEO Meta -->
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "Athlete";
+  
+    // Update title
+    document.title = `${name} – Athlete Profile | Mountain State Miles`;
+  
+    // Add SEO meta tags dynamically
+    const metaDescription = document.createElement("meta");
+    metaDescription.name = "description";
+    metaDescription.content = `${name}'s cross country & track profile — results, PRs, race history, and stats on Mountain State Miles.`;
+  
+    const metaKeywords = document.createElement("meta");
+    metaKeywords.name = "keywords";
+    metaKeywords.content = `${name}, West Virginia runner, XC runner, track results, WV high school running, athlete profile, Mountain State Miles`;
+  
+    const ogTitle = document.createElement("meta");
+    ogTitle.setAttribute("property", "og:title");
+    ogTitle.content = `${name} – WV Running Profile`;
+  
+    const ogDescription = document.createElement("meta");
+    ogDescription.setAttribute("property", "og:description");
+    ogDescription.content = `View ${name}'s PRs, meet results, progress charts, and running stats at MountainStateMiles.com.`;
+  
+    const ogImage = document.createElement("meta");
+    ogImage.setAttribute("property", "og:image");
+    ogImage.content = "https://mountainstatemiles.com/assets/og-athlete.jpg";
+  
+    document.head.appendChild(metaDescription);
+    document.head.appendChild(metaKeywords);
+    document.head.appendChild(ogTitle);
+    document.head.appendChild(ogDescription);
+    document.head.appendChild(ogImage);
+   });
+  </script>
+  
   <style>
     .athlete-header {
       text-align: center;
@@ -114,6 +154,17 @@
       }
     }
   </style>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsPerson",
+      "name": "",
+      "url": "https://mountainstatemiles.com/athlete.html",
+      "sport": "Cross Country",
+      "memberOf": "WV High School Running"
+    }
+    </script>
+    
 </head>
 <body>
   <div class="content-wrapper">

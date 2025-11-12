@@ -102,6 +102,21 @@
   <main>
     <h1>Statewide Rankings</h1>
     <p>Fastest overall times recorded in the database.</p>
+    <button onclick="document.getElementById('female-rankings').scrollIntoView({behavior:'smooth', block:'start'})"
+    style="
+    padding:10px 18px;
+    background: rgba(23, 17, 71, 0.951);
+    border:none;
+    border-radius:8px;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:20px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  ">
+  Jump to Female Rankings
+</button>
+
     <section class="filters-section">
       <h3>Filters</h3>
       <div class="filters-grid">
@@ -155,7 +170,7 @@
       <div id="male-empty" style="display:none;color:#888;">No male results found.</div>
     </section>
 
-    <section class="rankings-section">
+    <section class="rankings-section" id="female-rankings">
       <h2>Female Leaderboard</h2>
       <div id="female-loading">Loading...</div>
       <div class="table-wrapper">
@@ -178,8 +193,21 @@
     </section>
     </main>
     <footer>
-    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-  </footer>
+      <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+      <a href="login.html"
+         style="
+           display:inline-block;
+           margin-top:8px;
+           background:#6cb5d967;
+           padding:8px 14px;
+           color:white;
+           text-decoration:none;
+           border-radius:6px;
+           font-weight:bold;
+         ">
+         Admin Login
+      </a>
+    </footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>

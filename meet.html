@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+      if (slug) {
+        document.title = `${slug.replace(/-/g, " ")} – Meet Results | Mountain State Miles`;
+      }
+    });
+    </script>
+    
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +20,19 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
   <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
   <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="WV running results, rankings, times, rosters, and meet data — Mountain State Miles." />
+<meta name="keywords" content="WVXC, WV Track, West Virginia Running, Cross Country Results, WV HS Running, Mountain State Miles" />
+<meta name="author" content="Mountain State Miles" />
+
+<!-- Open Graph (for social sharing) -->
+<meta property="og:title" content="Meet Results — Mountain State Miles" />
+<meta property="og:description" content="View official meet results for high school cross country and track in West Virginia." />
+<meta property="og:image" content="assets/meets background.jpg" />
+<meta property="og:type" content="website" />
+
+<!-- Canonical URL -->
+<link rel="canonical" href="https://mountainstatemiles.com/meet.html" />
+
   <style>
     #meet-title {
       color: white;
@@ -70,6 +93,21 @@
   </header>
   <main>
     <h1 id="meet-title">Meet Results</h1>
+    <button onclick="document.getElementById('female-results')?.scrollIntoView({ behavior: 'smooth' })"
+  style="
+    padding:10px 18px;
+    background: rgba(23, 17, 71, 0.951);
+    border:none;
+    border-radius:8px;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:20px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  ">
+  Jump to Female Results
+</button>
+
     <div id="meet-meta"></div>
     <div id="error" style="color:red;display:none;"></div>
     <div id="results-box"></div>
@@ -365,7 +403,7 @@
       }
       
       return `
-        <section style="margin: 2em 0;">
+        <section id="${title === 'Female Results' ? 'female-results' : ''}" style="margin: 2em 0;">
           <h2>${title}</h2>
           ${teamScoresHtml}
           ${underFiveRunnersHtml}
