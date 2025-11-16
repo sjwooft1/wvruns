@@ -938,9 +938,10 @@
         return;
       }
 
-      const headers = 'athlete_name,school_slug,gender,time,distance,place\n';
+      const raceType = document.getElementById('race-type-select').value;
+      const headers = 'athlete_name,school_slug,gender,time,distance,place,race_type\n';
       const rows = parsedResults.map(r =>
-        `${r.athlete_name},${r.school_slug},${r.gender},${r.time},${r.distance},${r.place}`
+        `${r.athlete_name},${r.school_slug},${r.gender},${r.time},${r.distance},${r.place},${raceType}`
       ).join('\n');
 
       const csv = headers + rows;
@@ -961,9 +962,10 @@
         return;
       }
 
-      const headers = 'athlete_name,school_slug,gender,time,distance,place\n';
+      const raceType = document.getElementById('race-type-select').value;
+      const headers = 'athlete_name,school_slug,gender,time,distance,place,race_type\n';
       const rows = parsedResults.map(r =>
-        `${r.athlete_name},${r.school_slug},${r.gender},${r.time},${r.distance},${r.place}`
+        `${r.athlete_name},${r.school_slug},${r.gender},${r.time},${r.distance},${r.place},${raceType}`
       ).join('\n');
 
       const csv = headers + rows;
