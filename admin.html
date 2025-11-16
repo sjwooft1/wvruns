@@ -664,7 +664,7 @@
           <div class="form-group">
             <label>CSV File *</label>
             <input type="file" id="csv-file" accept=".csv" required />
-            <small><strong>Required headers (exact order):</strong> athlete_name, school_slug, gender, time, distance, place</small>
+            <small><strong>Required headers (exact order):</strong> athlete_name, school_slug, gender, time, distance, place, race_type</small>
           </div>
 
           <div class="form-actions">
@@ -1149,7 +1149,7 @@
         const text = await file.text();
         const lines = text.trim().split('\n');
         const headers = lines[0].split(',').map(h => h.trim());
-        const expected = ['athlete_name', 'school_slug', 'gender', 'time', 'distance', 'place'];
+        const expected = ['athlete_name', 'school_slug', 'gender', 'time', 'distance', 'place', 'race_type'];
         
         if (headers.join(',') !== expected.join(',')) {
           throw new Error(`CSV headers must be exactly: ${expected.join(', ')}`);
