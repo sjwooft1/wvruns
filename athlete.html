@@ -118,6 +118,35 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+    .distance-filter {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 10px;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .distance-filter label {
+      font-weight: 600;
+      color: #002855;
+      margin: 0;
+    }
+    .distance-filter select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+    .distance-filter select:focus {
+      outline: none;
+      border-color: #002855;
+      box-shadow: 0 0 0 3px rgba(0,40,85,0.1);
+    }
     .chart-container {
       position: relative;
       height: 300px;
@@ -190,6 +219,14 @@
       <div id="error" class="error" style="display: none;"></div>
       
       <div id="content" style="display: none;">
+        <!-- Distance Filter -->
+        <div class="distance-filter">
+          <label for="distance-select">Filter by Distance:</label>
+          <select id="distance-select">
+            <option value="all">All Distances</option>
+          </select>
+        </div>
+
         <!-- Personal Records -->
         <div class="stat-card">
           <h3>Personal Records</h3>
@@ -278,13 +315,15 @@
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
     }
 
-    // Calculate pace per mile
-    function calculatePacePerMile(seconds) {
+    // Calculate pace per mile based on distance in meters
+    function calculatePacePerMile(seconds, distanceMeters = 5000) {
       if (!seconds && seconds !== 0) return '';
       const sec = Number(seconds);
       if (Number.isNaN(sec) || sec <= 0) return '';
-      const DISTANCE_MILES = 3.10686;
-      const paceSecondsPerMile = sec / DISTANCE_MILES;
+      
+      // Convert meters to miles
+      const distanceMiles = distanceMeters / 1609.34;
+      const paceSecondsPerMile = sec / distanceMiles;
       const paceMinutes = Math.floor(paceSecondsPerMile / 60);
       const paceSeconds = Math.floor(paceSecondsPerMile % 60);
       return `${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}`;
@@ -372,124 +411,194 @@
           return;
         }
 
-        // Calculate stats
-        const validResults = results.filter(r => r.time && Number(r.time) > 0);
-        if (validResults.length === 0) {
-          errorDiv.style.display = 'block';
-          errorDiv.textContent = 'No valid time results found.';
-          return;
-        }
+        // Store all results globally for filtering
+        window.allResults = results;
 
-        const times = validResults.map(r => Number(r.time)).sort((a, b) => a - b);
-        const bestTime = times[0];
-        const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-        const recentTime = times[times.length - 1];
+        // Populate distance filter with unique distances from results
+        const uniqueDistances = [...new Set(results.map(r => r.distance || 5000))].sort((a, b) => b - a);
+        const distanceSelect = document.getElementById('distance-select');
+        distanceSelect.innerHTML = '<option value="all">All Distances</option>';
+        
+        uniqueDistances.forEach(dist => {
+          let label = '';
+          if (dist === 5000) label = '5K (5000m)';
+          else if (dist === 3200) label = '3200m';
+          else if (dist === 1600) label = '1600m (1 mile)';
+          else label = dist + 'm';
+          
+          const option = document.createElement('option');
+          option.value = dist;
+          option.textContent = label;
+          distanceSelect.appendChild(option);
+        });
 
-        // Display PR stats
-        const prStatsDiv = document.getElementById('pr-stats');
-        prStatsDiv.innerHTML = `
-          <div class="stat-item">
-            <div class="stat-value">${formatTime(bestTime)}</div>
-            <div class="stat-label">Personal Record</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">${formatTime(avgTime)}</div>
-            <div class="stat-label">Average Time</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">${validResults.length}</div>
-            <div class="stat-label">Total Races</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">${calculatePacePerMile(bestTime)}</div>
-            <div class="stat-label">Best Pace/Mile</div>
-          </div>
-        `;
+        // Add change listener to distance filter
+        distanceSelect.addEventListener('change', () => updateProfileDisplay(results));
 
-        // Create performance chart
-        const chartData = results
-          .filter(r => r.time && Number(r.time) > 0)
-          .map(r => ({
-            date: r.created_at || r.meet_slug,
-            time: Number(r.time),
-            meet: r.meet_slug
-          }))
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        if (chartData.length > 0) {
-          const ctx = document.getElementById('performance-chart').getContext('2d');
-          new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: chartData.map((_, i) => `Race ${i + 1}`),
-              datasets: [{
-                label: 'Time (seconds)',
-                data: chartData.map(d => d.time),
-                borderColor: '#002855',
-                backgroundColor: 'rgba(0, 40, 85, 0.1)',
-                tension: 0.4,
-                fill: true
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return formatTime(context.parsed.y);
-                    }
-                  }
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: false,
-                  ticks: {
-                    callback: function(value) {
-                      return formatTime(value);
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-
-        // Display results table
-        const tbody = document.getElementById('results-tbody');
-        const resultsWithMeetInfo = await Promise.all(results.map(async (r) => {
-          const { data: meet } = await supabase.from('meets').select('*').eq('slug', r.meet_slug).single();
-          const schoolName = r.school_slug ? await getSchoolName(r.school_slug) : '';
-          return { ...r, meet, schoolName };
-        }));
-
-        tbody.innerHTML = resultsWithMeetInfo
-          .sort((a, b) => {
-            const dateA = a.meet?.date || a.created_at || '';
-            const dateB = b.meet?.date || b.created_at || '';
-            return dateB.localeCompare(dateA);
-          })
-          .map(r => `
-            <tr>
-              <td>${r.meet?.date ? formatDate(r.meet.date) : 'N/A'}</td>
-              <td><a href="meet.html?slug=${r.meet_slug}" style="color: #0056b3; text-decoration: none; font-weight: 600;">${r.meet?.name || r.meet_slug || 'Unknown Meet'}</a></td>
-              <td>${r.place || ''}</td>
-              <td>${formatTime(r.time)}</td>
-              <td>${calculatePacePerMile(r.time)}</td>
-              <td>${r.schoolName || r.school_slug || ''}</td>
-            </tr>
-          `).join('');
-
+        // Initial display
+        updateProfileDisplay(results);
         contentDiv.style.display = 'block';
+
       } catch (error) {
         console.error('Error loading athlete:', error);
         loadingDiv.style.display = 'none';
         errorDiv.style.display = 'block';
         errorDiv.textContent = 'Error loading athlete data. Please try again.';
       }
+    }
+
+    async function updateProfileDisplay(results) {
+      const distanceSelect = document.getElementById('distance-select');
+      const selectedDistanceValue = distanceSelect.value;
+      
+      console.log('Selected distance value:', selectedDistanceValue);
+      console.log('All results:', results);
+
+      // Filter results based on selected distance
+      let filteredResults = results;
+      if (selectedDistanceValue !== 'all') {
+        const selectedDistance = parseInt(selectedDistanceValue, 10);
+        filteredResults = results.filter(r => {
+          const resultDistance = r.distance ? parseInt(r.distance, 10) : 5000;
+          return resultDistance === selectedDistance;
+        });
+      }
+
+      console.log('Filtered results:', filteredResults);
+
+      const validResults = filteredResults.filter(r => r.time && Number(r.time) > 0);
+      
+      if (validResults.length === 0) {
+        document.getElementById('pr-stats').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #999;">No results for this distance</div>';
+        if (document.getElementById('performance-chart')) {
+          const ctx = document.getElementById('performance-chart').getContext('2d');
+          ctx.clearRect(0, 0, document.getElementById('performance-chart').width, document.getElementById('performance-chart').height);
+        }
+        document.getElementById('results-tbody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No results for this distance</td></tr>';
+        return;
+      }
+
+      const times = validResults.map(r => Number(r.time)).sort((a, b) => a - b);
+      const bestTime = times[0];
+      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+
+      // Get distance for pace calculation
+      const bestResult = validResults.find(r => Number(r.time) === bestTime);
+      const distanceForPace = bestResult?.distance ? parseInt(bestResult.distance, 10) : 5000;
+
+      // Display PR stats
+      const prStatsDiv = document.getElementById('pr-stats');
+      prStatsDiv.innerHTML = `
+        <div class="stat-item">
+          <div class="stat-value">${formatTime(bestTime)}</div>
+          <div class="stat-label">Personal Record</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${formatTime(avgTime)}</div>
+          <div class="stat-label">Average Time</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${validResults.length}</div>
+          <div class="stat-label">Total Races</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${calculatePacePerMile(bestTime, distanceForPace)}</div>
+          <div class="stat-label">Best Pace/Mile</div>
+        </div>
+      `;
+
+      // Create performance chart
+      const chartData = validResults
+        .filter(r => r.time && Number(r.time) > 0)
+        .map(r => ({
+          date: r.created_at || r.meet_slug,
+          time: Number(r.time),
+          meet: r.meet_slug || 'Unknown Meet'
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (chartData.length > 0) {
+        const ctx = document.getElementById('performance-chart').getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (window.performanceChart) {
+          window.performanceChart.destroy();
+        }
+
+        window.performanceChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartData.map(d => d.meet),
+            datasets: [{
+              label: 'Time (seconds)',
+              data: chartData.map(d => d.time),
+              borderColor: '#002855',
+              backgroundColor: 'rgba(0, 40, 85, 0.1)',
+              tension: 0.4,
+              fill: true,
+              pointRadius: 6,
+              pointBackgroundColor: '#002855',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return formatTime(context.parsed.y);
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                ticks: {
+                  callback: function(value) {
+                    return formatTime(value);
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Display results table
+      const tbody = document.getElementById('results-tbody');
+      const resultsWithMeetInfo = await Promise.all(validResults.map(async (r) => {
+        let meet = null;
+        try {
+          const { data: meetData } = await supabase.from('meets').select('*').eq('slug', r.meet_slug).single();
+          meet = meetData;
+        } catch (e) {
+          console.log('Meet not found:', r.meet_slug);
+        }
+        const schoolName = r.school_slug ? await getSchoolName(r.school_slug) : '';
+        return { ...r, meet, schoolName };
+      }));
+
+      tbody.innerHTML = resultsWithMeetInfo
+        .sort((a, b) => {
+          const dateA = a.meet?.date || a.created_at || '';
+          const dateB = b.meet?.date || b.created_at || '';
+          return dateB.localeCompare(dateA);
+        })
+        .map(r => `
+          <tr>
+            <td>${r.meet?.date ? formatDate(r.meet.date) : 'N/A'}</td>
+            <td><a href="meet.html?slug=${r.meet_slug}" style="color: #0056b3; text-decoration: none; font-weight: 600;">${r.meet?.name || r.meet_slug || 'Unknown Meet'}</a></td>
+            <td>${r.place || ''}</td>
+            <td>${formatTime(r.time)}</td>
+            <td>${calculatePacePerMile(r.time, r.distance ? parseInt(r.distance, 10) : 5000)}</td>
+            <td>${r.schoolName || r.school_slug || ''}</td>
+          </tr>
+        `).join('');
     }
 
     document.addEventListener('DOMContentLoaded', loadAthleteProfile);

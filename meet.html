@@ -90,7 +90,7 @@
 <body>
   <div class="content-wrapper">
     <div class="page-background"></div>
-    <img src="assets/meets background.jpg" alt="" class="page-background-image" />
+    <img src="assets/run.jpg" alt="" class="page-background-image" />
     <header>
       <a href="meets.html" style="color: white; text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; background: rgba(255,255,255,0.1); transition: all 0.3s ease;">← Back to Meets</a>
       <nav>
@@ -203,11 +203,16 @@
       const numLabels = { 9: '9th', 10: '10th', 11: '11th', 12: '12th' };
       return numLabels[gradeNum] || 'N/A';
     }
-    function calculatePacePerMile(seconds) {
+    function calculatePacePerMile(seconds, distanceMeters) {
       if (!seconds && seconds !== 0) return '';
       const sec = Number(seconds);
       if (Number.isNaN(sec) || sec <= 0) return '';
-      const DISTANCE_MILES = 3.10686; // 5000 meters in miles
+      
+      // Use provided distance or default to 5000 meters
+      const distance = distanceMeters ? Number(distanceMeters) : 5000;
+      if (Number.isNaN(distance) || distance <= 0) return '';
+      
+      const DISTANCE_MILES = distance / 1609.34; // convert meters to miles
       const paceSecondsPerMile = sec / DISTANCE_MILES;
       const paceMinutes = Math.floor(paceSecondsPerMile / 60);
       const paceSeconds = Math.floor(paceSecondsPerMile % 60);
@@ -316,7 +321,7 @@
             <td>${grade}</td>
             <td>${schoolNames[r.school_slug] || r.school_slug || ''}</td>
             <td>${formatTime(r.time)}</td>
-            <td>${calculatePacePerMile(r.time)}</td>
+            <td>${calculatePacePerMile(r.time, r.distance)}</td>
           </tr>
         `;
       }));

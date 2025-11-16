@@ -55,6 +55,24 @@
     .table-wrapper table {
       min-width: 600px;
     }
+    .distance-btn {
+      padding: 10px 16px;
+      border: 2px solid #002855;
+      background: white;
+      color: #002855;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    .distance-btn:hover {
+      background: #f0f4f8;
+    }
+    .distance-btn.active {
+      background: #002855;
+      color: white;
+    }
     @media (max-width: 768px) {
       section {
         padding: 20px;
@@ -88,7 +106,7 @@
   <div class="content-wrapper">
     <div class="page-background"></div>
     <div class="mountain-overlay-bg"></div>
-    <img src="assets/girls bg.jpg" alt="" class="page-background-image" />
+    <img src="assets/rankings.jpg" alt="" class="page-background-image" />
     <header>
     <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
     <nav>
@@ -119,6 +137,18 @@
 
     <section class="filters-section">
       <h3>Filters</h3>
+      
+      <!-- Distance Filter Buttons -->
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #002855;">Distance:</label>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="distance-btn active" onclick="filterByDistance('all')">All Distances</button>
+          <button class="distance-btn" onclick="filterByDistance(5000)">5K (5000m)</button>
+          <button class="distance-btn" onclick="filterByDistance(3200)">3200m</button>
+          <button class="distance-btn" onclick="filterByDistance(1600)">1600m</button>
+        </div>
+      </div>
+
       <div class="filters-grid">
         <div>
           <label for="search-athlete">Search Athlete</label>
@@ -253,12 +283,17 @@
       const ms = Math.round((sec - Math.floor(sec)) * 100);
       return `${minutes}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
     }
-    // Calculate pace per mile for 5000 meters (3.10686 miles)
-    function calculatePacePerMile(seconds) {
+    // Calculate pace per mile based on actual distance
+    function calculatePacePerMile(seconds, distanceMeters) {
       if (!seconds && seconds !== 0) return '';
       const sec = Number(seconds);
       if (Number.isNaN(sec) || sec <= 0) return '';
-      const DISTANCE_MILES = 3.10686; // 5000 meters in miles
+      
+      // Use provided distance or default to 5000 meters
+      const distance = distanceMeters ? Number(distanceMeters) : 5000;
+      if (Number.isNaN(distance) || distance <= 0) return '';
+      
+      const DISTANCE_MILES = distance / 1609.34; // convert meters to miles
       const paceSecondsPerMile = sec / DISTANCE_MILES;
       const paceMinutes = Math.floor(paceSecondsPerMile / 60);
       const paceSeconds = Math.floor(paceSecondsPerMile % 60);
@@ -395,7 +430,7 @@
           <td>${formatGrade(r.grade)}</td>
           <td>${r.school_slug || ''}</td>
           <td>${formatTime(r.time)}</td>
-          <td>${calculatePacePerMile(r.time)}</td>
+          <td>${calculatePacePerMile(r.time, r.distance)}</td>
           <td><a href="meet.html?slug=${r.meet_slug}" style="color: #0056b3; text-decoration: none;">${r.meet_slug || ''}</a></td>
         </tr>
       `).join('');
@@ -482,6 +517,52 @@
     });
 
     document.addEventListener('DOMContentLoaded', loadRankings);
+
+    // Distance filter state
+    let currentDistanceFilter = 'all';
+
+    // Filter by distance
+    function filterByDistance(distance) {
+      currentDistanceFilter = distance;
+      
+      // Update button states
+      document.querySelectorAll('.distance-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Filter the best results by distance
+      let maleBestFiltered = maleBest;
+      let femaleBestFiltered = femaleBest;
+
+      if (distance !== 'all') {
+        const distanceNum = parseInt(distance, 10);
+        maleBestFiltered = maleBest.filter(r => {
+          const resultDistance = r.distance ? parseInt(r.distance, 10) : 5000;
+          return resultDistance === distanceNum;
+        });
+        femaleBestFiltered = femaleBest.filter(r => {
+          const resultDistance = r.distance ? parseInt(r.distance, 10) : 5000;
+          return resultDistance === distanceNum;
+        });
+      }
+
+      // Re-render with filtered data
+      const maleTbody = document.getElementById('male-tbody');
+      const femaleTbody = document.getElementById('female-tbody');
+      
+      if (maleBestFiltered.length > 0) {
+        renderRankings('M', maleTbody, maleBestFiltered.slice(0, 50), {});
+      } else {
+        maleTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888; padding: 20px;">No results for this distance</td></tr>';
+      }
+
+      if (femaleBestFiltered.length > 0) {
+        renderRankings('F', femaleTbody, femaleBestFiltered.slice(0, 50), {});
+      } else {
+        femaleTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888; padding: 20px;">No results for this distance</td></tr>';
+      }
+    }
   </script>
   </div>
 </body>

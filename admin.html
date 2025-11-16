@@ -11,92 +11,170 @@
   <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    .admin-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+    * { box-sizing: border-box; }
+
+    body {
+      background: #f5f7fa;
     }
 
-    .tabs {
+    .admin-header {
+      background: linear-gradient(135deg, #002855 0%, #004080 100%);
+      color: white;
+      padding: 20px 40px;
       display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      border-bottom: 2px solid #002855;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    .tab {
-      padding: 10px 20px;
-      background: #f4f4f4;
+    .admin-header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .admin-header-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .search-bar {
+      padding: 8px 16px;
       border: none;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
+      border-radius: 6px;
+      width: 250px;
+      font-size: 14px;
+    }
+
+    .btn-logout {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s;
     }
 
-    .tab:hover {
-      background: #e0e0e0;
+    .btn-logout:hover {
+      background: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.5);
     }
 
-    .tab.active {
-      background: #002855;
-      color: white;
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 20px;
     }
 
-    .tab-content {
-      display: none;
+    /* Dashboard Stats */
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-top: 20px;
+      border-top: 4px solid #002855;
     }
 
-    .tab-content.active {
-      display: block;
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      color: #666;
+      font-size: 14px;
+      text-transform: uppercase;
+      font-weight: 600;
     }
 
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
+    .stat-card .number {
+      font-size: 32px;
       font-weight: bold;
       color: #002855;
     }
 
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
+    /* Tabs */
+    .section-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
     }
 
-    .form-group textarea {
-      min-height: 80px;
-      resize: vertical;
+    .section-tab {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: #666;
+      font-size: 15px;
+      transition: all 0.3s;
     }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .section-tab:hover {
+      color: #002855;
+    }
+
+    .section-tab.active {
+      color: #002855;
+      border-bottom-color: #002855;
+    }
+
+    .section-content {
+      display: none;
+    }
+
+    .section-content.active {
+      display: block;
+    }
+
+    /* Data Table */
+    .data-section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      color: #002855;
+      font-size: 22px;
+    }
+
+    .data-controls {
+      display: flex;
       gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      gap: 10px;
     }
 
     .btn {
       padding: 10px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
-      margin-right: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
     }
 
     .btn-primary {
@@ -108,6 +186,15 @@
       background: #004080;
     }
 
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
     .btn-danger {
       background: #dc3545;
       color: white;
@@ -117,363 +204,535 @@
       background: #c82333;
     }
 
-    .btn-success {
-      background: #28a745;
-      color: white;
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
     }
 
-    .btn-success:hover {
-      background: #218838;
-    }
-
-    .data-list {
-      margin-top: 20px;
-    }
-
-    .data-item {
-      background: #f8f9fa;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 4px;
+    /* Search & Filter */
+    .search-filter {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-left: 4px solid #002855;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
-    .data-item-info {
+    .search-input {
       flex: 1;
+      min-width: 200px;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
     }
 
-    .data-item-info h4 {
-      margin: 0 0 5px 0;
+    .filter-select {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+    }
+
+    /* Data Grid */
+    .data-grid {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .grid-header {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 150px;
+      gap: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .grid-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 150px;
+      gap: 15px;
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      align-items: center;
+    }
+
+    .grid-row:hover {
+      background: #fafbfc;
+    }
+
+    .grid-cell-main {
+      font-weight: 500;
       color: #002855;
     }
 
-    .data-item-info p {
-      margin: 3px 0;
-      font-size: 14px;
+    .grid-cell-secondary {
+      font-size: 13px;
       color: #666;
     }
 
-    .data-item-actions {
+    .grid-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .status-message {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 4px;
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: #999;
+    }
+
+    .empty-state p {
+      margin: 10px 0 0 0;
+    }
+
+    /* Modal */
+    .modal {
       display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 15px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: #002855;
+      font-size: 20px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      color: #002855;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #002855;
+      box-shadow: 0 0 0 3px rgba(0,40,85,0.1);
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+      justify-content: flex-end;
+    }
+
+    /* Status Messages */
+    .status-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 6px;
+      min-width: 300px;
+      z-index: 2000;
+      animation: slideIn 0.3s ease-out;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
 
     .status-message.success {
       background: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;
-      display: block;
     }
 
     .status-message.error {
       background: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
-      display: block;
     }
 
-    .form-section {
-      margin-bottom: 30px;
+    .status-message.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
     }
 
-    .form-section h3 {
-      color: #002855;
-      border-bottom: 2px solid #002855;
-      padding-bottom: 10px;
+    .status-icon {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* CSV Import */
+    .csv-info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 6px;
       margin-bottom: 20px;
+      border-left: 4px solid #1976d2;
+    }
+
+    .csv-info a {
+      color: #1976d2;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .admin-header {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .admin-header-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .search-bar {
+        width: 100%;
+      }
+
+      .grid-header, .grid-row {
+        grid-template-columns: 1fr 1fr 100px;
+      }
+
+      .grid-header > div:nth-child(3),
+      .grid-header > div:nth-child(4),
+      .grid-row > div:nth-child(3),
+      .grid-row > div:nth-child(4) {
+        display: none;
+      }
+
+      .grid-row > div:nth-child(5) {
+        grid-column: 3;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .data-grid {
+        max-height: none;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="schools.html">Schools</a>
-      <a href="meets.html">Meets</a>
-      <a href="csv-genorater.html">CSV Generator</a>
-    </nav>
-  </header>
+  <!-- Admin Header -->
+  <div class="admin-header">
+    <h1>📊 Data Management</h1>
+    <div class="admin-header-actions">
+      <input type="text" class="search-bar" id="global-search" placeholder="Search all data..." />
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-  <main>
-    <div class="admin-container">
-      <h1>Data Management</h1>
+  <main class="admin-container">
+    <!-- Dashboard Stats -->
+    <div class="dashboard-stats" id="stats-container"></div>
 
-      <!-- Status Messages -->
-      <div id="status-message" class="status-message"></div>
+    <!-- Section Tabs -->
+    <div class="section-tabs">
+      <button class="section-tab active" onclick="switchSection('schools')">🏫 Schools</button>
+      <button class="section-tab" onclick="switchSection('meets')">🏃 Meets</button>
+      <button class="section-tab" onclick="switchSection('athletes')">👥 Athletes</button>
+      <button class="section-tab" onclick="switchSection('results')">🏆 Results</button>
+      <button class="section-tab" onclick="switchSection('csv')">📥 CSV Import</button>
+    </div>
 
-      <!-- Tabs -->
-      <div class="tabs">
-        <button class="tab active" onclick="showTab('schools')">Schools</button>
-        <button class="tab" onclick="showTab('meets')">Meets</button>
-        <button class="tab" onclick="showTab('athletes')">Athletes</button>
-        <button class="tab" onclick="showTab('results')">Results</button>
-        <button class="tab" onclick="showTab('csv-import')">CSV Import</button>
-        <button onclick="logout()" style="position:fixed; bottom:20px; right:20px;">Logout</button>
-      </div>
-
-      <!-- Schools Tab -->
-      <div id="schools" class="tab-content active">
-        <div class="form-section">
-          <h3>Add New School</h3>
-          <form id="school-form" onsubmit="addSchool(event)">
-            <div class="form-row">
-              <div class="form-group">
-                <label>School Name *</label>
-                <input type="text" id="school-name" required />
-              </div>
-              <div class="form-group">
-                <label>Slug * (e.g., parkersburg-high)</label>
-                <input type="text" id="school-slug" required />
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Add School</button>
-          </form>
+    <!-- Schools Section -->
+    <div id="schools" class="section-content active">
+      <div class="data-section">
+        <div class="section-header">
+          <h2>Schools</h2>
+          <button class="btn btn-primary" onclick="openModal('school')">+ Add School</button>
+        </div>
+        
+        <div class="search-filter">
+          <input type="text" class="search-input" id="schools-search" placeholder="Search schools..." onkeyup="filterTable('schools', 'schools-search')" />
         </div>
 
-        <div class="data-list">
-          <h3>Existing Schools</h3>
+        <div class="data-grid" id="schools-grid">
+          <div class="grid-header">
+            <div>School Name</div>
+            <div>Slug</div>
+            <div>Results</div>
+            <div></div>
+            <div>Actions</div>
+          </div>
           <div id="schools-list"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Meets Tab -->
-      <div id="meets" class="tab-content">
-        <div class="form-section">
-          <h3>Add New Meet</h3>
-          <form id="meet-form" onsubmit="addMeet(event)">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Meet Name *</label>
-                <input type="text" id="meet-name" required />
-              </div>
-              <div class="form-group">
-                <label>Slug * (e.g., state-xc-2025)</label>
-                <input type="text" id="meet-slug" required />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Date *</label>
-                <input type="date" id="meet-date" required />
-              </div>
-              <div class="form-group">
-                <label>Location</label>
-                <input type="text" id="meet-location" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Description</label>
-              <textarea id="meet-description"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Meet</button>
-          </form>
+    <!-- Meets Section -->
+    <div id="meets" class="section-content">
+      <div class="data-section">
+        <div class="section-header">
+          <h2>Meets</h2>
+          <button class="btn btn-primary" onclick="openModal('meet')">+ Add Meet</button>
+        </div>
+        
+        <div class="search-filter">
+          <input type="text" class="search-input" id="meets-search" placeholder="Search meets..." onkeyup="filterTable('meets', 'meets-search')" />
         </div>
 
-        <div class="data-list">
-          <h3>Existing Meets</h3>
+        <div class="data-grid" id="meets-grid">
+          <div class="grid-header">
+            <div>Meet Name</div>
+            <div>Date</div>
+            <div>Location</div>
+            <div>Results</div>
+            <div>Actions</div>
+          </div>
           <div id="meets-list"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Athletes Tab -->
-      <div id="athletes" class="tab-content">
-        <div class="form-section">
-          <h3>Add New Athlete</h3>
-          <form id="athlete-form" onsubmit="addAthlete(event)">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Name *</label>
-                <input type="text" id="athlete-name" required />
-              </div>
-              <div class="form-group">
-                <label>School</label>
-                <select id="athlete-school">
-                  <option value="">Select a school...</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Grade (Graduation Year)</label>
-                <input type="number" id="athlete-grade" min="2020" max="2030" placeholder="e.g. 2026" />
-                <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">Enter the year the athlete will graduate (e.g., 2026 for a current senior)</small>
-              </div>
-              <div class="form-group">
-                <label>Gender</label>
-                <select id="athlete-gender">
-                  <option value="">Select...</option>
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                </select>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Athlete</button>
-          </form>
+    <!-- Athletes Section -->
+    <div id="athletes" class="section-content">
+      <div class="data-section">
+        <div class="section-header">
+          <h2>Athletes</h2>
+          <button class="btn btn-primary" onclick="openModal('athlete')">+ Add Athlete</button>
+        </div>
+        
+        <div class="search-filter">
+          <input type="text" class="search-input" id="athletes-search" placeholder="Search athletes..." onkeyup="filterTable('athletes', 'athletes-search')" />
+          <select class="filter-select" id="athletes-school-filter" onchange="filterTable('athletes', 'athletes-search')">
+            <option value="">All Schools</option>
+          </select>
         </div>
 
-        <div class="data-list">
-          <h3>Existing Athletes</h3>
+        <div class="data-grid" id="athletes-grid">
+          <div class="grid-header">
+            <div>Name</div>
+            <div>School</div>
+            <div>Grade</div>
+            <div>Gender</div>
+            <div>Actions</div>
+          </div>
           <div id="athletes-list"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Results Tab -->
-      <div id="results" class="tab-content">
-        <div class="form-section">
-          <h3>Add New Result</h3>
-          <form id="result-form" onsubmit="addResult(event)">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Athlete Name *</label>
-                <input type="text" id="result-athlete" required />
-              </div>
-              <div class="form-group">
-                <label>Meet</label>
-                <select id="result-meet">
-                  <option value="">Select a meet...</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>School</label>
-                <select id="result-school">
-                  <option value="">Select a school...</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Gender</label>
-                <select id="result-gender">
-                  <option value="">Select...</option>
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Time (seconds)</label>
-                <input type="number" id="result-time" step="0.01" />
-              </div>
-              <div class="form-group">
-                <label>Distance (meters)</label>
-                <input type="number" id="result-distance" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Place</label>
-              <input type="number" id="result-place" />
-            </div>
-            <button type="submit" class="btn btn-primary">Add Result</button>
-          </form>
+    <!-- Results Section -->
+    <div id="results" class="section-content">
+      <div class="data-section">
+        <div class="section-header">
+          <h2>Results</h2>
+          <button class="btn btn-primary" onclick="openModal('result')">+ Add Result</button>
+        </div>
+        
+        <div class="search-filter">
+          <input type="text" class="search-input" id="results-search" placeholder="Search results..." onkeyup="filterTable('results', 'results-search')" />
+          <select class="filter-select" id="results-meet-filter" onchange="filterTable('results', 'results-search')">
+            <option value="">All Meets</option>
+          </select>
         </div>
 
-        <div class="data-list">
-          <h3>Existing Results</h3>
+        <div class="data-grid" id="results-grid">
+          <div class="grid-header">
+            <div>Athlete</div>
+            <div>Meet</div>
+            <div>Time</div>
+            <div>Place</div>
+            <div>Actions</div>
+          </div>
           <div id="results-list"></div>
         </div>
       </div>
+    </div>
 
-      <!-- CSV Import Tab -->
-      <div id="csv-import" class="tab-content">
-        <div class="form-section">
-          <h3>Import Meet Results from CSV</h3>
-          <p style="background: #e3f2fd; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
-            <strong>📋 Need to convert RunWV results to CSV format?</strong> 
-            <a href="csv genorater.html" target="_blank" style="color: #1976d2; font-weight: bold; text-decoration: underline;">Use the CSV Generator tool →</a>
-          </p>
-          <p>Simple import using the exact headers from your RunWV CSV.</p>
-          <p><strong>Required CSV header row (exact order):</strong></p>
-          <ul style="margin: 10px 0; padding-left: 20px;">
-            <li><strong>athlete_name</strong></li>
-            <li><strong>school_slug</strong></li>
-            <li><strong>gender</strong></li>
-            <li><strong>time</strong></li>
-            <li><strong>distance</strong></li>
-            <li><strong>place</strong></li>
-          </ul>
+    <!-- CSV Import Section -->
+    <div id="csv" class="section-content">
+      <div class="data-section">
+        <h2>📥 CSV Import</h2>
+        
+        <div class="csv-info">
+          <strong>Need to convert RunWV results to CSV format?</strong> 
+          <a href="csv-genorater.html" target="_blank">Use the CSV Generator tool →</a>
+        </div>
 
+        <form onsubmit="handleCSVImport(event)" style="margin-bottom: 30px;">
           <div class="form-group">
             <label>Meet Slug *</label>
-            <input type="text" id="simple-meet-slug" required placeholder="e.g., state-championship-2025" />
-            <small style="color: #666; margin-top: 5px; display: block;"><a href="#" onclick="loadExistingMeets()">Check existing meets</a></small>
+            <input type="text" id="csv-meet-slug" required placeholder="e.g., state-championship-2025" />
+            <small>Enter the slug of an existing meet or create a new one</small>
           </div>
 
           <div class="form-group">
             <label>CSV File *</label>
-            <input type="file" id="simple-csv-file" accept=".csv" required />
+            <input type="file" id="csv-file" accept=".csv" required />
+            <small><strong>Required headers (exact order):</strong> athlete_name, school_slug, gender, time, distance, place</small>
           </div>
 
-          <button type="button" class="btn btn-primary" onclick="simpleImportCSV()">Import Results</button>
-        </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Import Results</button>
+          </div>
+        </form>
 
-        <div class="data-list">
-          <h3>Import Status</h3>
-          <div id="import-status"></div>
-        </div>
+        <h3 style="margin-top: 30px; color: #002855;">Import Status</h3>
+        <div id="csv-status"></div>
       </div>
     </div>
   </main>
 
-  <footer>
-    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-  </footer>
+  <!-- Modals -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Item</h2>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <form id="modal-form" onsubmit="handleModalSubmit(event)">
+        <div id="modal-body"></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  <!-- Supabase Client Library -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Supabase Configuration -->
   <script src="supabase-config.js"></script>
-  <!-- Supabase Helpers -->
   <script src="supabase-helpers.js"></script>
-  
+
   <script>
+    // ===== AUTH =====
     (function requirePassword() {
       const saved = localStorage.getItem('adminLoggedIn');
-    
-      if (saved === 'true') return; // already logged in ✅
-    
+      if (saved === 'true') return;
+      
       const pass = prompt('Enter admin password:');
-    
       if (pass === 'phsisbest') {
-        localStorage.setItem('adminLoggedIn', 'true'); // remember login ✅
+        localStorage.setItem('adminLoggedIn', 'true');
         return;
       }
-    
+      
       alert('Access denied.');
       window.location.replace('index.html');
     })();
-    </script>
-    <script>
-      function logout() {
-        localStorage.removeItem('adminLoggedIn');
-        window.location.reload();
-      }
-      </script>
-  <script>
-    
-    // Toggle: set to true to show word labels (freshman–senior)
-    const USE_WORD_GRADE_LABELS = false;
 
-    // Convert graduation year to grade label (9th–12th or words) based on current academic year
+    function logout() {
+      localStorage.removeItem('adminLoggedIn');
+      window.location.reload();
+    }
+
+    // ===== STATE & UTILS =====
+    const USE_WORD_GRADE_LABELS = false;
+    let currentModal = null;
+    let allData = { schools: [], meets: [], athletes: [], results: [] };
+
     function formatGrade(gradYear) {
       if (!gradYear) return 'N/A';
       const yearNum = parseInt(gradYear, 10);
       if (Number.isNaN(yearNum)) return 'N/A';
       const now = new Date();
-      const month = now.getMonth(); // 0=Jan ... 11=Dec
+      const month = now.getMonth();
       const currentYear = now.getFullYear();
-      // Academic year ends the next calendar year if it's Aug (7) or later
       const academicEndYear = month >= 7 ? currentYear + 1 : currentYear;
       const gradeNum = 12 - (yearNum - academicEndYear);
       const numLabels = { 9: '9th', 10: '10th', 11: '11th', 12: '12th' };
@@ -482,737 +741,474 @@
       return dict[gradeNum] || 'N/A';
     }
 
-    // Initialize data on load
-    document.addEventListener('DOMContentLoaded', () => {
-      loadSchools();
-      loadMeets();
-      loadAthletes();
-      loadResults();
-      populateSelectOptions();
+    function showStatus(message, type = 'success') {
+      const div = document.createElement('div');
+      div.className = `status-message ${type}`;
+      div.innerHTML = `
+        <span class="status-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 4000);
+    }
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadAllData();
+      updateStats();
+      populateFilters();
     });
 
-    // Tab switching
-    function showTab(tabName) {
-      // Hide all tab contents
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
+    async function loadAllData() {
+      const [schools, meets, athletes, results] = await Promise.all([
+        supabase.from('schools').select('*').order('name'),
+        supabase.from('meets').select('*').order('date', { ascending: false }),
+        supabase.from('athletes').select('*').order('name'),
+        supabase.from('results').select('*').order('created_at', { ascending: false })
+      ]);
+
+      allData = {
+        schools: schools.data || [],
+        meets: meets.data || [],
+        athletes: athletes.data || [],
+        results: results.data || []
+      };
+
+      renderSchools();
+      renderMeets();
+      renderAthletes();
+      renderResults();
+    }
+
+    function updateStats() {
+      const stats = document.getElementById('stats-container');
+      stats.innerHTML = `
+        <div class="stat-card">
+          <h3>Schools</h3>
+          <div class="number">${allData.schools.length}</div>
+        </div>
+        <div class="stat-card">
+          <h3>Meets</h3>
+          <div class="number">${allData.meets.length}</div>
+        </div>
+        <div class="stat-card">
+          <h3>Athletes</h3>
+          <div class="number">${allData.athletes.length}</div>
+        </div>
+        <div class="stat-card">
+          <h3>Results</h3>
+          <div class="number">${allData.results.length}</div>
+        </div>
+      `;
+    }
+
+    function populateFilters() {
+      const schoolFilter = document.getElementById('athletes-school-filter');
+      schoolFilter.innerHTML = '<option value="">All Schools</option>';
+      allData.schools.forEach(s => {
+        schoolFilter.innerHTML += `<option value="${s.slug}">${s.name}</option>`;
       });
-      
-      // Remove active class from all tabs
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
+
+      const meetFilter = document.getElementById('results-meet-filter');
+      meetFilter.innerHTML = '<option value="">All Meets</option>';
+      allData.meets.forEach(m => {
+        meetFilter.innerHTML += `<option value="${m.slug}">${m.name}</option>`;
       });
-      
-      // Show selected tab content
-      document.getElementById(tabName).classList.add('active');
-      
-      // Add active class to clicked tab
+    }
+
+    // ===== TAB SWITCHING =====
+    function switchSection(section) {
+      document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.section-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(section).classList.add('active');
       event.target.classList.add('active');
     }
 
-    // Status messages
-    function showStatus(message, type = 'success') {
-      const statusDiv = document.getElementById('status-message');
-      statusDiv.className = `status-message ${type}`;
-      statusDiv.textContent = message;
-      
-      setTimeout(() => {
-        statusDiv.className = 'status-message';
-      }, 5000);
-    }
+    // ===== MODAL =====
+    function openModal(type, id = null) {
+      currentModal = { type, id };
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body');
 
-    // Populate select dropdowns
-    async function populateSelectOptions() {
-      // Load schools for selects
-      const { data: schools } = await supabase.from('schools').select('*').order('name');
-      const schoolSelects = ['athlete-school', 'result-school'];
-      
-      schoolSelects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        select.innerHTML = '<option value="">Select a school...</option>';
-        schools?.forEach(school => {
-          const option = document.createElement('option');
-          option.value = school.slug;
-          option.textContent = school.name;
-          select.appendChild(option);
-        });
-      });
-
-      // Load meets for selects
-      const { data: meets } = await supabase.from('meets').select('*').order('date', { ascending: false });
-      const meetSelect = document.getElementById('result-meet');
-      meetSelect.innerHTML = '<option value="">Select a meet...</option>';
-      meets?.forEach(meet => {
-        const option = document.createElement('option');
-        option.value = meet.slug;
-        option.textContent = `${meet.name} - ${meet.date}`;
-        meetSelect.appendChild(option);
-      });
-    }
-
-    // ===== SCHOOLS =====
-    async function loadSchools() {
-      const { data, error } = await supabase.from('schools').select('*').order('name');
-      if (error) {
-        console.error('Error loading schools:', error);
-        return;
-      }
-
-      const list = document.getElementById('schools-list');
-      list.innerHTML = '';
-
-      data?.forEach(school => {
-        const item = document.createElement('div');
-        item.className = 'data-item';
-        item.innerHTML = `
-          <div class="data-item-info">
-            <h4>${school.name}</h4>
-            <p>Slug: ${school.slug}</p>
+      if (type === 'school') {
+        title.textContent = id ? 'Edit School' : 'Add School';
+        const item = id ? allData.schools.find(s => s.id === id) : {};
+        body.innerHTML = `
+          <div class="form-group">
+            <label>School Name *</label>
+            <input type="text" id="form-school-name" value="${item.name || ''}" required />
           </div>
-          <div class="data-item-actions">
-            <button class="btn btn-primary" onclick="editSchool('${school.id}', '${school.name}', '${school.slug}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteSchool('${school.id}')">Delete</button>
+          <div class="form-group">
+            <label>Slug *</label>
+            <input type="text" id="form-school-slug" value="${item.slug || ''}" required />
+            <small>e.g., parkersburg-high</small>
           </div>
         `;
-        list.appendChild(item);
-      });
-    }
-
-    async function addSchool(event) {
-      event.preventDefault();
-      
-      const name = document.getElementById('school-name').value;
-      const slug = document.getElementById('school-slug').value;
-
-      const { error } = await supabase.from('schools').insert({ name, slug });
-
-      if (error) {
-        showStatus(`Error adding school: ${error.message}`, 'error');
-      } else {
-        showStatus('School added successfully!');
-        document.getElementById('school-form').reset();
-        loadSchools();
-      }
-    }
-
-    async function editSchool(id, name, slug) {
-      const newName = prompt('Enter new school name:', name);
-      if (!newName) return;
-      
-      const newSlug = prompt('Enter new slug:', slug);
-      if (!newSlug) return;
-
-      const { error } = await supabase.from('schools').update({ name: newName, slug: newSlug }).eq('id', id);
-
-      if (error) {
-        showStatus(`Error updating school: ${error.message}`, 'error');
-      } else {
-        showStatus('School updated successfully!');
-        loadSchools();
-        populateSelectOptions();
-      }
-    }
-
-    async function deleteSchool(id) {
-      if (!confirm('Are you sure you want to delete this school?')) return;
-
-      const { error } = await supabase.from('schools').delete().eq('id', id);
-
-      if (error) {
-        showStatus(`Error deleting school: ${error.message}`, 'error');
-      } else {
-        showStatus('School deleted successfully!');
-        loadSchools();
-      }
-    }
-
-    // ===== MEETS =====
-    async function loadMeets() {
-      const { data, error } = await supabase.from('meets').select('*').order('date', { ascending: false });
-      if (error) {
-        console.error('Error loading meets:', error);
-        return;
-      }
-
-      const list = document.getElementById('meets-list');
-      list.innerHTML = '';
-
-      data?.forEach(meet => {
-        const item = document.createElement('div');
-        item.className = 'data-item';
-        item.innerHTML = `
-          <div class="data-item-info">
-            <h4>${meet.name}</h4>
-            <p>Date: ${meet.date} | Location: ${meet.location || 'N/A'}</p>
-            <p>Slug: ${meet.slug}</p>
+      } else if (type === 'meet') {
+        title.textContent = id ? 'Edit Meet' : 'Add Meet';
+        const item = id ? allData.meets.find(m => m.id === id) : {};
+        body.innerHTML = `
+          <div class="form-row">
+            <div class="form-group">
+              <label>Meet Name *</label>
+              <input type="text" id="form-meet-name" value="${item.name || ''}" required />
+            </div>
+            <div class="form-group">
+              <label>Slug *</label>
+              <input type="text" id="form-meet-slug" value="${item.slug || ''}" required />
+            </div>
           </div>
-          <div class="data-item-actions">
-            <button class="btn btn-primary" onclick="editMeet('${meet.id}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteMeet('${meet.id}')">Delete</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date *</label>
+              <input type="date" id="form-meet-date" value="${item.date || ''}" required />
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="form-meet-location" value="${item.location || ''}" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="form-meet-description">${item.description || ''}</textarea>
           </div>
         `;
-        list.appendChild(item);
-      });
-    }
-
-    async function addMeet(event) {
-      event.preventDefault();
-      
-      const name = document.getElementById('meet-name').value;
-      const slug = document.getElementById('meet-slug').value;
-      const date = document.getElementById('meet-date').value;
-      const location = document.getElementById('meet-location').value;
-      const description = document.getElementById('meet-description').value;
-
-      const { error } = await supabase.from('meets').insert({ 
-        name, slug, date, location, description 
-      });
-
-      if (error) {
-        showStatus(`Error adding meet: ${error.message}`, 'error');
-      } else {
-        showStatus('Meet added successfully!');
-        document.getElementById('meet-form').reset();
-        loadMeets();
-        populateSelectOptions();
-      }
-    }
-
-    async function editMeet(id) {
-      // Load meet data first
-      const { data: meet } = await supabase.from('meets').select('*').eq('id', id).single();
-      if (!meet) {
-        showStatus('Error loading meet data', 'error');
-        return;
-      }
-
-      const name = prompt('Enter meet name:', meet.name);
-      if (!name) return;
-      
-      const slug = prompt('Enter slug:', meet.slug);
-      if (!slug) return;
-
-      const date = prompt('Enter date (YYYY-MM-DD):', meet.date);
-      if (!date) return;
-
-      const location = prompt('Enter location:', meet.location || '');
-      const description = prompt('Enter description:', meet.description || '');
-
-      const { error } = await supabase.from('meets').update({ name, slug, date, location, description }).eq('id', id);
-
-      if (error) {
-        showStatus(`Error updating meet: ${error.message}`, 'error');
-      } else {
-        showStatus('Meet updated successfully!');
-        loadMeets();
-        populateSelectOptions();
-      }
-    }
-
-    async function deleteMeet(id) {
-      if (!confirm('Are you sure you want to delete this meet?')) return;
-
-      const { error } = await supabase.from('meets').delete().eq('id', id);
-
-      if (error) {
-        showStatus(`Error deleting meet: ${error.message}`, 'error');
-      } else {
-        showStatus('Meet deleted successfully!');
-        loadMeets();
-        populateSelectOptions();
-      }
-    }
-
-    // ===== ATHLETES =====
-    async function loadAthletes() {
-      const { data, error } = await supabase.from('athletes').select('*').order('name');
-      if (error) {
-        console.error('Error loading athletes:', error);
-        return;
-      }
-
-      const list = document.getElementById('athletes-list');
-      list.innerHTML = '';
-
-      data?.forEach(athlete => {
-        const item = document.createElement('div');
-        item.className = 'data-item';
-        item.innerHTML = `
-          <div class="data-item-info">
-            <h4>${athlete.name}</h4>
-            <p>Grade: ${formatGrade(athlete.grade)} | Gender: ${athlete.gender || 'N/A'}</p>
-            <p>School: ${athlete.school_slug || 'N/A'}</p>
+      } else if (type === 'athlete') {
+        title.textContent = id ? 'Edit Athlete' : 'Add Athlete';
+        const item = id ? allData.athletes.find(a => a.id === id) : {};
+        const schoolOptions = allData.schools.map(s => `<option value="${s.slug}" ${item.school_slug === s.slug ? 'selected' : ''}>${s.name}</option>`).join('');
+        body.innerHTML = `
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name *</label>
+              <input type="text" id="form-athlete-name" value="${item.name || ''}" required />
+            </div>
+            <div class="form-group">
+              <label>School</label>
+              <select id="form-athlete-school">
+                <option value="">Select...</option>
+                ${schoolOptions}
+              </select>
+            </div>
           </div>
-          <div class="data-item-actions">
-            <button class="btn btn-primary" onclick="editAthlete('${athlete.id}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteAthlete('${athlete.id}')">Delete</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Grade (Graduation Year)</label>
+              <input type="number" id="form-athlete-grade" value="${item.grade || ''}" min="2020" max="2030" />
+              <small>e.g., 2026 for a current senior</small>
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <select id="form-athlete-gender">
+                <option value="">Select...</option>
+                <option value="M" ${item.gender === 'M' ? 'selected' : ''}>Male</option>
+                <option value="F" ${item.gender === 'F' ? 'selected' : ''}>Female</option>
+              </select>
+            </div>
           </div>
         `;
-        list.appendChild(item);
-      });
-    }
-
-    async function addAthlete(event) {
-      event.preventDefault();
-      
-      const name = document.getElementById('athlete-name').value;
-      const school_slug = document.getElementById('athlete-school').value || null;
-      const grade = document.getElementById('athlete-grade').value || null;
-      const gender = document.getElementById('athlete-gender').value || null;
-
-      const { error } = await supabase.from('athletes').insert({ 
-        name, school_slug, grade, gender 
-      });
-
-      if (error) {
-        showStatus(`Error adding athlete: ${error.message}`, 'error');
-      } else {
-        showStatus('Athlete added successfully!');
-        document.getElementById('athlete-form').reset();
-        loadAthletes();
-      }
-    }
-
-    async function editAthlete(id) {
-      // Load athlete data first
-      const { data: athlete } = await supabase.from('athletes').select('*').eq('id', id).single();
-      if (!athlete) {
-        showStatus('Error loading athlete data', 'error');
-        return;
-      }
-
-      const name = prompt('Enter athlete name:', athlete.name);
-      if (!name) return;
-      
-      const grade = prompt('Enter grade (year):', athlete.grade || '');
-      const gender = prompt('Enter gender (M/F):', athlete.gender || '');
-
-      const schoolSlug = prompt('Enter school slug:', athlete.school_slug || '');
-
-      const { error } = await supabase.from('athletes').update({ 
-        name, 
-        grade: grade || null, 
-        gender: gender || null,
-        school_slug: schoolSlug || null
-      }).eq('id', id);
-
-      if (error) {
-        showStatus(`Error updating athlete: ${error.message}`, 'error');
-      } else {
-        showStatus('Athlete updated successfully!');
-        loadAthletes();
-      }
-    }
-
-    async function deleteAthlete(id) {
-      if (!confirm('Are you sure you want to delete this athlete?')) return;
-
-      const { error } = await supabase.from('athletes').delete().eq('id', id);
-
-      if (error) {
-        showStatus(`Error deleting athlete: ${error.message}`, 'error');
-      } else {
-        showStatus('Athlete deleted successfully!');
-        loadAthletes();
-      }
-    }
-
-    // ===== RESULTS =====
-    async function loadResults() {
-      const { data, error } = await supabase.from('results').select('*').order('date', { ascending: false });
-      if (error) {
-        console.error('Error loading results:', error);
-        return;
-      }
-
-      const list = document.getElementById('results-list');
-      list.innerHTML = '';
-
-      data?.forEach(result => {
-        const item = document.createElement('div');
-        item.className = 'data-item';
-        item.innerHTML = `
-          <div class="data-item-info">
-            <h4>${result.athlete_name}</h4>
-            <p>Time: ${result.time || 'N/A'}s | Distance: ${result.distance || 'N/A'}m | Place: ${result.place || 'N/A'}</p>
-            <p>Meet: ${result.meet_slug || 'N/A'} | School: ${result.school_slug || 'N/A'}</p>
+      } else if (type === 'result') {
+        title.textContent = id ? 'Edit Result' : 'Add Result';
+        const item = id ? allData.results.find(r => r.id === id) : {};
+        const meetOptions = allData.meets.map(m => `<option value="${m.slug}" ${item.meet_slug === m.slug ? 'selected' : ''}>${m.name}</option>`).join('');
+        const schoolOptions = allData.schools.map(s => `<option value="${s.slug}" ${item.school_slug === s.slug ? 'selected' : ''}>${s.name}</option>`).join('');
+        body.innerHTML = `
+          <div class="form-group">
+            <label>Athlete Name *</label>
+            <input type="text" id="form-result-athlete" value="${item.athlete_name || ''}" required />
           </div>
-          <div class="data-item-actions">
-            <button class="btn btn-primary" onclick="editResult('${result.id}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteResult('${result.id}')">Delete</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Meet</label>
+              <select id="form-result-meet">
+                <option value="">Select...</option>
+                ${meetOptions}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>School</label>
+              <select id="form-result-school">
+                <option value="">Select...</option>
+                ${schoolOptions}
+              </select>
+            </div>
           </div>
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    async function addResult(event) {
-      event.preventDefault();
-      
-      const athlete_name = document.getElementById('result-athlete').value;
-      const meet_slug = document.getElementById('result-meet').value || null;
-      const school_slug = document.getElementById('result-school').value || null;
-      const gender = document.getElementById('result-gender').value || null;
-      const time = document.getElementById('result-time').value || null;
-      const distance = document.getElementById('result-distance').value || null;
-      const place = document.getElementById('result-place').value || null;
-
-      const { error } = await supabase.from('results').insert({ 
-        athlete_name, meet_slug, school_slug, gender, time, distance, place 
-      });
-
-      if (error) {
-        showStatus(`Error adding result: ${error.message}`, 'error');
-      } else {
-        showStatus('Result added successfully!');
-        document.getElementById('result-form').reset();
-        loadResults();
-      }
-    }
-
-    async function editResult(id) {
-      // Load result data first
-      const { data: result } = await supabase.from('results').select('*').eq('id', id).single();
-      if (!result) {
-        showStatus('Error loading result data', 'error');
-        return;
-      }
-
-      const athleteName = prompt('Enter athlete name:', result.athlete_name);
-      if (!athleteName) return;
-      
-      const time = prompt('Enter time (seconds):', result.time || '');
-      const distance = prompt('Enter distance (meters):', result.distance || '');
-      const place = prompt('Enter place:', result.place || '');
-      const gender = prompt('Enter gender (M/F):', result.gender || '');
-      const meetSlug = prompt('Enter meet slug:', result.meet_slug || '');
-      const schoolSlug = prompt('Enter school slug:', result.school_slug || '');
-
-      const { error } = await supabase.from('results').update({ 
-        athlete_name: athleteName,
-        time: time || null,
-        distance: distance || null,
-        place: place || null,
-        gender: gender || null,
-        meet_slug: meetSlug || null,
-        school_slug: schoolSlug || null
-      }).eq('id', id);
-
-      if (error) {
-        showStatus(`Error updating result: ${error.message}`, 'error');
-      } else {
-        showStatus('Result updated successfully!');
-        loadResults();
-      }
-    }
-
-    async function deleteResult(id) {
-      if (!confirm('Are you sure you want to delete this result?')) return;
-
-      const { error } = await supabase.from('results').delete().eq('id', id);
-
-      if (error) {
-        showStatus(`Error deleting result: ${error.message}`, 'error');
-      } else {
-        showStatus('Result deleted successfully!');
-        loadResults();
-      }
-    };
-
-    // ===== CSV IMPORT ENHANCED =====
-    function humanizeSlug(slug) {
-      if (!slug) return '';
-      return slug
-        .toString()
-        .split('-')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-    }
-
-    async function ensureSchoolExists(schoolSlug, knownSchools) {
-      if (!schoolSlug) return true;
-      if (knownSchools.has(schoolSlug)) return true;
-      // Check existence first
-      const { data: existing, error: selectErr } = await supabase
-        .from('schools')
-        .select('slug')
-        .eq('slug', schoolSlug)
-        .limit(1);
-      if (!selectErr && existing && existing.length) {
-        knownSchools.add(schoolSlug);
-        return true;
-      }
-      // Insert only if not found
-      const name = humanizeSlug(schoolSlug);
-      const { error: insertErr } = await supabase.from('schools').insert({ name, slug: schoolSlug });
-      if (!insertErr) {
-        knownSchools.add(schoolSlug);
-        return true;
-      }
-      return false;
-    }
-
-    async function ensureAthleteExists(athleteName, schoolSlug, grade, knownAthletes, gender = null) {
-      if (!athleteName) return true;
-      
-      // If grade is blank/null from CSV, we should match athletes by name+school only
-      // This prevents creating duplicates when importing partial data
-      const searchKey = `${athleteName}||${schoolSlug || ''}`;
-      const cacheKey = `${athleteName}||${schoolSlug || ''}||${grade || ''}`;
-      
-      if (knownAthletes.has(searchKey)) return true;
-      
-      // Check existence first - if grade is blank, search without grade filter
-      let query = supabase
-        .from('athletes')
-        .select('name, school_slug, grade, gender')
-        .eq('name', athleteName)
-        .eq('school_slug', schoolSlug || null);
-      
-      const { data: existing, error: selectErr } = await query.limit(1);
-      
-      if (!selectErr && existing && existing.length) {
-        // Found matching athlete by name+school
-        // If CSV had a grade and athlete doesn't have one, update the grade
-        if (grade && !existing[0].grade) {
-          await supabase
-            .from('athletes')
-            .update({ grade: grade })
-            .eq('name', athleteName)
-            .eq('school_slug', schoolSlug || null);
-        }
-        // If CSV had gender and athlete doesn't have one, update it
-        if (gender && !existing[0].gender) {
-          await supabase
-            .from('athletes')
-            .update({ gender: gender.toUpperCase() })
-            .eq('name', athleteName)
-            .eq('school_slug', schoolSlug || null);
-        }
-        knownAthletes.add(searchKey);
-        return true;
-      }
-      
-      // Insert only if not found
-      const athleteData = { name: athleteName, school_slug: schoolSlug || null, grade: grade || null };
-      if (gender) {
-        athleteData.gender = gender.toUpperCase();
-      }
-      const { error: insertErr } = await supabase
-        .from('athletes')
-        .insert(athleteData);
-      if (!insertErr) {
-        knownAthletes.add(searchKey);
-        return true;
-      }
-      return false;
-    }
-
-    async function bulkInsertResults(meetSlug, csvData) {
-      const results = { success: 0, errors: [], total: csvData.length };
-
-      // Fetch known schools and athletes into sets for quick checks
-      const { data: schoolRows } = await supabase.from('schools').select('slug');
-      const knownSchools = new Set((schoolRows || []).map(s => s.slug));
-
-      // Athletes set: we will grow it as we insert to avoid huge initial fetch; but seed with a small snapshot
-      const { data: athleteRows } = await supabase.from('athletes').select('name, school_slug, grade').limit(5000);
-      const knownAthletes = new Set((athleteRows || []).map(a => `${a.name}||${a.school_slug || ''}||${a.grade || ''}`));
-
-      const requiredFields = ['athlete_name'];
-      const validRows = [];
-
-      for (let i = 0; i < csvData.length; i++) {
-        const row = { ...csvData[i] };
-        const missingFields = requiredFields.filter(field => !row[field]);
-        if (missingFields.length > 0) {
-          results.errors.push(`Row ${i + 1}: Missing required fields: ${missingFields.join(', ')}`);
-          continue;
-        }
-
-        // Ensure school exists
-        if (row.school_slug) {
-          const okSchool = await ensureSchoolExists(row.school_slug, knownSchools);
-          if (!okSchool) {
-            results.errors.push(`Row ${i + 1}: Unable to create or find school '${row.school_slug}'.`);
-            continue;
-          }
-        }
-
-        // Ensure athlete exists (pass gender and grade from CSV)
-        const genderFromCSV = row.gender ? row.gender.toString().toUpperCase() : null;
-        const gradeFromCSV = row.grade ? row.grade.toString() : null;
-        const okAthlete = await ensureAthleteExists(row.athlete_name, row.school_slug || null, gradeFromCSV, knownAthletes, genderFromCSV);
-        if (!okAthlete) {
-          results.errors.push(`Row ${i + 1}: Unable to create or find athlete '${row.athlete_name}'.`);
-          continue;
-        }
-
-        // Attach meet slug
-        row.meet_slug = meetSlug;
-
-        // Convert numeric fields (time, distance, place)
-        if (row.time) {
-          const parsed = parseTimeToSeconds(row.time);
-          if (isNaN(parsed)) {
-            results.errors.push(`Row ${i + 1}: Invalid time value: ${row.time}`);
-            continue;
-          }
-          row.time = Math.round(parsed * 100) / 100;
-          if (row.time > 36000) {
-            results.errors.push(`Row ${i + 1}: Time seems unusually long (${row.time}s).`);
-            continue;
-          }
-        }
-        if (row.distance) {
-          const d = parseFloat(row.distance);
-          if (isNaN(d)) {
-            results.errors.push(`Row ${i + 1}: Invalid distance value: ${row.distance}`);
-            continue;
-          }
-          row.distance = d;
-        }
-        if (row.place) {
-          const p = parseInt(row.place, 10);
-          if (isNaN(p)) {
-            results.errors.push(`Row ${i + 1}: Invalid place value: ${row.place}`);
-            continue;
-          }
-          row.place = p;
-        }
-        if (row.gender) {
-          const g = row.gender.toString().toUpperCase();
-          if (!['M', 'F'].includes(g)) {
-            results.errors.push(`Row ${i + 1}: Invalid gender value: ${row.gender}`);
-            continue;
-          }
-          row.gender = g;
-        }
-
-        validRows.push(row);
-      }
-
-      if (validRows.length === 0) return results;
-
-      const { error } = await supabase.from('results').insert(validRows);
-      if (error) {
-        results.errors.push(`Database error inserting results: ${error.message}`);
-      } else {
-        results.success = validRows.length;
-      }
-      return results;
-    }
-
-    function displayImportResults(result) {
-      const statusDiv = document.getElementById('import-status');
-      let html = `
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-          <h4>Import Summary</h4>
-          <p><strong>Total rows processed:</strong> ${result.total}</p>
-          <p><strong>Successfully imported:</strong> ${result.success}</p>
-          <p><strong>Errors:</strong> ${result.errors.length}</p>
-        </div>
-      `;
-      if (result.errors.length > 0) {
-        html += `
-          <div style="background: #f8d7da; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb;">
-            <h4 style="color: #721c24; margin-top: 0;">Import Errors</h4>
-            <ul style="color: #721c24; margin: 0;">
-              ${result.errors.map(e => `<li>${e}</li>`).join('')}
-            </ul>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Time (seconds)</label>
+              <input type="number" id="form-result-time" value="${item.time || ''}" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label>Distance (meters)</label>
+              <input type="number" id="form-result-distance" value="${item.distance || ''}" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Place</label>
+              <input type="number" id="form-result-place" value="${item.place || ''}" />
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <select id="form-result-gender">
+                <option value="">Select...</option>
+                <option value="M" ${item.gender === 'M' ? 'selected' : ''}>Male</option>
+                <option value="F" ${item.gender === 'F' ? 'selected' : ''}>Female</option>
+              </select>
+            </div>
           </div>
         `;
       }
-      statusDiv.innerHTML = html;
+
+      modal.classList.add('active');
     }
 
-    async function simpleImportCSV() {
-      const meetSlug = document.getElementById('simple-meet-slug').value;
-      const fileInput = document.getElementById('simple-csv-file');
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+      currentModal = null;
+    }
 
-      if (!meetSlug || !fileInput.files[0]) {
-        showStatus('Enter a meet slug and choose a CSV file.', 'error');
-        return;
-      }
+    async function handleModalSubmit(e) {
+      e.preventDefault();
+      const { type, id } = currentModal;
 
       try {
-        showStatus('Importing CSV...', 'info');
-        const file = fileInput.files[0];
-        const csvText = await readFileAsText(file);
-
-        const headers = ['athlete_name','school_slug','gender','time','distance','place'];
-        const csvData = parseCSVStrict(csvText, headers);
-
-        if (csvData.length === 0) {
-          showStatus('No valid data found in CSV file.', 'error');
-          return;
+        if (type === 'school') {
+          const name = document.getElementById('form-school-name').value;
+          const slug = document.getElementById('form-school-slug').value;
+          if (id) {
+            await supabase.from('schools').update({ name, slug }).eq('id', id);
+            showStatus('School updated!');
+          } else {
+            await supabase.from('schools').insert({ name, slug });
+            showStatus('School added!');
+          }
+        } else if (type === 'meet') {
+          const name = document.getElementById('form-meet-name').value;
+          const slug = document.getElementById('form-meet-slug').value;
+          const date = document.getElementById('form-meet-date').value;
+          const location = document.getElementById('form-meet-location').value;
+          const description = document.getElementById('form-meet-description').value;
+          if (id) {
+            await supabase.from('meets').update({ name, slug, date, location, description }).eq('id', id);
+            showStatus('Meet updated!');
+          } else {
+            await supabase.from('meets').insert({ name, slug, date, location, description });
+            showStatus('Meet added!');
+          }
+        } else if (type === 'athlete') {
+          const name = document.getElementById('form-athlete-name').value;
+          const school_slug = document.getElementById('form-athlete-school').value || null;
+          const grade = document.getElementById('form-athlete-grade').value || null;
+          const gender = document.getElementById('form-athlete-gender').value || null;
+          if (id) {
+            await supabase.from('athletes').update({ name, school_slug, grade, gender }).eq('id', id);
+            showStatus('Athlete updated!');
+          } else {
+            await supabase.from('athletes').insert({ name, school_slug, grade, gender });
+            showStatus('Athlete added!');
+          }
+        } else if (type === 'result') {
+          const athlete_name = document.getElementById('form-result-athlete').value;
+          const meet_slug = document.getElementById('form-result-meet').value || null;
+          const school_slug = document.getElementById('form-result-school').value || null;
+          const time = document.getElementById('form-result-time').value || null;
+          const distance = document.getElementById('form-result-distance').value || null;
+          const place = document.getElementById('form-result-place').value || null;
+          const gender = document.getElementById('form-result-gender').value || null;
+          if (id) {
+            await supabase.from('results').update({ athlete_name, meet_slug, school_slug, time, distance, place, gender }).eq('id', id);
+            showStatus('Result updated!');
+          } else {
+            await supabase.from('results').insert({ athlete_name, meet_slug, school_slug, time, distance, place, gender });
+            showStatus('Result added!');
+          }
         }
-
-        const importResult = await bulkInsertResults(meetSlug, csvData);
-        displayImportResults(importResult);
-
-        if (importResult.success > 0) {
-          showStatus(`Successfully imported ${importResult.success} results for meet "${meetSlug}"!`, 'success');
-          document.getElementById('simple-meet-slug').value = '';
-          document.getElementById('simple-csv-file').value = '';
-          loadResults();
-        }
+        closeModal();
+        await loadAllData();
+        updateStats();
+        populateFilters();
       } catch (error) {
-        console.error('CSV import error:', error);
-        showStatus(`Error importing CSV: ${error.message}`, 'error');
+        showStatus(`Error: ${error.message}`, 'error');
       }
     }
 
-    function readFileAsText(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = e => reject(e);
-        reader.readAsText(file);
+    // ===== RENDERING =====
+    function renderSchools() {
+      const list = document.getElementById('schools-list');
+      if (allData.schools.length === 0) {
+        list.innerHTML = '<div class="empty-state">No schools yet. Add one to get started!</div>';
+        return;
+      }
+      list.innerHTML = allData.schools.map(s => `
+        <div class="grid-row">
+          <div class="grid-cell-main">${s.name}</div>
+          <div class="grid-cell-secondary">${s.slug}</div>
+          <div class="grid-cell-secondary">${allData.results.filter(r => r.school_slug === s.slug).length}</div>
+          <div></div>
+          <div class="grid-actions">
+            <button class="btn btn-secondary btn-small" onclick="openModal('school', '${s.id}')">Edit</button>
+            <button class="btn btn-danger btn-small" onclick="deleteItem('schools', '${s.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMeets() {
+      const list = document.getElementById('meets-list');
+      if (allData.meets.length === 0) {
+        list.innerHTML = '<div class="empty-state">No meets yet. Add one to get started!</div>';
+        return;
+      }
+      list.innerHTML = allData.meets.map(m => `
+        <div class="grid-row">
+          <div class="grid-cell-main">${m.name}</div>
+          <div class="grid-cell-secondary">${m.date}</div>
+          <div class="grid-cell-secondary">${m.location || '-'}</div>
+          <div class="grid-cell-secondary">${allData.results.filter(r => r.meet_slug === m.slug).length}</div>
+          <div class="grid-actions">
+            <button class="btn btn-secondary btn-small" onclick="openModal('meet', '${m.id}')">Edit</button>
+            <button class="btn btn-danger btn-small" onclick="deleteItem('meets', '${m.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAthletes() {
+      const list = document.getElementById('athletes-list');
+      if (allData.athletes.length === 0) {
+        list.innerHTML = '<div class="empty-state">No athletes yet. Add one to get started!</div>';
+        return;
+      }
+      list.innerHTML = allData.athletes.map(a => `
+        <div class="grid-row">
+          <div class="grid-cell-main">${a.name}</div>
+          <div class="grid-cell-secondary">${allData.schools.find(s => s.slug === a.school_slug)?.name || '-'}</div>
+          <div class="grid-cell-secondary">${formatGrade(a.grade)}</div>
+          <div class="grid-cell-secondary">${a.gender || '-'}</div>
+          <div class="grid-actions">
+            <button class="btn btn-secondary btn-small" onclick="openModal('athlete', '${a.id}')">Edit</button>
+            <button class="btn btn-danger btn-small" onclick="deleteItem('athletes', '${a.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderResults() {
+      const list = document.getElementById('results-list');
+      if (allData.results.length === 0) {
+        list.innerHTML = '<div class="empty-state">No results yet. Import from CSV or add manually!</div>';
+        return;
+      }
+      list.innerHTML = allData.results.map(r => `
+        <div class="grid-row">
+          <div class="grid-cell-main">${r.athlete_name}</div>
+          <div class="grid-cell-secondary">${allData.meets.find(m => m.slug === r.meet_slug)?.name || '-'}</div>
+          <div class="grid-cell-secondary">${r.time ? r.time + 's' : '-'}</div>
+          <div class="grid-cell-secondary">${r.place || '-'}</div>
+          <div class="grid-actions">
+            <button class="btn btn-secondary btn-small" onclick="openModal('result', '${r.id}')">Edit</button>
+            <button class="btn btn-danger btn-small" onclick="deleteItem('results', '${r.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ===== DELETE & FILTER =====
+    async function deleteItem(type, id) {
+      if (!confirm('Delete this item?')) return;
+      await supabase.from(type).delete().eq('id', id);
+      showStatus('Deleted!');
+      await loadAllData();
+      updateStats();
+    }
+
+    function filterTable(type, searchId) {
+      const search = document.getElementById(searchId).value.toLowerCase();
+      const rows = document.getElementById(`${type}-list`).querySelectorAll('.grid-row');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(search) ? '' : 'none';
       });
     }
 
-    function parseCSVStrict(csvText, headers) {
-      const lines = csvText.trim().split('\n');
-      if (lines.length === 0) return [];
-      const headerRow = lines[0].trim();
-      const fileHeaders = headerRow.split(',').map(h => h.trim());
-      const expected = headers.join(',');
-      if (fileHeaders.join(',') !== expected) {
-        throw new Error(`CSV headers must be exactly: ${expected}`);
-      }
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-        if (values.length !== headers.length) continue;
-        const row = {};
-        headers.forEach((h, idx) => { row[h] = values[idx] || null; });
-        rows.push(row);
-      }
-      return rows;
+    // ===== CSV IMPORT =====
+    function humanizeSlug(slug) {
+      return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     }
 
-    function parseTimeToSeconds(timeStr) {
-      if (!timeStr) return null;
-      const str = timeStr.toString().trim();
-      if (!isNaN(str) && !str.includes(':')) return parseFloat(str);
-      if (str.includes(':')) {
-        const parts = str.split(':');
-        if (parts.length === 2) {
-          const minutes = parseInt(parts[0]);
-          const seconds = parseFloat(parts[1]);
-          return (minutes * 60) + seconds;
+    async function handleCSVImport(e) {
+      e.preventDefault();
+      const meetSlug = document.getElementById('csv-meet-slug').value;
+      const file = document.getElementById('csv-file').files[0];
+
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const lines = text.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        const expected = ['athlete_name', 'school_slug', 'gender', 'time', 'distance', 'place'];
+        
+        if (headers.join(',') !== expected.join(',')) {
+          throw new Error(`CSV headers must be exactly: ${expected.join(', ')}`);
         }
-        if (parts.length === 3) {
-          const hours = parseInt(parts[0]);
-          const minutes = parseInt(parts[1]);
-          const seconds = parseFloat(parts[2]);
-          return (hours * 3600) + (minutes * 60) + seconds;
+
+        const results = [];
+        const errors = [];
+        const knownSchools = new Set(allData.schools.map(s => s.slug));
+        const knownAthletes = new Set(allData.athletes.map(a => `${a.name}||${a.school_slug || ''}`));
+
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const row = {};
+          headers.forEach((h, idx) => { row[h] = values[idx] || null; });
+
+          // Ensure school
+          if (row.school_slug && !knownSchools.has(row.school_slug)) {
+            await supabase.from('schools').insert({ name: humanizeSlug(row.school_slug), slug: row.school_slug });
+            knownSchools.add(row.school_slug);
+          }
+
+          // Ensure athlete
+          const athleteKey = `${row.athlete_name}||${row.school_slug || ''}`;
+          if (!knownAthletes.has(athleteKey)) {
+            await supabase.from('athletes').insert({ name: row.athlete_name, school_slug: row.school_slug || null });
+            knownAthletes.add(athleteKey);
+          }
+
+          // Parse time
+          if (row.time) {
+            const timeStr = row.time.toString();
+            if (timeStr.includes(':')) {
+              const parts = timeStr.split(':');
+              row.time = parts.length === 2 ? parseInt(parts[0]) * 60 + parseFloat(parts[1]) : parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
+            } else {
+              row.time = parseFloat(row.time);
+            }
+          }
+
+          row.meet_slug = meetSlug;
+          row.place = row.place ? parseInt(row.place) : null;
+          row.distance = row.distance ? parseInt(row.distance) : null;
+          results.push(row);
         }
+
+        if (results.length === 0) throw new Error('No valid rows in CSV');
+
+        await supabase.from('results').insert(results);
+        document.getElementById('csv-status').innerHTML = `<div style="color: #155724; background: #d4edda; padding: 15px; border-radius: 6px;">✓ Successfully imported ${results.length} results!</div>`;
+        document.getElementById('csv-meet-slug').value = '';
+        document.getElementById('csv-file').value = '';
+        showStatus(`Imported ${results.length} results!`);
+        await loadAllData();
+        updateStats();
+      } catch (error) {
+        document.getElementById('csv-status').innerHTML = `<div style="color: #721c24; background: #f8d7da; padding: 15px; border-radius: 6px;">✕ ${error.message}</div>`;
+        showStatus(error.message, 'error');
       }
-      return NaN;
     }
   </script>
 </body>
