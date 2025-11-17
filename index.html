@@ -111,7 +111,7 @@
           .from('meets')
           .select('*')
           .order('date', { ascending: false })
-          .limit(6);
+          .limit(10);
         if (error) throw error;
         const meets = data || [];
         if (!meets.length) {
