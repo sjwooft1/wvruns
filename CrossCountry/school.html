@@ -10,78 +10,75 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
   <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="content-wrapper">
-    <div class="page-background"></div>
-    <img src="assets/meets background.jpg" alt="" class="page-background-image" />
-    <header>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <img id="school-logo" src="" alt="School Logo" class="team-logo" style="height: 60px; display: none;" />
-      <h1 id="school-name" style="margin: 0;">Loading...</h1>
+  <nav class="navbar">
+    <div class="container">
+      <div class="navbar-content">
+        <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+        <ul class="navbar-nav">
+          <li><a href="xc.html" class="navbar-link">Home</a></li>
+          <li><a href="schools.html" class="navbar-link">Schools</a></li>
+          <li><a href="meets.html" class="navbar-link">Meets</a></li>
+          <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+          <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+        </ul>
+      </div>
     </div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="schools.html">Schools</a>
-      <a href="meets.html">Meets</a>
-      <a href="rankings.html">Rankings</a>
-      <a href="calendar.html">Calendar</a>
-    </nav>
-  </header>
+  </nav>
 
-  <main>
-    <section class="team-intro">
-      <h2>About the Team</h2>
-      <p id="school-description">Loading school information...</p>
-    </section>
+  <main class="content-section">
+    <div class="container">
+      <div class="school-header">
+        <div style="display: flex; align-items: center; gap: 1rem; justify-content: center; margin-bottom: 1rem;">
+          <img id="school-logo" src="" alt="School Logo" style="height: 60px; display: none; border-radius: 8px;" />
+          <h1 id="school-name" class="school-name">Loading...</h1>
+        </div>
+        <p id="school-description" style="color: var(--text-secondary);">Loading school information...</p>
+      </div>
 
-    <section class="roster">
-      <h2>Roster</h2>
-      <div id="roster-loading">Loading roster...</div>
-      <table id="roster-table" style="display: none;">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Grade</th>
-            <th>Gender</th>
-          </tr>
-        </thead>
-        <tbody id="roster-tbody">
-        </tbody>
-      </table>
-      <p id="no-athletes" style="display: none;"><em>No athletes found. Add them via the admin page.</em></p>
-    </section>
+      <section class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+          <h2 class="card-title">Roster</h2>
+        </div>
+        <div class="card-body">
+          <div id="roster-loading" class="loading">Loading roster...</div>
+          <div id="roster-grid" style="height: 400px; width: 100%; display: none;"></div>
+          <p id="no-athletes" style="display: none; text-align: center; padding: 2rem; color: var(--text-muted);"><em>No athletes found. Add them via the admin page.</em></p>
+        </div>
+      </section>
 
-    <section class="events">
-      <h2>Recent Meets & Results</h2>
-      <ul id="meets-list">
-        <!-- Meets will be loaded here -->
-      </ul>
-      <p>Click a meet to view full results. More data will be loaded dynamically.</p>
-    </section>
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Meets & Results</h2>
+        </div>
+        <div class="card-body">
+          <ul id="meets-list" style="list-style: none; padding: 0;">
+            <!-- Meets will be loaded here -->
+          </ul>
+          <p style="color: var(--text-secondary); margin-top: 1rem;">Click a meet to view full results. More data will be loaded dynamically.</p>
+        </div>
+      </section>
+    </div>
   </main>
 
-  <footer>
-    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="login.html"
-       style="
-         display:inline-block;
-         margin-top:8px;
-         background:#6cb5d967;
-         padding:8px 14px;
-         color:white;
-         text-decoration:none;
-         border-radius:6px;
-         font-weight:bold;
-       ">
-       Admin Login
-    </a>
+  <footer style="text-align: center; padding: 3rem 2rem; background: white; margin-top: 4rem; border-top: 1px solid var(--border-light);">
+    <p style="color: var(--text-secondary); margin-bottom: 1rem;">&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="login.html" class="btn btn-secondary">Admin Login</a>
   </footer>
 
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Supabase Configuration -->
-  <script src="supabase-config.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+  <!-- Firebase Configuration -->
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
   <script>
     const USE_WORD_GRADE_LABELS = false;
 
@@ -171,18 +168,10 @@
       }
 
       try {
-        // Try to load from Supabase first
-        const { data: schools, error: schoolError } = await supabase
-          .from('schools')
-          .select('*')
-          .eq('slug', schoolSlug)
-          .single();
+        // Try to load from Firebase first
+        let schoolData = await getSchoolBySlug(schoolSlug);
 
-        let schoolData = null;
-
-        if (!schoolError && schools) {
-          schoolData = schools;
-        } else {
+        if (!schoolData) {
           // Fallback to local JSON
           const response = await fetch('data/schools.json');
           const allSchools = await response.json();
@@ -220,31 +209,14 @@
     // Load meets for the school
     async function loadMeets(schoolSlug) {
       try {
-        // First, get results for this school to find which meets they participated in
-        const { data: results, error: resultsError } = await supabase
-          .from('results')
-          .select('meet_slug')
-          .eq('school_slug', schoolSlug);
+        // Get meets for this school
+        const meets = await getMeetsBySchool(schoolSlug);
         
-        if (resultsError || !results || results.length === 0) {
+        if (!meets || meets.length === 0) {
           document.getElementById('meets-list').innerHTML = '<li>No meets yet. Add results via the admin page.</li>';
           return;
         }
-
-        // Get unique meet slugs
-        const meetSlugs = [...new Set(results.map(r => r.meet_slug).filter(Boolean))];
-        
-        if (meetSlugs.length === 0) {
-          document.getElementById('meets-list').innerHTML = '<li>No meets yet. Add results via the admin page.</li>';
-          return;
-        }
-
-        // Load meet details
-        const { data: meets, error } = await supabase
-          .from('meets')
-          .select('*')
-          .in('slug', meetSlugs)
-          .order('date', { ascending: false })
+          order('date', { ascending: false })
           .limit(5);
         
         if (error) {
@@ -293,37 +265,84 @@
     // Load athletes roster
     async function loadRoster(schoolSlug) {
       try {
-        const { data: athletes, error } = await supabase
-          .from('athletes')
-          .select('*')
-          .eq('school_slug', schoolSlug)
-          .order('name');
+        const athletes = await getAthletesBySchool(schoolSlug);
         
-        if (error) {
-          console.error('Error loading athletes:', error);
+        if (!athletes) {
+          console.error('Error loading athletes');
           document.getElementById('roster-loading').textContent = 'Error loading roster';
           return;
         }
         
-        const tbody = document.getElementById('roster-tbody');
+        const gridContainer = document.getElementById('roster-grid');
         const loadingDiv = document.getElementById('roster-loading');
-        const table = document.getElementById('roster-table');
         const noAthletes = document.getElementById('no-athletes');
         
         if (athletes && athletes.length > 0) {
-          tbody.innerHTML = ''; // Clear any existing rows
-          athletes.forEach(athlete => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td><a href="athlete.html?name=${encodeURIComponent(athlete.name)}" style="color: #0056b3; text-decoration: none; font-weight: 600;">${athlete.name}</a></td>
-              <td>${formatGrade(athlete.grade)}</td>
-              <td>${athlete.gender || 'N/A'}</td>
-            `;
-            tbody.appendChild(row);
-          });
-          
+          if (window.rosterHot) {
+            try {
+              window.rosterHot.destroy();
+            } catch (e) {
+              console.warn('Error destroying Handsontable:', e);
+            }
+          }
+
+          const headers = ['Name', 'Grade', 'Gender'];
+          const rowData = athletes.map(athlete => [
+            athlete.name || '',
+            formatGrade(athlete.grade),
+            athlete.gender || 'N/A',
+            athlete.name
+          ]);
+
+          const columnDefs = [
+            {
+              data: 0,
+              title: 'Name',
+              type: 'text',
+              readOnly: true,
+              renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                Handsontable.renderers.TextRenderer.apply(this, arguments);
+                const athleteName = instance.getDataAtRow(row)[3];
+                if (athleteName) {
+                  td.innerHTML = `<a href="athlete.html?name=${encodeURIComponent(athleteName)}" style="color: #0056b3; text-decoration: none; font-weight: 600;">${value || ''}</a>`;
+                }
+              }
+            },
+            { data: 1, title: 'Grade', type: 'text', readOnly: true, width: 100 },
+            { data: 2, title: 'Gender', type: 'text', readOnly: true, width: 100 }
+          ];
+
           loadingDiv.style.display = 'none';
-          table.style.display = 'table';
+          gridContainer.style.display = 'block';
+          
+          setTimeout(() => {
+            try {
+              if (!gridContainer) {
+                console.error('Roster grid container not found');
+                return;
+              }
+              window.rosterHot = new Handsontable(gridContainer, {
+                data: rowData,
+                colHeaders: headers,
+                columns: columnDefs,
+                rowHeaders: true,
+                licenseKey: 'non-commercial-and-evaluation',
+                height: 'auto',
+                maxHeight: '400px',
+                stretchH: 'all',
+                columnSorting: true,
+                filters: true,
+                dropdownMenu: true,
+                contextMenu: true,
+                manualColumnResize: true
+              });
+              loadingDiv.style.display = 'none';
+              gridContainer.style.display = 'block';
+            } catch (error) {
+              console.error('Error creating Handsontable:', error);
+              loadingDiv.innerHTML = `Error loading roster: ${error.message}`;
+            }
+          }, 100);
         } else {
           loadingDiv.style.display = 'none';
           noAthletes.style.display = 'block';

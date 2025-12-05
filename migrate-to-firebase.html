@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrate Data from Supabase to Firebase</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border-left: 4px solid #4285f4;
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #4285f4;
+    }
+    button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #357ae8;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .btn-danger {
+      background: #ea4335;
+    }
+    .btn-danger:hover {
+      background: #d33b2c;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 6px;
+      background: #e8f0fe;
+      border-left: 4px solid #4285f4;
+    }
+    .status.success {
+      background: #e6f4ea;
+      border-left-color: #34a853;
+    }
+    .status.error {
+      background: #fce8e6;
+      border-left-color: #ea4335;
+    }
+    .status.warning {
+      background: #fef7e0;
+      border-left-color: #fbbc04;
+    }
+    .progress {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #4285f4;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    .log {
+      max-height: 400px;
+      overflow-y: auto;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      margin-top: 20px;
+    }
+    .log-entry {
+      margin: 5px 0;
+    }
+    .log-entry.success { color: #4ec9b0; }
+    .log-entry.error { color: #f48771; }
+    .log-entry.info { color: #569cd6; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      color: #666;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #4285f4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Data Migration Tool</h1>
+    <p class="subtitle">Migrate data from Supabase to Firebase Realtime Database</p>
+
+    <div class="section">
+      <h2>Configuration</h2>
+      <p><strong>Cross Country Supabase:</strong> https://oxdqbytfrjugvcojydzw.supabase.co</p>
+      <p><strong>Track Supabase:</strong> https://nwrkhkvducsveapwymvg.supabase.co</p>
+      <p><strong>Firebase Project:</strong> mountainstatemiles-1326f</p>
+      <p class="status warning">⚠️ Make sure you have backed up your data before proceeding!</p>
+    </div>
+
+    <div class="section">
+      <h2>Migration Options</h2>
+      <button onclick="migrateCrossCountry()">Migrate Cross Country Data</button>
+      <button onclick="migrateTrack()">Migrate Track Data</button>
+      <button onclick="migrateAll()" class="btn-danger">Migrate ALL Data</button>
+      <button onclick="clearFirebase()" class="btn-danger">⚠️ Clear Firebase (Dangerous!)</button>
+    </div>
+
+    <div id="stats-container" class="stats"></div>
+
+    <div id="status-container"></div>
+    <div id="progress-container"></div>
+    <div id="log" class="log"></div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+
+  <script>
+    // Supabase Configuration - Cross Country
+    const SUPABASE_URL_CC = 'https://oxdqbytfrjugvcojydzw.supabase.co';
+    const SUPABASE_ANON_KEY_CC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94ZHFieXRmcmp1Z3Zjb2p5ZHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTU3MTYsImV4cCI6MjA3NzE3MTcxNn0.buSKV94thn5SUlZXa72QTnJnq0TlQMQ5B9PM_MMUQL8';
+    const supabaseCC = window.supabase.createClient(SUPABASE_URL_CC, SUPABASE_ANON_KEY_CC);
+    
+    // Supabase Configuration - Track
+    const SUPABASE_URL_TRACK = 'https://nwrkhkvducsveapwymvg.supabase.co';
+    const SUPABASE_ANON_KEY_TRACK = 'sb_publishable_FB14jsV8S0BqvQkuvgxjkg_-HnLuH5x';
+    const supabaseTrack = window.supabase.createClient(SUPABASE_URL_TRACK, SUPABASE_ANON_KEY_TRACK);
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCBQt9I_OSoUuTM61F-JXNBkD98f7PCJcA",
+      authDomain: "mountainstatemiles-1326f.firebaseapp.com",
+      databaseURL: "https://mountainstatemiles-1326f-default-rtdb.firebaseio.com",
+      projectId: "mountainstatemiles-1326f",
+      storageBucket: "mountainstatemiles-1326f.firebasestorage.app",
+      messagingSenderId: "605911511756",
+      appId: "1:605911511756:web:0e99071a816f0a39210869",
+      measurementId: "G-N3DNFRQNF9"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    let migrationStats = {
+      schools: 0,
+      meets: 0,
+      athletes: 0,
+      results: 0,
+      track_meets: 0,
+      track_events: 0,
+      track_athletes: 0,
+      track_results: 0
+    };
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+      console.log(message);
+    }
+
+    function showStatus(message, type = 'info') {
+      const container = document.getElementById('status-container');
+      const status = document.createElement('div');
+      status.className = `status ${type}`;
+      status.textContent = message;
+      container.appendChild(status);
+      log(message, type);
+    }
+
+    function updateProgress(current, total, label) {
+      const container = document.getElementById('progress-container');
+      const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
+      container.innerHTML = `
+        <div class="progress">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>${label}</span>
+            <span>${current} / ${total} (${percentage}%)</span>
+          </div>
+          <div class="progress-bar" style="width: ${percentage}%"></div>
+        </div>
+      `;
+    }
+
+    function updateStats() {
+      const container = document.getElementById('stats-container');
+      container.innerHTML = `
+        <div class="stat-card">
+          <h3>Cross Country</h3>
+          <div class="number">${migrationStats.schools}</div>
+          <p>Schools</p>
+        </div>
+        <div class="stat-card">
+          <div class="number">${migrationStats.meets}</div>
+          <p>Meets</p>
+        </div>
+        <div class="stat-card">
+          <div class="number">${migrationStats.athletes}</div>
+          <p>Athletes</p>
+        </div>
+        <div class="stat-card">
+          <div class="number">${migrationStats.results}</div>
+          <p>Results</p>
+        </div>
+        <div class="stat-card">
+          <h3>Track</h3>
+          <div class="number">${migrationStats.track_meets}</div>
+          <p>Meets</p>
+        </div>
+        <div class="stat-card">
+          <div class="number">${migrationStats.track_events}</div>
+          <p>Events</p>
+        </div>
+        <div class="stat-card">
+          <div class="number">${migrationStats.track_athletes}</div>
+          <p>Athletes</p>
+        </div>
+        <div class="stat-card">
+          <div class="number">${migrationStats.track_results}</div>
+          <p>Results</p>
+        </div>
+      `;
+    }
+
+    async function migrateTable(tableName, firebasePath, transformFn = null, useTrackSupabase = false) {
+      log(`Starting migration of ${tableName}...`);
+      
+      try {
+        // Use appropriate Supabase instance
+        const supabaseClient = useTrackSupabase ? supabaseTrack : supabaseCC;
+        
+        // Fetch from Supabase
+        const { data, error } = await supabaseClient.from(tableName).select('*');
+        
+        if (error) {
+          // Check if table doesn't exist
+          if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
+            log(`Table ${tableName} does not exist in Supabase, skipping...`, 'warning');
+            return 0;
+          }
+          throw new Error(`Supabase error: ${error.message}`);
+        }
+        
+        if (!data || data.length === 0) {
+          log(`No data found in ${tableName}`, 'warning');
+          return 0;
+        }
+        
+        log(`Found ${data.length} records in ${tableName}`);
+        updateProgress(0, data.length, `Migrating ${tableName}...`);
+        
+        // Migrate to Firebase
+        const ref = database.ref(firebasePath);
+        let migrated = 0;
+        
+        for (let i = 0; i < data.length; i++) {
+          const record = data[i];
+          
+          // Transform data if needed (remove id, handle dates, etc.)
+          let firebaseRecord = { ...record };
+          
+          // Remove UUID id (Firebase will generate its own)
+          delete firebaseRecord.id;
+          
+          // Transform if function provided
+          if (transformFn) {
+            firebaseRecord = transformFn(firebaseRecord);
+          }
+          
+          // Convert date strings to proper format
+          if (firebaseRecord.date) {
+            firebaseRecord.date = firebaseRecord.date.toString();
+          }
+          if (firebaseRecord.created_at) {
+            firebaseRecord.created_at = firebaseRecord.created_at.toString();
+          }
+          
+          // Push to Firebase
+          await ref.push(firebaseRecord);
+          migrated++;
+          
+          updateProgress(migrated, data.length, `Migrating ${tableName}...`);
+          
+          if (migrated % 10 === 0) {
+            log(`Migrated ${migrated}/${data.length} ${tableName} records...`);
+          }
+        }
+        
+        log(`✅ Successfully migrated ${migrated} ${tableName} records`, 'success');
+        return migrated;
+        
+      } catch (error) {
+        log(`❌ Error migrating ${tableName}: ${error.message}`, 'error');
+        throw error;
+      }
+    }
+
+    async function migrateCrossCountry() {
+      if (!confirm('This will migrate all Cross Country data from Supabase to Firebase. Continue?')) {
+        return;
+      }
+      
+      try {
+        showStatus('Starting Cross Country migration...', 'info');
+        
+        // Migrate in order (schools first, then meets, athletes, results)
+        // Store under crosscountry/ path
+        migrationStats.schools = await migrateTable('schools', 'crosscountry/schools');
+        migrationStats.meets = await migrateTable('meets', 'crosscountry/meets');
+        migrationStats.athletes = await migrateTable('athletes', 'crosscountry/athletes');
+        migrationStats.results = await migrateTable('results', 'crosscountry/results');
+        
+        updateStats();
+        showStatus(`✅ Cross Country migration complete! Migrated: ${migrationStats.schools} schools, ${migrationStats.meets} meets, ${migrationStats.athletes} athletes, ${migrationStats.results} results`, 'success');
+        
+      } catch (error) {
+        showStatus(`❌ Migration failed: ${error.message}`, 'error');
+      }
+    }
+
+    async function migrateTrack() {
+      if (!confirm('This will migrate all Track data from Supabase to Firebase. Continue?')) {
+        return;
+      }
+      
+      try {
+        showStatus('Starting Track migration...', 'info');
+        
+        // Migrate track tables (will handle errors if tables don't exist)
+        // Store under Track/ path
+        try {
+          migrationStats.track_meets = await migrateTable('track_meets', 'Track/meets', null, true);
+        } catch (e) {
+          log(`Skipping track_meets: ${e.message}`, 'warning');
+        }
+        
+        try {
+          migrationStats.track_events = await migrateTable('track_events', 'Track/events', null, true);
+        } catch (e) {
+          log(`Skipping track_events: ${e.message}`, 'warning');
+        }
+        
+        try {
+          migrationStats.track_athletes = await migrateTable('track_athletes', 'Track/athletes', null, true);
+        } catch (e) {
+          log(`Skipping track_athletes: ${e.message}`, 'warning');
+        }
+        
+        try {
+          migrationStats.track_results = await migrateTable('track_results', 'Track/results', null, true);
+        } catch (e) {
+          log(`Skipping track_results: ${e.message}`, 'warning');
+        }
+        
+        updateStats();
+        showStatus(`✅ Track migration complete! Migrated: ${migrationStats.track_meets} meets, ${migrationStats.track_events} events, ${migrationStats.track_athletes} athletes, ${migrationStats.track_results} results`, 'success');
+        
+      } catch (error) {
+        showStatus(`❌ Migration failed: ${error.message}`, 'error');
+      }
+    }
+
+    async function migrateAll() {
+      if (!confirm('This will migrate ALL data from Supabase to Firebase. This may take a while. Continue?')) {
+        return;
+      }
+      
+      try {
+        showStatus('Starting full migration...', 'info');
+        await migrateCrossCountry();
+        await migrateTrack();
+        showStatus('✅ Full migration complete!', 'success');
+      } catch (error) {
+        showStatus(`❌ Migration failed: ${error.message}`, 'error');
+      }
+    }
+
+    async function clearFirebase() {
+      if (!confirm('⚠️ DANGER: This will DELETE ALL DATA in Firebase! Are you absolutely sure?')) {
+        return;
+      }
+      
+      if (!confirm('This action cannot be undone. Type "DELETE ALL" to confirm:')) {
+        return;
+      }
+      
+      try {
+        showStatus('Clearing Firebase database...', 'warning');
+        await database.ref().remove();
+        showStatus('✅ Firebase database cleared!', 'success');
+        migrationStats = {
+          schools: 0,
+          meets: 0,
+          athletes: 0,
+          results: 0,
+          track_meets: 0,
+          track_events: 0,
+          track_athletes: 0,
+          track_results: 0
+        };
+        updateStats();
+      } catch (error) {
+        showStatus(`❌ Error clearing Firebase: ${error.message}`, 'error');
+      }
+    }
+
+    // Initialize
+    log('Migration tool ready. Select an option to begin.', 'info');
+    updateStats();
+  </script>
+</body>
+</html>
+

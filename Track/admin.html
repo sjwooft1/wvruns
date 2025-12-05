@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Track Admin Dashboard</title>
+  <style>
+    :root{ --bg:#0f1724; --panel:#0b1626; --accent:#ff7b2d; --muted:#9fb4c8; --card:#0f2436; --glass: rgba(255,255,255,0.04); --ok: #28a745; --danger: #dc3545; }
+    html,body{height:100%;margin:0;font-family: 'Poppins', Arial, sans-serif;background:linear-gradient(180deg,#071020 0%, #082433 100%);color:#e6f0f7}
+    .wrap{display:flex;height:100vh;gap:20px;padding:22px;box-sizing:border-box}
+    .sidebar{ width:260px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(2,8,23,0.6); display:flex;flex-direction:column;gap:18px; }
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:46px;height:46px;border-radius:8px;object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.6))}
+    .brand h3{font-size:1.05rem;margin:0}
+    nav.side-nav{display:flex;flex-direction:column;gap:6px}
+    nav.side-nav button{ background:transparent;border:none;color:var(--muted);padding:10px 12px;border-radius:9px;text-align:left;cursor:pointer;font-weight:600; }
+    nav.side-nav button.active{background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));color:#fff;box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02)}
+    .sidebar .small{font-size:0.9rem;color:#9fb4c8}
+    .logout{margin-top:auto}
+    .logout button{width:100%;padding:10px;border-radius:8px;border:none;background:#ffcc00;font-weight:700;cursor:pointer}
+    .content{ flex:1; display:flex; flex-direction:column; gap:18px; min-width:0; }
+    .topbar{ display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--panel);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.4) }
+    .topbar h2{margin:0;font-size:1.15rem}
+    .topbar .info{color:var(--muted);font-size:0.95rem}
+    .panel{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;padding:16px;box-shadow:0 6px 28px rgba(4,12,20,0.55); overflow:auto; }
+    .layout{display:grid;grid-template-columns: 380px 1fr; gap:18px;align-items:start}
+    .form-row{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    label{font-size:0.85rem;color:var(--muted);font-weight:600}
+    input[type=text], input[type=date], input[type=number], select, textarea {padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#e6f0f7;outline:none;width:100%}
+    textarea{min-height:80px;resize:vertical}
+    .btn-row{display:flex;gap:8px}
+    button.btn {padding:10px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+    button.primary{background:var(--accent);color:#07102a}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    button.danger{background:var(--danger);color:white}
+    .muted{color:var(--muted);font-size:0.95rem}
+    .list{display:block;max-height:62vh;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:8px}
+    .card{background:var(--card);padding:12px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid rgba(255,255,255,0.02)}
+    .card .meta{display:flex;flex-direction:column;gap:4px}
+    .card h4{margin:0;font-size:1rem}
+    .card p{margin:0;color:var(--muted);font-size:0.9rem}
+    .card .actions{display:flex;gap:8px;align-items:center}
+    table {width:100%;border-collapse:collapse;color:#e6f0f7}
+    table thead th {text-align:left;padding:8px 10px;color:var(--muted);font-size:0.88rem}
+    table tbody td {padding:10px;border-top:1px solid rgba(255,255,255,0.02);font-size:0.95rem}
+    .small-note{font-size:0.85rem;color:var(--muted);margin-top:8px}
+    .search{display:flex;gap:8px}
+    .search input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e6f0f7}
+    .select-sm{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e6f0f7}
+    @media (max-width:1000px){ .wrap{padding:12px} .sidebar{display:none} .layout{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="sidebar" role="navigation" aria-label="Admin navigation">
+    <div class="brand">
+      <img src="/assets/Wvruns Logo.png" alt="logo">
+      <div>
+        <h3>Mountain State Miles</h3>
+        <div class="small">Track Admin</div>
+      </div>
+    </div>
+    <nav class="side-nav" id="side-nav">
+      <button data-section="dashboard" class="active">Overview</button>
+      <button data-section="meets">Meets</button>
+      <button data-section="events">Events</button>
+      <button data-section="athletes">Athletes</button>
+      <button data-section="results">Results</button>
+      <button data-section="teams">Teams</button>
+    </nav>
+    <div class="logout">
+      <button id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar panel">
+      <h2 id="panel-title">Overview</h2>
+      <div class="info">Logged in as <strong>Track Admin</strong> • <span id="server-status">Firebase ready</span></div>
+    </div>
+    <div id="panel-area" class="panel layout">
+      <div id="form-area" class="panel">
+        <div id="active-form">
+          <h3>Welcome</h3>
+          <p class="muted">Choose a section from the left to create, edit, or delete records. All changes will be applied directly to your Firebase Realtime Database.</p>
+          <p class="small-note">Be careful: the page uses your Firebase configuration. Consider Firebase Security Rules for production.</p>
+        </div>
+      </div>
+      <div id="list-area" class="panel">
+        <div id="active-list">
+          <h3>Quick Actions</h3>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn primary" id="refreshAll">Refresh data</button>
+            <button class="btn ghost" id="open-login">Open public Track Site</button>
+          </div>
+          <div class="small-note">Use the left menu to switch between Meets, Events, Athletes, Results, and Teams.</div>
+        </div>
+      </div>
+      <!-- Handsontable container -->
+      <div id="hot-container" style="height: 70vh; width: 100%; display: none;"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+
+  if (localStorage.getItem('trackAdmin') !== 'true') {
+    window.location.replace('admin-login.html');
+  }
+
+  const sideNav = document.getElementById('side-nav');
+  const panelTitle = document.getElementById('panel-title');
+  const formArea = document.getElementById('active-form');
+  const listArea = document.getElementById('active-list');
+  const refreshAllBtn = document.getElementById('refreshAll');
+  const openLoginBtn = document.getElementById('open-login');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  openLoginBtn.addEventListener('click', () => { window.open('../index.html', '_blank'); });
+  logoutBtn.addEventListener('click', () => { localStorage.removeItem('trackAdmin'); window.location.replace('admin-login.html'); });
+  refreshAllBtn.addEventListener('click', () => { const active = sideNav.querySelector('button.active'); if (active) active.click(); });
+
+  sideNav.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-section]');
+    if (!btn) return;
+    sideNav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const section = btn.dataset.section;
+    showSection(section);
+  });
+
+  showSection('dashboard');
+
+  async function showSection(section) {
+    panelTitle.textContent = section[0].toUpperCase() + section.slice(1);
+    formArea.innerHTML = '';
+    listArea.innerHTML = '';
+    document.getElementById('hot-container').style.display = 'none';
+    if (window.hotInstance) {
+      try {
+        window.hotInstance.destroy();
+      } catch (e) {
+        console.warn('Error destroying Handsontable:', e);
+      }
+      window.hotInstance = null;
+    }
+    switch(section) {
+      case 'dashboard': renderDashboard(); break;
+      case 'meets': await renderMeets(); break;
+      case 'events': await renderEvents(); break;
+      case 'athletes': await renderAthletes(); break;
+      case 'results': await renderResults(); break;
+      case 'teams': await renderTeams(); break;
+      default: formArea.innerHTML = '<p>Not implemented</p>';
+    }
+  }
+
+  async function renderDashboard() {
+    formArea.innerHTML = `
+      <h3>Overview</h3>
+      <p class="muted">Quick stats from the database.</p>
+      <div id="stats" style="margin-top:12px"></div>
+    `;
+    listArea.innerHTML = `
+      <h3>Recent Changes</h3>
+      <div class="muted small-note">Recent meets / results will appear here after editing.</div>
+      <div id="recent-log" style="margin-top:12px"></div>
+    `;
+    const [mSnapshot, eSnapshot, aSnapshot, rSnapshot] = await Promise.all([
+      window.firebaseDatabase.ref('Track/meets').once('value'),
+      window.firebaseDatabase.ref('Track/events').once('value'),
+      window.firebaseDatabase.ref('Track/athletes').once('value'),
+      window.firebaseDatabase.ref('Track/results').once('value'),
+    ]);
+    const mCount = mSnapshot.numChildren();
+    const eCount = eSnapshot.numChildren();
+    const aCount = aSnapshot.numChildren();
+    const rCount = rSnapshot.numChildren();
+    document.getElementById('stats').innerHTML = `
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div class="card" style="flex:1;min-width:160px"><div class="meta"><h4>${mCount}</h4><p>Meets</p></div></div>
+        <div class="card" style="flex:1;min-width:160px"><div class="meta"><h4>${eCount}</h4><p>Events</p></div></div>
+        <div class="card" style="flex:1;min-width:160px"><div class="meta"><h4>${aCount}</h4><p>Athletes</p></div></div>
+        <div class="card" style="flex:1;min-width:160px"><div class="meta"><h4>${rCount}</h4><p>Results</p></div></div>
+      </div>
+    `;
+    document.getElementById('recent-log').innerHTML = '<p class="muted">No recent edits logged in this UI.</p>';
+  }
+
+  async function renderMeets() {
+    const snapshot = await window.firebaseDatabase.ref('Track/meets').orderByChild('date').once('value');
+    const meets = [];
+    snapshot.forEach(child => {
+      meets.push({ id: child.key, ...child.val() });
+    });
+    meets.sort((a, b) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      return dateB.localeCompare(dateA);
+    });
+
+    formArea.innerHTML = '';
+    listArea.innerHTML = '';
+    const container = document.getElementById('hot-container');
+    container.style.display = 'block';
+    container.style.height = '70vh';
+    container.style.width = '100%';
+
+    const headers = ['Name', 'Slug', 'Date', 'Location', 'Season'];
+    const rowData = meets.map(m => [
+      m.name || '',
+      m.slug || '',
+      m.date || '',
+      m.location || '',
+      m.season || ''
+    ]);
+
+    const columnDefs = [
+      { data: 0, title: 'Name', type: 'text' },
+      { data: 1, title: 'Slug', type: 'text' },
+      { data: 2, title: 'Date', type: 'date', dateFormat: 'YYYY-MM-DD' },
+      { data: 3, title: 'Location', type: 'text' },
+      { data: 4, title: 'Season', type: 'dropdown', source: ['indoor', 'outdoor'] }
+    ];
+
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:12px;background:var(--panel);border-radius:8px';
+    toolbar.innerHTML = `
+      <h3 style="margin:0">Meets (${meets.length})</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="addNewMeet()">+ Add New</button>
+        <button class="btn ghost" onclick="exportMeets()">📥 Export</button>
+        <button class="btn danger" onclick="deleteSelectedMeets()">🗑️ Delete Selected</button>
+      </div>
+    `;
+    listArea.appendChild(toolbar);
+
+    window.currentMeetsData = meets;
+    window.addNewMeet = async () => {
+      if (window.hotInstance) {
+        window.hotInstance.alter('insert_row', window.hotInstance.countRows());
+      }
+      const name = prompt('Meet name:');
+      const slug = prompt('Meet slug:');
+      if (!name || !slug) return;
+      try {
+        await window.firebaseDatabase.ref('Track/meets').push({ name, slug, date: null, location: '', season: null });
+        await showSection('meets');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+    window.exportMeets = () => {
+      if (window.hotInstance) {
+        const csv = window.hotInstance.getPlugin('exportFile').exportAsString('csv', {
+          bom: false,
+          columnDelimiter: ',',
+          columnHeaders: true,
+          fileExtension: 'csv',
+          filename: `meets-${new Date().toISOString().split('T')[0]}`,
+          mimeType: 'text/csv',
+          rowDelimiter: '\r\n'
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `meets-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    };
+    window.deleteSelectedMeets = () => {
+      if (!window.hotInstance) return;
+      const selected = window.hotInstance.getSelected();
+      if (!selected || selected.length === 0) {
+        alert('No rows selected');
+        return;
+      }
+      const rowsToDelete = [...new Set(selected.map(s => s[0][0]))].sort((a, b) => b - a);
+      if (!confirm(`Delete ${rowsToDelete.length} selected meet(s)?`)) return;
+      rowsToDelete.forEach(rowIndex => {
+        if (rowIndex < meets.length) {
+          deleteMeet(meets[rowIndex].id).then(() => {
+            if (rowIndex === rowsToDelete[rowsToDelete.length - 1]) {
+              showSection('meets');
+            }
+          });
+        }
+      });
+    };
+
+    setTimeout(() => {
+      window.hotInstance = new Handsontable(container, {
+        data: rowData,
+        colHeaders: headers,
+        columns: columnDefs,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        maxHeight: '70vh',
+        stretchH: 'all',
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true,
+        afterChange: async (changes, source) => {
+          if (source === 'edit') {
+            for (const [row, col, oldVal, newVal] of changes) {
+              if (oldVal !== newVal && row < meets.length) {
+                const fieldMap = ['name', 'slug', 'date', 'location', 'season'];
+                await window.firebaseDatabase.ref(`Track/meets/${meets[row].id}`).update({ [fieldMap[col]]: newVal });
+              }
+            }
+          }
+        }
+      });
+    }, 100);
+  }
+
+  async function createMeet(){
+    const name = document.getElementById('meet-name').value.trim();
+    const slug = document.getElementById('meet-slug').value.trim();
+    const date = document.getElementById('meet-date').value || null;
+    const location = document.getElementById('meet-location').value.trim();
+    const season = document.getElementById('meet-season').value || null;
+    if (!name || !slug) return alert('Name and slug required');
+    try {
+      await window.firebaseDatabase.ref('Track/meets').push({ name, slug, date, location, season });
+    } catch (error) {
+      return alert('Error creating meet: ' + error.message);
+    }
+    await loadMeets();
+    document.getElementById('meet-clear').click();
+    alert('Meet created.');
+  }
+
+  async function editMeet(id) {
+    const snapshot = await window.firebaseDatabase.ref(`Track/meets/${id}`).once('value');
+    const data = snapshot.exists() ? { id, ...snapshot.val() } : null;
+    if (!data) return alert('Meet not found');
+    document.getElementById('meet-name').value = data.name || '';
+    document.getElementById('meet-slug').value = data.slug || '';
+    document.getElementById('meet-date').value = data.date || '';
+    document.getElementById('meet-location').value = data.location || '';
+    document.getElementById('meet-season').value = data.season || '';
+    const updateBtn = document.getElementById('meet-update');
+    updateBtn.disabled = false;
+    updateBtn.onclick = async () => {
+      const name = document.getElementById('meet-name').value.trim();
+      const slug = document.getElementById('meet-slug').value.trim();
+      const date = document.getElementById('meet-date').value || null;
+      const location = document.getElementById('meet-location').value.trim();
+      const season = document.getElementById('meet-season').value || null;
+      try {
+        await window.firebaseDatabase.ref(`Track/meets/${id}`).update({ name, slug, date, location, season });
+      } catch (error) {
+        return alert('Update error: ' + error.message);
+      }
+      await loadMeets();
+      updateBtn.disabled = true;
+      alert('Meet updated.');
+    };
+  }
+
+  async function deleteMeet(id){
+    if (!confirm('Delete this meet? This will also delete related results (cascade).')) return;
+    try {
+      await window.firebaseDatabase.ref(`Track/meets/${id}`).remove();
+      // Note: Firebase doesn't cascade delete, so you may need to manually delete related results
+    } catch (error) {
+      return alert('Delete error: ' + error.message);
+    }
+    await loadMeets();
+    alert('Meet deleted.');
+  }
+
+  async function renderEvents() {
+    const snapshot = await window.firebaseDatabase.ref('Track/events').once('value');
+    const events = [];
+    snapshot.forEach(child => {
+      events.push({ id: child.key, ...child.val() });
+    });
+    events.sort((a, b) => {
+      const catA = a.category || '';
+      const catB = b.category || '';
+      if (catA !== catB) return catA.localeCompare(catB);
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    formArea.innerHTML = '';
+    listArea.innerHTML = '';
+    const container = document.getElementById('hot-container');
+    container.style.display = 'block';
+    container.style.height = '70vh';
+    container.style.width = '100%';
+
+    const headers = ['Name', 'Slug', 'Category', 'Gender', 'Season'];
+    const rowData = events.map(e => [
+      e.name || '',
+      e.slug || '',
+      e.category || '',
+      e.gender || '',
+      e.season || ''
+    ]);
+
+    const columnDefs = [
+      { data: 0, title: 'Name', type: 'text' },
+      { data: 1, title: 'Slug', type: 'text' },
+      { data: 2, title: 'Category', type: 'dropdown', source: ['sprints', 'mid-distance', 'distance', 'jumps', 'throws', 'relays'] },
+      { data: 3, title: 'Gender', type: 'dropdown', source: ['M', 'F'] },
+      { data: 4, title: 'Season', type: 'dropdown', source: ['indoor', 'outdoor'] }
+    ];
+
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:12px;background:var(--panel);border-radius:8px';
+    toolbar.innerHTML = `
+      <h3 style="margin:0">Events (${events.length})</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="addNewEvent()">+ Add New</button>
+        <button class="btn ghost" onclick="exportEvents()">📥 Export</button>
+        <button class="btn danger" onclick="deleteSelectedEvents()">🗑️ Delete Selected</button>
+      </div>
+    `;
+    listArea.appendChild(toolbar);
+
+    window.currentEventsData = events;
+    window.addNewEvent = async () => {
+      if (window.hotInstance) {
+        window.hotInstance.alter('insert_row', window.hotInstance.countRows());
+      }
+      const name = prompt('Event name:');
+      const slug = prompt('Event slug:');
+      if (!name || !slug) return;
+      try {
+        await window.firebaseDatabase.ref('Track/events').push({ name, slug, category: null, gender: null, season: null });
+        await showSection('events');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+    window.exportEvents = () => {
+      if (window.hotInstance) {
+        const csv = window.hotInstance.getPlugin('exportFile').exportAsString('csv', {
+          bom: false,
+          columnDelimiter: ',',
+          columnHeaders: true,
+          fileExtension: 'csv',
+          filename: `events-${new Date().toISOString().split('T')[0]}`,
+          mimeType: 'text/csv',
+          rowDelimiter: '\r\n'
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `events-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    };
+    window.deleteSelectedEvents = () => {
+      if (!window.hotInstance) return;
+      const selected = window.hotInstance.getSelected();
+      if (!selected || selected.length === 0) {
+        alert('No rows selected');
+        return;
+      }
+      const rowsToDelete = [...new Set(selected.map(s => s[0][0]))].sort((a, b) => b - a);
+      if (!confirm(`Delete ${rowsToDelete.length} selected event(s)?`)) return;
+      rowsToDelete.forEach(rowIndex => {
+        if (rowIndex < events.length) {
+          deleteEvent(events[rowIndex].id).then(() => {
+            if (rowIndex === rowsToDelete[rowsToDelete.length - 1]) {
+              showSection('events');
+            }
+          });
+        }
+      });
+    };
+
+    setTimeout(() => {
+      window.hotInstance = new Handsontable(container, {
+        data: rowData,
+        colHeaders: headers,
+        columns: columnDefs,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        maxHeight: '70vh',
+        stretchH: 'all',
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true,
+        afterChange: async (changes, source) => {
+          if (source === 'edit') {
+            for (const [row, col, oldVal, newVal] of changes) {
+              if (oldVal !== newVal && row < events.length) {
+                const fieldMap = ['name', 'slug', 'category', 'gender', 'season'];
+                await window.firebaseDatabase.ref(`Track/events/${events[row].id}`).update({ [fieldMap[col]]: newVal });
+              }
+            }
+          }
+        }
+      });
+    }, 100);
+  }
+
+  async function createEvent(){
+    const name = document.getElementById('event-name').value.trim();
+    const slug = document.getElementById('event-slug').value.trim();
+    const category = document.getElementById('event-category').value || null;
+    const gender = document.getElementById('event-gender').value || null;
+    const season = document.getElementById('event-season').value || null;
+    if (!name || !slug) return alert('Name and slug required');
+    try {
+      await window.firebaseDatabase.ref('Track/events').push({ name, slug, category, gender, season });
+      await loadEvents();
+      alert('Event created.');
+    } catch (error) {
+      alert('Create event error: ' + error.message);
+    }
+  }
+
+  async function editEvent(id) {
+    try {
+      const snapshot = await window.firebaseDatabase.ref(`Track/events/${id}`).once('value');
+      const data = snapshot.exists() ? { id, ...snapshot.val() } : null;
+      if (!data) return alert('Not found');
+      document.getElementById('event-name').value = data.name || '';
+      document.getElementById('event-slug').value = data.slug || '';
+      document.getElementById('event-category').value = data.category || '';
+      document.getElementById('event-gender').value = data.gender || '';
+      document.getElementById('event-season').value = data.season || '';
+      const btn = document.getElementById('event-update');
+      btn.disabled = false;
+      btn.onclick = async () => {
+        const name = document.getElementById('event-name').value.trim();
+        const slug = document.getElementById('event-slug').value.trim();
+        const category = document.getElementById('event-category').value || null;
+        const gender = document.getElementById('event-gender').value || null;
+        const season = document.getElementById('event-season').value || null;
+        try {
+          await window.firebaseDatabase.ref(`Track/events/${id}`).update({ name, slug, category, gender, season });
+          await loadEvents();
+          btn.disabled = true;
+          alert('Event updated.');
+        } catch (error) {
+          alert('Update error: ' + error.message);
+        }
+      };
+    } catch (error) {
+      alert('Error loading event: ' + error.message);
+    }
+  }
+
+  async function deleteEvent(id){
+    if (!confirm('Delete this event? This will remove related results.')) return;
+    try {
+      await window.firebaseDatabase.ref(`Track/events/${id}`).remove();
+      await loadEvents();
+      alert('Event deleted.');
+    } catch (error) {
+      alert('Delete error: ' + error.message);
+    }
+  }
+
+  async function renderAthletes() {
+    const snapshot = await window.firebaseDatabase.ref('Track/athletes').orderByChild('last_name').once('value');
+    const athletes = [];
+    snapshot.forEach(child => {
+      athletes.push({ id: child.key, ...child.val() });
+    });
+    athletes.sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''));
+
+    formArea.innerHTML = '';
+    listArea.innerHTML = '';
+    const container = document.getElementById('hot-container');
+    container.style.display = 'block';
+    container.style.height = '70vh';
+    container.style.width = '100%';
+
+    const headers = ['First Name', 'Last Name', 'Grade', 'School'];
+    const rowData = athletes.map(a => [
+      a.first_name || '',
+      a.last_name || '',
+      a.grade || '',
+      a.school || ''
+    ]);
+
+    const columnDefs = [
+      { data: 0, title: 'First Name', type: 'text' },
+      { data: 1, title: 'Last Name', type: 'text' },
+      { data: 2, title: 'Grade', type: 'text' },
+      { data: 3, title: 'School', type: 'text' }
+    ];
+
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:12px;background:var(--panel);border-radius:8px';
+    toolbar.innerHTML = `
+      <h3 style="margin:0">Athletes (${athletes.length})</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="addNewAthlete()">+ Add New</button>
+        <button class="btn ghost" onclick="exportAthletes()">📥 Export</button>
+        <button class="btn danger" onclick="deleteSelectedAthletes()">🗑️ Delete Selected</button>
+      </div>
+    `;
+    listArea.appendChild(toolbar);
+
+    window.currentAthletesData = athletes;
+    window.addNewAthlete = async () => {
+      if (window.hotInstance) {
+        window.hotInstance.alter('insert_row', window.hotInstance.countRows());
+      }
+      const first = prompt('First name:');
+      const last = prompt('Last name:');
+      if (!first || !last) return;
+      try {
+        await window.firebaseDatabase.ref('Track/athletes').push({ first_name: first, last_name: last, grade: null, school: null });
+        await showSection('athletes');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+    window.exportAthletes = () => {
+      if (window.hotInstance) {
+        const csv = window.hotInstance.getPlugin('exportFile').exportAsString('csv', {
+          bom: false,
+          columnDelimiter: ',',
+          columnHeaders: true,
+          fileExtension: 'csv',
+          filename: `athletes-${new Date().toISOString().split('T')[0]}`,
+          mimeType: 'text/csv',
+          rowDelimiter: '\r\n'
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `athletes-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    };
+    window.deleteSelectedAthletes = () => {
+      if (!window.hotInstance) return;
+      const selected = window.hotInstance.getSelected();
+      if (!selected || selected.length === 0) {
+        alert('No rows selected');
+        return;
+      }
+      const rowsToDelete = [...new Set(selected.map(s => s[0][0]))].sort((a, b) => b - a);
+      if (!confirm(`Delete ${rowsToDelete.length} selected athlete(s)?`)) return;
+      rowsToDelete.forEach(rowIndex => {
+        if (rowIndex < athletes.length) {
+          deleteAthlete(athletes[rowIndex].id).then(() => {
+            if (rowIndex === rowsToDelete[rowsToDelete.length - 1]) {
+              showSection('athletes');
+            }
+          });
+        }
+      });
+    };
+
+    setTimeout(() => {
+      window.hotInstance = new Handsontable(container, {
+        data: rowData,
+        colHeaders: headers,
+        columns: columnDefs,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        maxHeight: '70vh',
+        stretchH: 'all',
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true,
+        afterChange: async (changes, source) => {
+          if (source === 'edit') {
+            for (const [row, col, oldVal, newVal] of changes) {
+              if (oldVal !== newVal && row < athletes.length) {
+                const fieldMap = ['first_name', 'last_name', 'grade', 'school'];
+                await window.firebaseDatabase.ref(`Track/athletes/${athletes[row].id}`).update({ [fieldMap[col]]: newVal });
+              }
+            }
+          }
+        }
+      });
+    }, 100);
+  }
+
+  async function createAthlete(){
+    const first = document.getElementById('ath-first').value.trim();
+    const last = document.getElementById('ath-last').value.trim();
+    const grade = document.getElementById('ath-grade').value.trim() || null;
+    const school = document.getElementById('ath-school').value.trim() || null;
+    if (!first || !last) return alert('First and last name required');
+    try {
+      await window.firebaseDatabase.ref('Track/athletes').push({ first_name: first, last_name: last, grade, school });
+      await loadAthletes();
+      alert('Athlete created.');
+    } catch (error) {
+      alert('Create error: ' + error.message);
+    }
+  }
+
+  async function editAthlete(id){
+    try {
+      const snapshot = await window.firebaseDatabase.ref(`Track/athletes/${id}`).once('value');
+      const data = snapshot.exists() ? { id, ...snapshot.val() } : null;
+      if (!data) return alert('Not found');
+      document.getElementById('ath-first').value = data.first_name || '';
+      document.getElementById('ath-last').value = data.last_name || '';
+      document.getElementById('ath-grade').value = data.grade || '';
+      document.getElementById('ath-school').value = data.school || '';
+      const btn = document.getElementById('ath-update');
+      btn.disabled = false;
+      btn.onclick = async () => {
+        const first = document.getElementById('ath-first').value.trim();
+        const last = document.getElementById('ath-last').value.trim();
+        const grade = document.getElementById('ath-grade').value.trim() || null;
+        const school = document.getElementById('ath-school').value.trim() || null;
+        try {
+          await window.firebaseDatabase.ref(`Track/athletes/${id}`).update({ first_name: first, last_name: last, grade, school });
+          await loadAthletes();
+          btn.disabled = true;
+          alert('Athlete updated.');
+        } catch (error) {
+          alert('Update error: ' + error.message);
+        }
+      };
+    } catch (error) {
+      alert('Error loading athlete: ' + error.message);
+    }
+  }
+
+  async function deleteAthlete(id) {
+    if (!confirm('Delete this athlete? This will remove related results.')) return;
+    try {
+      await window.firebaseDatabase.ref(`Track/athletes/${id}`).remove();
+      await loadAthletes();
+      alert('Athlete deleted.');
+    } catch (error) {
+      alert('Delete error: ' + error.message);
+    }
+  }
+
+  async function renderResults() {
+    const [resultsSnapshot, meetsSnapshot, athletesSnapshot] = await Promise.all([
+      window.firebaseDatabase.ref('Track/results').once('value'),
+      window.firebaseDatabase.ref('Track/meets').once('value'),
+      window.firebaseDatabase.ref('Track/athletes').once('value')
+    ]);
+    const results = [];
+    resultsSnapshot.forEach(child => results.push({ id: child.key, ...child.val() }));
+    const meets = [];
+    meetsSnapshot.forEach(child => meets.push({ id: child.key, ...child.val() }));
+    const athletes = [];
+    athletesSnapshot.forEach(child => athletes.push({ id: child.key, ...child.val() }));
+
+    const meetOptions = meets.map(m => m.slug);
+    const schoolOptions = [...new Set(athletes.map(a => a.school).filter(Boolean))];
+
+    formArea.innerHTML = '';
+    listArea.innerHTML = '';
+    const container = document.getElementById('hot-container');
+    container.style.display = 'block';
+    container.style.height = '70vh';
+    container.style.width = '100%';
+
+    const headers = ['Athlete', 'Meet', 'School', 'Gender', 'Mark', 'Place', 'Event'];
+    const rowData = results.map(r => {
+      const athlete = athletes.find(a => a.id === r.athlete_id);
+      const meet = meets.find(m => m.id === r.meet_id);
+      return [
+        athlete ? `${athlete.first_name || ''} ${athlete.last_name || ''}`.trim() : '',
+        meet ? meet.name || '' : '',
+        athlete ? athlete.school || '' : '',
+        r.gender || '',
+        r.mark || '',
+        r.placement || '',
+        r.event_type || ''
+      ];
+    });
+
+    const columnDefs = [
+      { data: 0, title: 'Athlete', type: 'text' },
+      { data: 1, title: 'Meet', type: 'text' },
+      { data: 2, title: 'School', type: 'dropdown', source: schoolOptions },
+      { data: 3, title: 'Gender', type: 'dropdown', source: ['M', 'F'] },
+      { data: 4, title: 'Mark', type: 'numeric' },
+      { data: 5, title: 'Place', type: 'numeric' },
+      { data: 6, title: 'Event', type: 'text' }
+    ];
+
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:12px;background:var(--panel);border-radius:8px';
+    toolbar.innerHTML = `
+      <h3 style="margin:0">Results (${results.length})</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="addNewResult()">+ Add New</button>
+        <button class="btn ghost" onclick="exportResults()">📥 Export</button>
+        <button class="btn danger" onclick="deleteSelectedResults()">🗑️ Delete Selected</button>
+      </div>
+    `;
+    listArea.appendChild(toolbar);
+
+    window.currentResultsData = results;
+    window.addNewResult = async () => {
+      if (window.hotInstance) {
+        window.hotInstance.alter('insert_row', window.hotInstance.countRows());
+      }
+      try {
+        await window.firebaseDatabase.ref('Track/results').push({ mark: null, placement: null });
+        await showSection('results');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+    window.exportResults = () => {
+      if (window.hotInstance) {
+        const csv = window.hotInstance.getPlugin('exportFile').exportAsString('csv', {
+          bom: false,
+          columnDelimiter: ',',
+          columnHeaders: true,
+          fileExtension: 'csv',
+          filename: `results-${new Date().toISOString().split('T')[0]}`,
+          mimeType: 'text/csv',
+          rowDelimiter: '\r\n'
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `results-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    };
+    window.deleteSelectedResults = () => {
+      if (!window.hotInstance) return;
+      const selected = window.hotInstance.getSelected();
+      if (!selected || selected.length === 0) {
+        alert('No rows selected');
+        return;
+      }
+      const rowsToDelete = [...new Set(selected.map(s => s[0][0]))].sort((a, b) => b - a);
+      if (!confirm(`Delete ${rowsToDelete.length} selected result(s)?`)) return;
+      rowsToDelete.forEach(rowIndex => {
+        if (rowIndex < results.length) {
+          deleteResult(results[rowIndex].id).then(() => {
+            if (rowIndex === rowsToDelete[rowsToDelete.length - 1]) {
+              showSection('results');
+            }
+          });
+        }
+      });
+    };
+
+    setTimeout(() => {
+      window.hotInstance = new Handsontable(container, {
+        data: rowData,
+        colHeaders: headers,
+        columns: columnDefs,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        maxHeight: '70vh',
+        stretchH: 'all',
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true,
+        afterChange: async (changes, source) => {
+          if (source === 'edit') {
+            for (const [row, col, oldVal, newVal] of changes) {
+              if (oldVal !== newVal && row < results.length) {
+                const fieldMap = ['athlete_name', 'meet_name', 'school', 'gender', 'mark', 'placement', 'event_type'];
+                // Note: This is a simplified update - you may need to map back to IDs
+                await window.firebaseDatabase.ref(`Track/results/${results[row].id}`).update({ [fieldMap[col]]: newVal });
+              }
+            }
+          }
+        }
+      });
+    }, 100);
+  }
+  
+  let trackCSVImportData = [];
+  let trackCSVSectionVisible = false;
+  
+  window.toggleTrackCSVSection = () => {
+    trackCSVSectionVisible = !trackCSVSectionVisible;
+    const section = document.getElementById('track-csv-import-section');
+    const btn = document.getElementById('track-csv-toggle-btn');
+    if (section) {
+      section.style.display = trackCSVSectionVisible ? 'block' : 'none';
+      btn.textContent = trackCSVSectionVisible ? 'Hide CSV Tools' : 'Show CSV Tools';
+    }
+  };
+  
+  window.handleTrackCSVDrop = (e) => {
+    e.preventDefault();
+    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].name.endsWith('.csv')) {
+      processTrackCSVFile(files[0]);
+    }
+  };
+  
+  window.handleTrackCSVFile = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      processTrackCSVFile(file);
+    }
+  };
+  
+  async function processTrackCSVFile(file) {
+    const text = await file.text();
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) {
+      showTrackCSVStatus('error', 'CSV file must have at least a header row and one data row');
+      return;
+    }
+    
+    // Parse header
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+    const requiredHeaders = ['athlete_name', 'mark'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    
+    if (missingHeaders.length > 0) {
+      showTrackCSVStatus('error', `Missing required columns: ${missingHeaders.join(', ')}`);
+      return;
+    }
+    
+    // Parse data
+    trackCSVImportData = [];
+    const errors = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      if (values.length !== headers.length) {
+        errors.push(`Row ${i + 1}: Column count mismatch`);
+        continue;
+      }
+      
+      const row = {};
+      headers.forEach((header, idx) => {
+        row[header] = values[idx] || '';
+      });
+      
+      // Validate required fields
+      if (!row.athlete_name) {
+        errors.push(`Row ${i + 1}: Missing athlete_name`);
+        continue;
+      }
+      
+      // Convert numeric fields
+      if (row.placement) row.placement = parseInt(row.placement) || null;
+      
+      trackCSVImportData.push(row);
+    }
+    
+    if (trackCSVImportData.length === 0) {
+      showTrackCSVStatus('error', 'No valid rows found in CSV file');
+      return;
+    }
+    
+    // Show preview
+    showTrackCSVPreview();
+    if (errors.length > 0) {
+      showTrackCSVStatus('warning', `Imported ${trackCSVImportData.length} rows. ${errors.length} errors found.`);
+    } else {
+      showTrackCSVStatus('success', `Successfully parsed ${trackCSVImportData.length} rows`);
+    }
+  }
+  
+  function showTrackCSVPreview() {
+    const preview = document.getElementById('track-csv-preview');
+    const previewBody = document.getElementById('track-csv-preview-body');
+    const previewCount = document.getElementById('track-csv-preview-count');
+    
+    if (!preview || !previewBody) return;
+    
+    preview.style.display = 'block';
+    previewCount.textContent = trackCSVImportData.length;
+    
+    previewBody.innerHTML = trackCSVImportData.slice(0, 10).map((row, idx) => `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.08)">
+        <td style="padding:6px">${row.athlete_name || '—'}</td>
+        <td style="padding:6px">${row.mark || '—'}</td>
+        <td style="padding:6px">${row.placement || '—'}</td>
+      </tr>
+    `).join('') + (trackCSVImportData.length > 10 ? `<tr><td colspan="3" style="padding:6px;text-align:center;color:var(--muted);font-size:0.8rem">... and ${trackCSVImportData.length - 10} more rows</td></tr>` : '');
+  }
+  
+  async function importTrackCSVData() {
+    const meetId = document.getElementById('track-csv-meet-select').value;
+    const eventId = document.getElementById('track-csv-event-select').value;
+    const dontIncludeRankings = document.getElementById('track-csv-dont-include-rankings').checked;
+    
+    if (!meetId) {
+      showTrackCSVStatus('error', 'Please select a meet first');
+      return;
+    }
+    
+    if (!eventId) {
+      showTrackCSVStatus('error', 'Please select an event first');
+      return;
+    }
+    
+    if (trackCSVImportData.length === 0) {
+      showTrackCSVStatus('error', 'No data to import');
+      return;
+    }
+    
+    showTrackCSVStatus('info', `Importing ${trackCSVImportData.length} results...`);
+    
+    // Load all athletes to match by name
+    const athletesSnapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+    const athletesMap = {};
+    athletesSnapshot.forEach(child => {
+      const athlete = child.val();
+      const fullName = `${athlete.first_name || ''} ${athlete.last_name || ''}`.trim().toLowerCase();
+      if (fullName) {
+        athletesMap[fullName] = child.key;
+      }
+    });
+    
+    let successCount = 0;
+    let errorCount = 0;
+    const errors = [];
+    
+    for (let i = 0; i < trackCSVImportData.length; i++) {
+      const row = trackCSVImportData[i];
+      try {
+        // Find athlete by name
+        const athleteNameLower = row.athlete_name.trim().toLowerCase();
+        const athleteId = athletesMap[athleteNameLower];
+        
+        if (!athleteId) {
+          errors.push(`Row ${i + 1}: Athlete "${row.athlete_name}" not found`);
+          errorCount++;
+          continue;
+        }
+        
+        const resultData = {
+          meet_id: meetId,
+          event_id: eventId,
+          athlete_id: athleteId,
+          mark: row.mark || null,
+          placement: row.placement || null,
+          heat: row.heat || null
+        };
+        
+        // Add exclude_from_rankings flag if checked
+        if (dontIncludeRankings) {
+          resultData.exclude_from_rankings = true;
+        }
+        
+        await window.firebaseDatabase.ref('Track/results').push(resultData);
+        successCount++;
+      } catch (error) {
+        errorCount++;
+        errors.push(`Row ${i + 1}: ${error.message}`);
+      }
+    }
+    
+    if (successCount > 0) {
+      showTrackCSVStatus('success', `✅ Successfully imported ${successCount} results${errorCount > 0 ? ` (${errorCount} errors)` : ''}`);
+      trackCSVImportData = [];
+      document.getElementById('track-csv-preview').style.display = 'none';
+      document.getElementById('track-csv-file-input').value = '';
+      // Refresh results list
+      setTimeout(() => loadResults(), 1000);
+    } else {
+      showTrackCSVStatus('error', `Failed to import: ${errors.slice(0, 5).join(', ')}${errors.length > 5 ? '...' : ''}`);
+    }
+  }
+  
+  window.importTrackCSVData = importTrackCSVData;
+  
+  function showTrackCSVStatus(type, message) {
+    const statusEl = document.getElementById('track-csv-import-status');
+    if (!statusEl) return;
+    
+    statusEl.style.display = 'block';
+    statusEl.style.padding = '12px';
+    statusEl.style.borderRadius = '6px';
+    statusEl.style.marginTop = '12px';
+    
+    if (type === 'success') {
+      statusEl.style.background = 'rgba(40, 167, 69, 0.2)';
+      statusEl.style.color = '#28a745';
+      statusEl.style.border = '1px solid #28a745';
+    } else if (type === 'error') {
+      statusEl.style.background = 'rgba(220, 53, 69, 0.2)';
+      statusEl.style.color = '#dc3545';
+      statusEl.style.border = '1px solid #dc3545';
+    } else if (type === 'warning') {
+      statusEl.style.background = 'rgba(255, 193, 7, 0.2)';
+      statusEl.style.color = '#ffc107';
+      statusEl.style.border = '1px solid #ffc107';
+    } else {
+      statusEl.style.background = 'rgba(0, 123, 255, 0.2)';
+      statusEl.style.color = '#007bff';
+      statusEl.style.border = '1px solid #007bff';
+    }
+    
+    statusEl.textContent = message;
+  }
+  
+  window.downloadTrackCSVTemplate = () => {
+    const headers = 'athlete_name,mark,placement,heat\n';
+    const sampleRows = [
+      'John Smith,11.24,1,Final',
+      'Jane Doe,11.45,2,Final',
+      'Mike Johnson,11.67,3,Final',
+      'Sarah Williams,12.10,4,Final'
+    ];
+    const csv = headers + sampleRows.join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `track-results-template-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  async function populateResultSelects() {
+    try {
+      const [meetsSnapshot, eventsSnapshot, athletesSnapshot] = await Promise.all([
+        window.firebaseDatabase.ref('Track/meets').orderByChild('date').once('value'),
+        window.firebaseDatabase.ref('Track/events').orderByChild('name').once('value'),
+        window.firebaseDatabase.ref('Track/athletes').orderByChild('last_name').once('value')
+      ]);
+      
+      const meets = [];
+      meetsSnapshot.forEach(child => {
+        meets.push({ id: child.key, ...child.val() });
+      });
+      meets.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      
+      const events = [];
+      eventsSnapshot.forEach(child => {
+        events.push({ id: child.key, ...child.val() });
+      });
+      events.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      
+      const athletes = [];
+      athletesSnapshot.forEach(child => {
+        athletes.push({ id: child.key, ...child.val() });
+      });
+      athletes.sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''));
+      
+      const meetSel = document.getElementById('res-meet');
+      const eventSel = document.getElementById('res-event');
+      const athSel = document.getElementById('res-athlete');
+      meetSel.innerHTML = '<option value="">-- choose meet --</option>' + meets.slice(0, 500).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      eventSel.innerHTML = '<option value="">-- choose event --</option>' + events.slice(0, 500).map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+      athSel.innerHTML = '<option value="">-- choose athlete --</option>' + athletes.slice(0, 2000).map(a => `<option value="${a.id}">${a.first_name} ${a.last_name} • ${a.school || ''}</option>`).join('');
+    } catch (error) {
+      console.error('Error populating selects:', error);
+    }
+  }
+
+  async function createResult() {
+    const meet_id = document.getElementById('res-meet').value || null;
+    const event_id = document.getElementById('res-event').value || null;
+    const athlete_id = document.getElementById('res-athlete').value || null;
+    const mark = document.getElementById('res-mark').value.trim() || null;
+    const placement = parseInt(document.getElementById('res-placement').value) || null;
+    const heat = document.getElementById('res-heat').value.trim() || null;
+    if (!meet_id || !event_id || !athlete_id || !mark) return alert('Please fill meet, event, athlete, and mark.');
+    try {
+      await window.firebaseDatabase.ref('Track/results').push({ meet_id, event_id, athlete_id, mark, placement, heat });
+      await loadResults();
+      alert('Result created.');
+    } catch (error) {
+      alert('Create result error: ' + error.message);
+    }
+  }
+
+  async function loadResults() {
+    try {
+      const snapshot = await window.firebaseDatabase.ref('Track/results').orderByChild('placement').limitToFirst(500).once('value');
+      const results = [];
+      snapshot.forEach(child => {
+        results.push({ id: child.key, ...child.val() });
+      });
+      
+      // Load related data
+      const meetIds = [...new Set(results.map(r => r.meet_id).filter(Boolean))];
+      const eventIds = [...new Set(results.map(r => r.event_id).filter(Boolean))];
+      const athleteIds = [...new Set(results.map(r => r.athlete_id).filter(Boolean))];
+      
+      const meetsMap = {};
+      const eventsMap = {};
+      const athletesMap = {};
+      
+      if (meetIds.length > 0) {
+        const meetsSnapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+        meetsSnapshot.forEach(child => {
+          if (meetIds.includes(child.key)) {
+            meetsMap[child.key] = { id: child.key, ...child.val() };
+          }
+        });
+      }
+      
+      if (eventIds.length > 0) {
+        const eventsSnapshot = await window.firebaseDatabase.ref('Track/events').once('value');
+        eventsSnapshot.forEach(child => {
+          if (eventIds.includes(child.key)) {
+            eventsMap[child.key] = { id: child.key, ...child.val() };
+          }
+        });
+      }
+      
+      if (athleteIds.length > 0) {
+        const athletesSnapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+        athletesSnapshot.forEach(child => {
+          if (athleteIds.includes(child.key)) {
+            athletesMap[child.key] = { id: child.key, ...child.val() };
+          }
+        });
+      }
+      
+      results.forEach(r => {
+        r.meet = meetsMap[r.meet_id] || {};
+        r.event = eventsMap[r.event_id] || {};
+        r.athlete = athletesMap[r.athlete_id] || {};
+      });
+      
+      results.sort((a, b) => {
+        const placeA = a.placement || 999;
+        const placeB = b.placement || 999;
+        return placeA - placeB;
+      });
+      
+      const container = document.getElementById('results-list');
+      if (!results || results.length === 0) return container.innerHTML = '<p>No results</p>';
+      container.innerHTML = results.map(r => `
+        <div class="card">
+          <div class="meta">
+            <h4>${r.event?.name || '—'} • ${r.mark}</h4>
+            <p>${r.athlete?.first_name || ''} ${r.athlete?.last_name || ''} • ${r.athlete?.school || ''} • ${r.meet?.name || ''} • placement: ${r.placement || '-'}</p>
+          </div>
+          <div class="actions">
+            <button class="btn ghost" onclick="editResult('${r.id}')">Edit</button>
+            <button class="btn danger" onclick="deleteResult('${r.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Error loading results:', error);
+      document.getElementById('results-list').innerHTML = '<p>Error loading results</p>';
+    }
+  }
+
+  async function editResult(id) {
+    try {
+      const snapshot = await window.firebaseDatabase.ref(`Track/results/${id}`).once('value');
+      const data = snapshot.exists() ? { id, ...snapshot.val() } : null;
+      if (!data) return alert('Result not found');
+      await populateResultSelects();
+      document.getElementById('res-meet').value = data.meet_id || '';
+      document.getElementById('res-event').value = data.event_id || '';
+      document.getElementById('res-athlete').value = data.athlete_id || '';
+      document.getElementById('res-mark').value = data.mark || '';
+      document.getElementById('res-placement').value = data.placement || '';
+      document.getElementById('res-heat').value = data.heat || '';
+      const updateBtn = document.getElementById('res-update');
+      updateBtn.disabled = false;
+      updateBtn.onclick = async () => {
+        const meet_id = document.getElementById('res-meet').value || null;
+        const event_id = document.getElementById('res-event').value || null;
+        const athlete_id = document.getElementById('res-athlete').value || null;
+        const mark = document.getElementById('res-mark').value.trim() || null;
+        const placement = parseInt(document.getElementById('res-placement').value) || null;
+        const heat = document.getElementById('res-heat').value.trim() || null;
+        try {
+          await window.firebaseDatabase.ref(`Track/results/${id}`).update({ meet_id, event_id, athlete_id, mark, placement, heat });
+          await loadResults();
+          updateBtn.disabled = true;
+          alert('Result updated.');
+        } catch (error) {
+          alert('Update error: ' + error.message);
+        }
+      };
+    } catch (error) {
+      alert('Error loading result: ' + error.message);
+    }
+  }
+
+  async function deleteResult(id) {
+    if (!confirm('Delete this result?')) return;
+    try {
+      await window.firebaseDatabase.ref(`Track/results/${id}`).remove();
+      await loadResults();
+      alert('Result deleted.');
+    } catch (error) {
+      alert('Delete error: ' + error.message);
+    }
+  }
+
+  async function renderTeams() {
+    const snapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+    const athletes = [];
+    snapshot.forEach(child => {
+      const athlete = child.val();
+      if (athlete && athlete.school) {
+        athletes.push(athlete);
+      }
+    });
+    const schools = Array.from(new Set(athletes.map(a => a.school))).sort();
+    const teamsData = schools.map(school => {
+      const count = athletes.filter(a => a.school === school).length;
+      return {
+        id: school,
+        school: school,
+        athleteCount: count
+      };
+    });
+
+    formArea.innerHTML = '';
+    listArea.innerHTML = '';
+    const container = document.getElementById('hot-container');
+    container.style.display = 'block';
+    container.style.height = '70vh';
+    container.style.width = '100%';
+
+    const headers = ['School', 'Athletes', 'Actions'];
+    const rowData = teamsData.map(team => [
+      team.school,
+      team.athleteCount,
+      team.school
+    ]);
+
+    const columnDefs = [
+      { data: 0, title: 'School', type: 'text', readOnly: true },
+      { data: 1, title: 'Athletes', type: 'numeric', readOnly: true },
+      {
+        data: 2,
+        title: 'Actions',
+        type: 'text',
+        readOnly: true,
+        renderer: function(instance, td, row, col, prop, value, cellProperties) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+          if (value) {
+            td.innerHTML = `<a href="teams.html?school=${encodeURIComponent(value)}" target="_blank" style="color:var(--accent);text-decoration:none">Open</a>`;
+          }
+        }
+      }
+    ];
+
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:12px;background:var(--panel);border-radius:8px';
+    toolbar.innerHTML = `
+      <h3 style="margin:0">Teams (${teamsData.length})</h3>
+      <p class="muted" style="margin:0">This lists unique schools found in athletes. Click a team to open team page.</p>
+    `;
+    listArea.appendChild(toolbar);
+
+    setTimeout(() => {
+      window.hotInstance = new Handsontable(container, {
+        data: rowData,
+        colHeaders: headers,
+        columns: columnDefs,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        maxHeight: '70vh',
+        stretchH: 'all',
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true
+      });
+    }, 100);
+  }
+
+  window.editMeet = editMeet;
+  window.deleteMeet = deleteMeet;
+  window.editEvent = editEvent;
+  window.deleteEvent = deleteEvent;
+  window.editAthlete = editAthlete;
+  window.deleteAthlete = deleteAthlete;
+  window.editResult = editResult;
+  window.deleteResult = deleteResult;
+</script>
+</body>
+</html>

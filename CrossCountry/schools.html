@@ -114,19 +114,31 @@
   </style>
 </head>
 <body>
+  <header>
+    <!-- Logo image for desktop/large view -->
+    <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
+    
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="navbar-content">
+          <!-- Text/Emoji logo for the navbar -->
+          <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+          <ul class="navbar-nav">
+            <li><a href="xc.html" class="navbar-link">Home</a></li>
+            <li><a href="schools.html" class="navbar-link active">Schools</a></li>
+            <li><a href="meets.html" class="navbar-link">Meets</a></li>
+            <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+            <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
   <div class="content-wrapper">
     <div class="page-background"></div>
     <img src="assets/girls bg.jpg" alt="" class="page-background-image" />
-    <header>
-    <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="schools.html">Schools</a>
-      <a href="meets.html">Meets</a>
-      <a href="rankings.html">Rankings</a>
-      <a href="calendar.html">Calendar</a>
-    </nav>
-  </header>
+  
 
   <main>
     <h1 style="color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.3);">West Virginia Schools</h1>
@@ -138,6 +150,7 @@
 
     <div class="schools-grid" id="schools-grid"></div>
   </main>
+  
 
   <footer>
     <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
@@ -156,10 +169,13 @@
     </a>
   </footer>
 
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Supabase Configuration -->
-  <script src="supabase-config.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <!-- Firebase Configuration -->
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
   <script>
     async function loadSchools() {
       const grid = document.getElementById("schools-grid");
@@ -167,21 +183,11 @@
       let schools = [];
 
       try {
-        // Try to fetch from Supabase first
-        const { data, error } = await supabase
-          .from('schools')
-          .select('*')
-          .order('name');
+        // Try to fetch from Firebase first
+        schools = await getAllSchools();
 
-        if (error) {
-          console.error('Error fetching schools:', error);
-          // Fallback to local JSON
-          const res = await fetch("data/schools.json");
-          schools = await res.json();
-        } else if (data && data.length > 0) {
-          schools = data;
-        } else {
-          // No data in Supabase, use local JSON
+        if (!schools || schools.length === 0) {
+          // No data in Firebase, use local JSON
           const res = await fetch("data/schools.json");
           schools = await res.json();
         }

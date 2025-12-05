@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Events — MSM</title>
+
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="track.css">
+
+</head>
+<body class="track-body">
+
+<nav class="track-nav">
+  <a href="/home">XC Home</a>
+  <a href="index.html">Track Home</a>
+  <a href="meets.html">Meets</a>
+  <a class="active" href="events.html">Events</a>
+  <a href="rankings.html">Rankings</a>
+  
+</nav>
+
+<main class="track-main">
+  <section class="track-section">
+    <h2 class="track-section-title">Track & Field Events</h2>
+
+    <div id="event-grid" class="event-grid">Loading events...</div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+  <a href="admin-login.html"
+     style="
+       display:inline-block;
+       margin-top:8px;
+       background:#6cb5d967;
+       padding:8px 14px;
+       color:white;
+       text-decoration:none;
+       border-radius:6px;
+       font-weight:bold;
+     ">
+     Admin Login
+  </a>
+</footer>>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+async function loadEvents() {
+  const snapshot = await window.firebaseDatabase.ref("Track/events").once("value");
+  const events = [];
+  snapshot.forEach(child => {
+    events.push({ id: child.key, ...child.val() });
+  });
+  events.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+  const data = events;
+
+  const container = document.getElementById("event-grid");
+
+  container.innerHTML = data.map(ev => `
+    <a class="event-card" href="event.html?event=${ev.slug}">
+      ${ev.name}
+    </a>
+  `).join("");
+}
+
+loadEvents();
+</script>
+
+</body>
+</html>

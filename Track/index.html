@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mountain State Miles — Track & Field</title>
+
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="track.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="track-body">
+
+  <!-- HERO -->
+  <div class="track-hero">
+      <img src="../assets/Wvruns Logo.png" class="track-logo" alt="MSM Track Logo">
+
+      <h1 class="track-title">Track & Field</h1>
+      <p class="track-subtitle">Indoor • Outdoor • Results • Rankings • Athletes</p>
+
+      <div class="season-buttons">
+        <a href="indoor.html" class="season-btn">Indoor</a>
+        <a href="outdoor.html" class="season-btn">Outdoor</a>
+      </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <nav class="track-nav">
+    <a href="/index.html">Home</a>
+    <a href="index.html" class="active">Track Home</a>
+    <a href="meets.html">Meets</a>
+    <a href="events.html">Events</a>
+    <a href="rankings.html">Rankings</a>
+    
+  </nav>
+
+  <main class="track-main">
+
+    <!-- EVENT CATEGORIES -->
+    <section class="track-section">
+      <h2 class="track-section-title">Event Categories</h2>
+
+      <div class="event-grid">
+        <a class="event-card" href="events.html#sprints">Sprints</a>
+        <a class="event-card" href="events.html#mid">Mid-Distance</a>
+        <a class="event-card" href="events.html#distance">Distance</a>
+        <a class="event-card" href="events.html#jumps">Jumps</a>
+        <a class="event-card" href="events.html#throws">Throws</a>
+        <a class="event-card" href="events.html#relays">Relays</a>
+      </div>
+    </section>
+
+    <!-- RECENT TRACK MEETS -->
+    <section class="track-section">
+      <h2 class="track-section-title">Recent Track Meets</h2>
+      <div id="track-meet-list">Loading recent meets...</div>
+    </section>
+
+  </main>
+
+  
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="admin-login.html"
+       style="
+         display:inline-block;
+         margin-top:8px;
+         background:#6cb5d967;
+         padding:8px 14px;
+         color:white;
+         text-decoration:none;
+         border-radius:6px;
+         font-weight:bold;
+       ">
+       Admin Login
+    </a>
+  </footer>
+
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+      const container = document.getElementById('track-meet-list');
+      try {
+        const snapshot = await window.firebaseDatabase.ref('Track/meets')
+          .orderByChild('date')
+          .limitToLast(10)
+          .once('value');
+        const meets = [];
+        snapshot.forEach(child => {
+          meets.push({ id: child.key, ...child.val() });
+        });
+        // Sort by date descending
+        meets.sort((a, b) => {
+          const dateA = a.date || '';
+          const dateB = b.date || '';
+          return dateB.localeCompare(dateA);
+        });
+        if (!meets || !meets.length) {
+          container.innerHTML = '<p>No recent track meets found.</p>';
+          return;
+        }
+        function formatDate(str) {
+          const [y, m, d] = str.split("-");
+          return new Date(y, m - 1, d).toLocaleDateString();
+        }
+        container.innerHTML = meets.map(meet => `
+          <a href="meet.html?slug=${encodeURIComponent(meet.slug)}" class="track-meet-card">
+            <h3>${meet.name}</h3>
+            <p><strong>Date:</strong> ${meet.date ? formatDate(meet.date) : ''}</p>
+            ${meet.location ? `<p><strong>Location:</strong> ${meet.location}</p>` : ""}
+          </a>
+        `).join("");
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<p>Error loading meets.</p>';
+      }
+    
+    document.addEventListener("DOMContentLoaded", loadTrackMeets);
+  </script>
+
+</body>
+</html>

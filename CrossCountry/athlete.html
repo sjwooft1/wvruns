@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+  <link rel="canonical" href="https://mountainstatemiles.com/athlete.html" />
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Athlete Profile – Mountain State Miles</title>
+  <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
+  <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+  <!-- Dynamic SEO Meta -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+      const nameParam = params.get("name");
+      
+      // Helper to turn "connor-george" into "Connor George"
+      const formatSlug = (s) => {
+        if (!s) return "";
+        return s.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      };
+
+      // Determine display name: Use Name if exists, otherwise format the Slug
+      const displayName = nameParam || formatSlug(slug) || "Athlete";
+    
+      // Update title
+      document.title = `${displayName} – Athlete Profile | Mountain State Miles`;
+    
+      // Add SEO meta tags dynamically
+      const metaDescription = document.createElement("meta");
+      metaDescription.name = "description";
+      metaDescription.content = `${displayName}'s cross country & track profile — results, PRs, race history, and stats on Mountain State Miles.`;
+    
+      const metaKeywords = document.createElement("meta");
+      metaKeywords.name = "keywords";
+      metaKeywords.content = `${displayName}, West Virginia runner, XC runner, track results, WV high school running, athlete profile, Mountain State Miles`;
+    
+      const ogTitle = document.createElement("meta");
+      ogTitle.setAttribute("property", "og:title");
+      ogTitle.content = `${displayName} – WV Running Profile`;
+    
+      const ogDescription = document.createElement("meta");
+      ogDescription.setAttribute("property", "og:description");
+      ogDescription.content = `View ${displayName}'s PRs, meet results, progress charts, and running stats at MountainStateMiles.com.`;
+    
+      const ogImage = document.createElement("meta");
+      ogImage.setAttribute("property", "og:image");
+      ogImage.content = "https://mountainstatemiles.com/assets/og-athlete.jpg";
+    
+      document.head.appendChild(metaDescription);
+      document.head.appendChild(metaKeywords);
+      document.head.appendChild(ogTitle);
+      document.head.appendChild(ogDescription);
+      document.head.appendChild(ogImage);
+    });
+  </script>
+  
+  <style>
+    .athlete-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .athlete-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--xc-primary);
+      margin-bottom: 0.5rem;
+    }
+    .athlete-info {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,0.95);
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card h3 {
+      color: #002855;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #002855;
+      padding-bottom: 10px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 15px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 10px;
+      border-left: 4px solid #002855;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #002855;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .distance-filter {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 10px;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .distance-filter label {
+      font-weight: 600;
+      color: #002855;
+      margin: 0;
+    }
+    .distance-filter select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+    .distance-filter select:focus {
+      outline: none;
+      border-color: #002855;
+      box-shadow: 0 0 0 3px rgba(0,40,85,0.1);
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-top: 20px;
+    }
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .error {
+      text-align: center;
+      padding: 40px;
+      color: #d32f2f;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 16px;
+      margin: 20px 0;
+    }
+    @media (max-width: 768px) {
+      .athlete-info {
+        flex-direction: column;
+        gap: 15px;
+      }
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+      .chart-container {
+        height: 250px;
+      }
+    }
+  </style>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsPerson",
+      "name": "",
+      "url": "https://mountainstatemiles.com/athlete.html",
+      "sport": "Cross Country",
+      "memberOf": "WV High School Running"
+    }
+    </script>
+    
+</head>
+<body>
+  <div class="content-wrapper">
+    <div class="page-background"></div>
+    <img src="assets/Wvruns Logo.png" alt="" class="page-background-image" />
+    <header>
+      <!-- Logo image for desktop/large view -->
+      <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
+      
+      <!-- Navigation Bar -->
+      <nav class="navbar">
+        <div class="container">
+          <div class="navbar-content">
+            <!-- Text/Emoji logo for the navbar -->
+            <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+            <ul class="navbar-nav">
+              <li><a href="xc.html" class="navbar-link">Home</a></li>
+              <li><a href="schools.html" class="navbar-link">Schools</a></li>
+              <li><a href="meets.html" class="navbar-link">Meets</a></li>
+              <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+              <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <div class="athlete-header">
+        <h1 id="athlete-name">Loading...</h1>
+        <div class="athlete-info" id="athlete-info"></div>
+      </div>
+      
+      <div id="loading" class="loading">Loading athlete data...</div>
+      <div id="error" class="error" style="display: none;"></div>
+      
+      <div id="content" style="display: none;">
+        <!-- Distance Filter -->
+        <div class="distance-filter">
+          <label for="distance-select">Filter by Distance:</label>
+          <select id="distance-select">
+            <option value="all">All Distances</option>
+          </select>
+        </div>
+
+        <!-- Personal Records -->
+        <div class="stat-card">
+          <h3>Personal Records</h3>
+          <div class="stat-grid" id="pr-stats"></div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="stat-card">
+          <h3>Performance Over Time</h3>
+          <div class="chart-container">
+            <canvas id="performance-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Meet Results -->
+        <div class="stat-card">
+          <h3>All Meet Results</h3>
+          <div id="results-grid" style="height: 400px; width: 100%;"></div>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+      <a href="login.html"
+         style="
+           display:inline-block;
+           margin-top:8px;
+           background:#6cb5d967;
+           padding:8px 14px;
+           color:white;
+           text-decoration:none;
+           border-radius:6px;
+           font-weight:bold;
+         ">
+         Admin Login
+      </a>
+    </footer>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <script>
+    // --------------------------------------------------------
+    // UTILITY FUNCTIONS
+    // --------------------------------------------------------
+
+    // Helper to turn "connor-george" into "Connor George"
+    function formatSlugToName(slug) {
+        if (!slug) return '';
+        return slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+    }
+
+    // Format grade from graduation year
+    function formatGrade(gradYear) {
+      if (!gradYear) return 'N/A';
+      const yearNum = parseInt(gradYear, 10);
+      if (Number.isNaN(yearNum)) return 'N/A';
+      const now = new Date();
+      // If we are in the second half of the year (Aug+), the academic year has shifted
+      const currentYear = now.getFullYear(); 
+      // Simplified Logic for High School:
+      // Class of 2025 is a Senior in Fall 2024 / Spring 2025
+      // Current Season Year (Fall 2025)
+      const currentSeasonYear = 2025; 
+      const diff = yearNum - (currentSeasonYear + 1);
+      
+      const gradeMap = {
+          0: '12th', // Senior
+          1: '11th', // Junior
+          2: '10th', // Sophomore
+          3: '9th',  // Freshman
+      };
+      return gradeMap[diff] || 'N/A';
+    }
+
+    // Format time (MM:SS.ms)
+    function formatTime(seconds) {
+      if (!seconds && seconds !== 0) return '';
+      const sec = Number(seconds);
+      if (Number.isNaN(sec)) return seconds;
+      const ms = Math.floor((sec % 1) * 100);
+      const totalSeconds = Math.floor(sec);
+      const minutes = Math.floor(totalSeconds / 60);
+      const remainingSeconds = totalSeconds % 60;
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+    }
+
+    // Calculate pace per mile
+    function calculatePacePerMile(seconds, distanceMeters = 5000) {
+      if (!seconds && seconds !== 0) return '';
+      const sec = Number(seconds);
+      if (Number.isNaN(sec) || sec <= 0) return '';
+      const distanceMiles = distanceMeters / 1609.34;
+      const paceSecondsPerMile = sec / distanceMiles;
+      const paceMinutes = Math.floor(paceSecondsPerMile / 60);
+      const paceSeconds = Math.floor(paceSecondsPerMile % 60);
+      return `${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // Format date YYYY-MM-DD to Locale
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      // Handle YYYY-MM-DD explicitly to avoid timezone shifts
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        return new Date(year, month, day).toLocaleDateString();
+      }
+      return new Date(dateString).toLocaleDateString();
+    }
+
+    // Cache for school names to reduce DB hits
+    const schoolNameCache = {};
+    async function getSchoolName(slug) {
+      if (!slug) return '';
+      if (schoolNameCache[slug]) return schoolNameCache[slug];
+      
+      // Try to use the helper from firebase-helpers.js if available
+      if (typeof window.getSchoolBySlug === 'function') {
+         const school = await window.getSchoolBySlug(slug);
+         if (school && school.name) {
+            schoolNameCache[slug] = school.name;
+            return school.name;
+         }
+      }
+      return slug; // Fallback
+    }
+
+    // --------------------------------------------------------
+    // MAIN LOADING LOGIC
+    // --------------------------------------------------------
+
+    async function loadAthleteProfile() {
+      const loadingDiv = document.getElementById('loading');
+      const errorDiv = document.getElementById('error');
+      const contentDiv = document.getElementById('content');
+      const nameHeading = document.getElementById('athlete-name');
+      const infoDiv = document.getElementById('athlete-info');
+
+      // 1. GET URL PARAMETERS
+      const params = new URLSearchParams(window.location.search);
+      const slugParam = params.get('slug');
+      const nameParam = params.get('name');
+
+      let athleteName = null;     // The "Real Name" used to find results (e.g. "Connor George")
+      let athleteProfile = null;  // The object from 'crosscountry/athletes'
+
+      if (!slugParam && !nameParam) {
+        loadingDiv.style.display = 'none';
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = 'No athlete specified! URL must contain ?slug= or ?name=';
+        return;
+      }
+
+      try {
+        // 2. FETCH ATHLETE PROFILE
+        // We need to find the "Real Name" to query the results table.
+        
+        if (slugParam) {
+            // Case A: We have a slug (Preferred)
+            // Try to find the athlete in the 'athletes' node by slug
+            try {
+                const snapshot = await window.firebaseDatabase.ref('crosscountry/athletes')
+                    .orderByChild('slug')
+                    .equalTo(slugParam)
+                    .once('value');
+                
+                if (snapshot.exists()) {
+                    // Get the first match
+                    const key = Object.keys(snapshot.val())[0];
+                    athleteProfile = { id: key, ...snapshot.val()[key] };
+                    athleteName = athleteProfile.name; // This is the critical link!
+                } else {
+                    // Fallback: If no profile exists yet, assume the name from the slug
+                    // This allows results to load even if the athlete profile hasn't been created
+                    athleteName = formatSlugToName(slugParam);
+                }
+            } catch (err) {
+                console.warn("Could not fetch athlete by slug, formatting slug instead", err);
+                athleteName = formatSlugToName(slugParam);
+            }
+        } else {
+            // Case B: We have a name parameter
+            athleteName = nameParam;
+            // Try to fetch profile by name
+            try {
+                const snapshot = await window.firebaseDatabase.ref('crosscountry/athletes')
+                    .orderByChild('name')
+                    .equalTo(athleteName)
+                    .once('value');
+                
+                if (snapshot.exists()) {
+                    const key = Object.keys(snapshot.val())[0];
+                    athleteProfile = { id: key, ...snapshot.val()[key] };
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // Update Header Immediately
+        nameHeading.textContent = athleteName;
+
+        // 3. FETCH RESULTS (Using the Name)
+        // Now that we have the real name (e.g. "Connor George"), we get the results
+        const results = await getResultsByAthlete(athleteName);
+        
+        // Filter out excluded results
+        const validResults = results.filter(r => r.exclude_from_rankings !== true);
+
+        // 4. DISPLAY PROFILE INFO
+        if (athleteProfile) {
+          const schoolName = athleteProfile.school_slug ? await getSchoolName(athleteProfile.school_slug) : 'N/A';
+          infoDiv.innerHTML = `
+            <div><strong>School:</strong> ${schoolName}</div>
+            <div><strong>Grade:</strong> ${formatGrade(athleteProfile.gradYear || athleteProfile.grade)}</div>
+            <div><strong>Gender:</strong> ${athleteProfile.gender || 'N/A'}</div>
+          `;
+        } else if (validResults.length > 0) {
+             // If no profile exists, but results do, try to infer school from latest result
+             const lastResult = validResults[0]; // Assuming sorted later, but good enough for info
+             const schoolName = lastResult.school_slug ? await getSchoolName(lastResult.school_slug) : 'N/A';
+             infoDiv.innerHTML = `
+                <div><strong>School:</strong> ${schoolName}</div>
+                <div><strong>Grade:</strong> N/A</div> 
+             `;
+        } else {
+             infoDiv.innerHTML = '<div style="color: rgba(255,255,255,0.8);">Athlete information not available</div>';
+        }
+
+        // 5. HANDLE NO RESULTS
+        if (!validResults || validResults.length === 0) {
+          loadingDiv.style.display = 'none';
+          errorDiv.style.display = 'block';
+          errorDiv.textContent = 'No results found for this athlete.';
+          contentDiv.style.display = 'block'; // Show content so header is visible
+          return;
+        }
+
+        loadingDiv.style.display = 'none';
+        
+        // Store globally for filtering logic
+        window.allResults = validResults;
+
+        // 6. SETUP FILTERS & CHARTS
+        setupDistanceFilter(validResults);
+        updateProfileDisplay(validResults); // Initial render
+        contentDiv.style.display = 'block';
+
+      } catch (error) {
+        console.error('Error loading athlete:', error);
+        loadingDiv.style.display = 'none';
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = 'Error loading athlete data. Please try again.';
+      }
+    }
+
+    // Setup the dropdown for distances
+    function setupDistanceFilter(results) {
+        const uniqueDistances = [...new Set(results.map(r => r.distance || 5000))].sort((a, b) => b - a);
+        const distanceSelect = document.getElementById('distance-select');
+        distanceSelect.innerHTML = '<option value="all">All Distances</option>';
+        
+        uniqueDistances.forEach(dist => {
+          let label = '';
+          const d = parseInt(dist);
+          if (d === 5000) label = '5K (5000m)';
+          else if (d === 3200) label = '3200m';
+          else if (d === 1600) label = '1600m';
+          else label = d + 'm';
+          
+          const option = document.createElement('option');
+          option.value = dist;
+          option.textContent = label;
+          distanceSelect.appendChild(option);
+        });
+
+        // Add change listener
+        // We use an arrow function to pass the GLOBAL window.allResults, 
+        // ensuring filtering works on the full dataset every time.
+        distanceSelect.addEventListener('change', () => updateProfileDisplay(window.allResults));
+    }
+
+    // --------------------------------------------------------
+    // DISPLAY & RENDERING LOGIC
+    // --------------------------------------------------------
+
+    async function updateProfileDisplay(results) {
+      const distanceSelect = document.getElementById('distance-select');
+      const selectedDistanceValue = distanceSelect.value;
+
+      // Filter based on dropdown
+      let filteredResults = results;
+      if (selectedDistanceValue !== 'all') {
+        const selectedDistance = parseInt(selectedDistanceValue, 10);
+        filteredResults = results.filter(r => {
+          const resultDistance = r.distance ? parseInt(r.distance, 10) : 5000;
+          return resultDistance === selectedDistance;
+        });
+      }
+
+      // Filter out invalid times
+      const validResults = filteredResults.filter(r => r.time && Number(r.time) > 0);
+      
+      // Handle empty filtered set
+      if (validResults.length === 0) {
+        renderEmptyState();
+        return;
+      }
+
+      // --- CALCULATE STATS ---
+      const times = validResults.map(r => Number(r.time)).sort((a, b) => a - b);
+      const bestTime = times[0];
+      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+      
+      // Find best result object to get correct distance for pace calc
+      const bestResult = validResults.find(r => Number(r.time) === bestTime);
+      const distanceForPace = bestResult?.distance ? parseInt(bestResult.distance, 10) : 5000;
+
+      document.getElementById('pr-stats').innerHTML = `
+        <div class="stat-item">
+          <div class="stat-value">${formatTime(bestTime)}</div>
+          <div class="stat-label">Personal Record</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${formatTime(avgTime)}</div>
+          <div class="stat-label">Average Time</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${validResults.length}</div>
+          <div class="stat-label">Total Races</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${calculatePacePerMile(bestTime, distanceForPace)}</div>
+          <div class="stat-label">Best Pace/Mile</div>
+        </div>
+      `;
+
+      // --- CHART LOGIC ---
+      renderChart(validResults);
+
+      // --- TABLE LOGIC ---
+      renderTable(validResults);
+    }
+
+    function renderEmptyState() {
+        document.getElementById('pr-stats').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #999;">No results for this distance</div>';
+        const ctx = document.getElementById('performance-chart').getContext('2d');
+        ctx.clearRect(0, 0, document.getElementById('performance-chart').width, document.getElementById('performance-chart').height);
+        if (window.performanceChart) window.performanceChart.destroy();
+        
+        // Clear Handsontable if exists
+        const grid = document.getElementById('results-grid');
+        grid.innerHTML = '<div style="text-align:center; padding:20px;">No results found.</div>';
+    }
+
+    async function renderChart(results) {
+        // We need meet dates. We only fetch meets that are relevant to these results.
+        const meetSlugs = [...new Set(results.map(r => r.meet_slug).filter(Boolean))];
+        const meetsMap = {};
+        
+        // Batch fetch meet data (Optimization)
+        if (meetSlugs.length > 0) {
+            try {
+               // Note: In a large app, we might want to fetch only specific meets, 
+               // but 'getAllMeets' or checking cache is easier here.
+               // Let's rely on checking the DB once.
+               const snapshot = await window.firebaseDatabase.ref('crosscountry/meets').once('value');
+               const allMeets = snapshot.val() || {};
+               // Convert object to map if needed, or just iterate
+               // snapshot.val() might be an object with keys=ids, or array
+               if (allMeets) {
+                   Object.values(allMeets).forEach(meet => {
+                       if (meet && meet.slug) meetsMap[meet.slug] = meet;
+                   });
+               }
+            } catch(e) { console.error("Chart meet fetch error", e); }
+        }
+
+        const chartData = results.map(r => {
+            const meet = meetsMap[r.meet_slug] || {};
+            return {
+                date: meet.date || r.meet_slug, // Fallback to slug if date missing
+                time: Number(r.time),
+                meetName: meet.name || r.meet_slug || 'Unknown Meet'
+            };
+        }).sort((a, b) => a.date.localeCompare(b.date));
+
+        const ctx = document.getElementById('performance-chart').getContext('2d');
+        if (window.performanceChart) window.performanceChart.destroy();
+
+        window.performanceChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartData.map(d => d.meetName),
+            datasets: [{
+              label: 'Time',
+              data: chartData.map(d => d.time),
+              borderColor: '#002855',
+              backgroundColor: 'rgba(0, 40, 85, 0.1)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 5
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => formatTime(ctx.parsed.y)
+                }
+              }
+            },
+            scales: {
+              y: {
+                ticks: { callback: (val) => formatTime(val) }
+              }
+            }
+          }
+        });
+    }
+
+    async function renderTable(results) {
+        const gridContainer = document.getElementById('results-grid');
+        
+        // Enhance results with School Names and Meet Info
+        const enrichedResults = await Promise.all(results.map(async (r) => {
+            const schoolName = r.school_slug ? await getSchoolName(r.school_slug) : '';
+            // We fetch meet details individually here, or could use the map from chart
+            let meetName = r.meet_slug;
+            let meetDate = 'N/A';
+            
+            // Try simple fetch
+            try {
+                const meet = await window.getMeetBySlug(r.meet_slug);
+                if (meet) {
+                    meetName = meet.name;
+                    meetDate = meet.date;
+                }
+            } catch(e){}
+
+            return { 
+                ...r, 
+                schoolName, 
+                meetName, 
+                meetDate 
+            };
+        }));
+
+        // Sort by Date Descending
+        enrichedResults.sort((a, b) => {
+             const dateA = a.meetDate || '0000-00-00';
+             const dateB = b.meetDate || '0000-00-00';
+             return dateB.localeCompare(dateA);
+        });
+
+        // Handsontable Data Structure
+        const rowData = enrichedResults.map(r => [
+            formatDate(r.meetDate),
+            r.meetName,
+            r.place || '-',
+            formatTime(r.time),
+            calculatePacePerMile(r.time, r.distance),
+            r.schoolName,
+            r.meet_slug // Hidden column for linking
+        ]);
+
+        if (window.athleteResultsHot) {
+            window.athleteResultsHot.destroy();
+        }
+
+        window.athleteResultsHot = new Handsontable(gridContainer, {
+            data: rowData,
+            colHeaders: ['Date', 'Meet', 'Place', 'Time', 'Pace', 'School'],
+            columns: [
+                { type: 'text', readOnly: true, width: 100 }, // Date
+                { 
+                    type: 'text', 
+                    readOnly: true,
+                    renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                        Handsontable.renderers.HtmlRenderer.apply(this, arguments);
+                        const meetSlug = instance.getDataAtRow(row)[6];
+                        td.innerHTML = `<a href="meet.html?slug=${meetSlug}" style="color:#002855;font-weight:600;text-decoration:none;">${value}</a>`;
+                    }
+                }, // Meet
+                { type: 'text', readOnly: true, width: 60, className: 'htCenter' }, // Place
+                { type: 'text', readOnly: true, width: 90 }, // Time
+                { type: 'text', readOnly: true, width: 90 }, // Pace
+                { type: 'text', readOnly: true }  // School
+            ],
+            hiddenColumns: {
+                columns: [6], // Hide the slug column
+                indicators: false
+            },
+            licenseKey: 'non-commercial-and-evaluation',
+            height: 'auto',
+            stretchH: 'all',
+            rowHeaders: true,
+            columnSorting: true,
+        });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadAthleteProfile);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mountain State Miles</title>
+  <meta property="og:image" content="assets/Wvruns Logo.png" />
+  <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
+<link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="MSM" />
+<link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <!-- Primary SEO -->
+<meta name="description" content="Mountain State Miles — West Virginia's home for XC & Track results, rankings, rosters, records, schedules, and meet coverage." />
+<meta name="keywords" content="West Virginia running, WVHSXC, WVXC, WV Track, WV high school running, WV cross country, WV track and field, WV runs, Mountain State Miles" />
+<meta name="author" content="Mountain State Miles" />
+
+<!-- Mobile -->
+<meta name="theme-color" content="#002855" />
+
+<!-- Canonical URL -->
+<link rel="canonical" href="https://mountainstatemiles.com/" />
+
+<!-- Open Graph (Social Media Sharing) -->
+<meta property="og:title" content="Mountain State Miles — WV Cross Country & Track" />
+<meta property="og:description" content="Official West Virginia running hub: results, rankings, rosters, athlete profiles, meet schedules, and team stats." />
+<meta property="og:image" content="https://mountainstatemiles.com/assets/og-image.jpg" />
+<meta property="og:url" content="https://mountainstatemiles.com/" />
+<meta property="og:type" content="website" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Mountain State Miles" />
+<meta name="twitter:description" content="West Virginia's XC & Track results, rankings, and athlete profiles." />
+<meta name="twitter:image" content="https://mountainstatemiles.com/assets/og-image.jpg" />
+
+<!-- Robots Instructions -->
+<meta name="robots" content="index, follow" />
+
+<body>
+  <div class="hero-section">
+    <div class="hero-content">
+      <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
+      <h1 class="hero-title">Mountain State Miles</h1>
+      <p class="hero-subtitle">The home for West Virginia cross country and track results — school by school, meet by meet.</p>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container">
+      <div class="navbar-content">
+        <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+        <ul class="navbar-nav">
+          <li><a href="xc.html" class="navbar-link active">Home</a></li>
+          <li><a href="schools.html" class="navbar-link">Schools</a></li>
+          <li><a href="meets.html" class="navbar-link">Meets</a></li>
+          <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+          <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+          <li><a href="/index.html" class="navbar-link">Back to Home</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content-section">
+    <h2 class="section-title">Recent Meets</h2>
+    <div id="meet-list" class="meet-grid">Loading recent meets...</div>
+  </main>
+
+  <footer style="text-align: center; padding: 3rem 2rem; background: white; margin-top: 4rem; border-top: 1px solid var(--border-light);">
+    <p style="color: var(--text-secondary); margin-bottom: 1rem;">&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="login.html" class="btn btn-secondary">Admin Login</a>
+  </footer>
+  
+  
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <!-- Firebase Configuration -->
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <script>
+    async function loadRecentMeets() {
+      const container = document.getElementById('meet-list');
+      try {
+        const meets = await getAllMeets(10);
+        if (!meets.length) {
+          container.innerHTML = '<p>No recent meets found.</p>';
+          return;
+        }
+        function formatDate(dateString) {
+          if (!dateString) return 'Date TBD';
+          // Parse date string in local time to avoid timezone shift
+          const parts = dateString.split('-');
+          if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+            const day = parseInt(parts[2], 10);
+            const date = new Date(year, month, day);
+            return date.toLocaleDateString();
+          }
+          // Fallback to original method if format is unexpected
+          return new Date(dateString).toLocaleDateString();
+        }
+        container.innerHTML = meets.map(meet => {
+          const date = formatDate(meet.date);
+          const location = meet.location || '';
+          return `
+            <a href="meet.html?slug=${meet.slug}" class="meet-card">
+              <h3 class="meet-card-title">${meet.name}</h3>
+              <p class="meet-card-date">📅 ${date}</p>
+              ${location ? `<p class="meet-card-location">📍 ${location}</p>` : ''}
+            </a>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Error loading meets:', e);
+        container.innerHTML = '<p>Error loading recent meets.</p>';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadRecentMeets);
+  </script>
+</body>
+</html>

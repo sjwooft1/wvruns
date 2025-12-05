@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meet Results | Mountain State Miles</title>
+  
+  <!-- Favicon Links -->
+  <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
+  <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
+  
+  <!-- Link to the EXTERNAL stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- Removed Handsontable CSS link -->
+
+  <meta name="description" content="WV running results, rankings, times, rosters, and meet data — Mountain State Miles." />
+  <meta name="keywords" content="WVXC, WV Track, West Virginia Running, Cross Country Results, WV HS Running, Mountain State Miles" />
+  <meta name="author" content="Mountain State Miles" />
+
+  <!-- URL Parameter Script in the Head -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+      if (slug) {
+        document.title = `${slug.replace(/-/g, " ")} – Meet Results | Mountain State Miles`;
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div class="content-wrapper">
+    <div class="page-background"></div>
+    <img src="assets/meets background.jpg" alt="" class="page-background-image" />
+    
+    <header>
+      <nav class="navbar">
+        <div class="container">
+          <div class="navbar-content">
+            <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+            <ul class="navbar-nav">
+              <li><a href="xc.html" class="navbar-link">Home</a></li>
+              <li><a href="schools.html" class="navbar-link">Schools</a></li>
+              <li><a href="meets.html" class="navbar-link active">Meets</a></li>
+              <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+              <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <a href="meets.html" class="back-link">← Back to Meets</a>
+    </header>
+
+    <main>
+      <h1 id="meet-title">Meet Results</h1>
+      <div id="meet-meta" class="meet-metadata"></div>
+      <div id="error" class="error-message" style="display:none;"></div>
+
+      <div id="selector" style="display:none;">
+        <div id="selector-card">
+          <div class="tabs-row" role="tablist" aria-label="Gender tabs">
+            <button id="tab-boys" class="gender-tab">BOYS</button>
+            <button id="tab-girls" class="gender-tab">GIRLS</button>
+          </div>
+          <div id="select-heading">Select a Race</div>
+          <div id="select-sub">Choose which race results you want to view for this meet.</div>
+          <div id="race-button-wrap" class="race-buttons"></div>
+        </div>
+      </div>
+
+      <!-- This div will now hold a standard HTML table created by JS -->
+      <div id="results-box"></div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="login.html"
+       style="
+         display:inline-block;
+         margin-top:8px;
+         background:#6cb5d967;
+         padding:8px 14px;
+         color:white;
+         text-decoration:none;
+         border-radius:6px;
+         font-weight:bold;
+         transition: all 0.3s ease;
+       "
+       onmouseover="this.style.background='#6cb5d9';"
+       onmouseout="this.style.background='#6cb5d967';">
+       Admin Login
+    </a>
+  </footer>
+
+  <!-- Firebase SDK (Ensure HTTPS is added to fix loading errors) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
+
+  <script>
+    // ==========================================
+    // 1. UTILITY & FORMATTING FUNCTIONS
+    // ==========================================
+
+    /**
+     * Converts time in seconds to MM:SS.ss format.
+     */
+    function formatTime(totalSeconds) {
+      if (typeof totalSeconds !== 'number' || isNaN(totalSeconds) || totalSeconds <= 0) {
+        return 'N/T';
+      }
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${seconds.toFixed(2).padStart(5, '0')}`;
+    }
+
+    /**
+     * Calculates Pace (MM:SS/mile).
+     */
+    function calculatePacePerMile(totalSeconds, distanceMeters) {
+      if (!totalSeconds || !distanceMeters) return '-';
+      const MILE_IN_METERS = 1609.34;
+      const secondsPerMile = (totalSeconds / distanceMeters) * MILE_IN_METERS;
+      return formatTime(secondsPerMile);
+    }
+    
+    /**
+     * Formats Graduation Year into Grade (Freshman, etc).
+     * Based on current Fall 2025 season logic.
+     */
+    function formatGrade(gradYear) {
+      if (!gradYear) return '';
+      // Adjust this "currentYear" based on the active season
+      const currentSeasonYear = 2025; // Base year on the current data (2025-11-16)
+      const diff = gradYear - (currentSeasonYear + 1);
+      
+      const gradeMap = {
+          0: '12', // Senior
+          1: '11', // Junior
+          2: '10', // Sophomore
+          3: '9',  // Freshman
+          4: '8',
+          5: '7',
+          6: '6'
+      };
+      return gradeMap[diff] || gradYear; 
+    }
+
+    /**
+     * Converts a name (e.g., "Connor George") to a URL slug ("connor-george").
+     * @param {string} name - The name to slugify.
+     * @returns {string} The URL-friendly slug.
+     */
+    function slugify(name) {
+        if (!name) return '';
+        return name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
+
+    // ==========================================
+    // 2. STATE MANAGEMENT
+    // ==========================================
+    
+    let currentMeetData = null;
+    let allResults = [];
+    let activeGender = 'M'; // Default to Boys ('M', 'F', 'O')
+    let activeRaceType = null;
+
+    // ==========================================
+    // 3. MAIN INITIALIZATION
+    // ==========================================
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+
+      const errorDiv = document.getElementById("error");
+      const metaDiv = document.getElementById("meet-meta");
+      const selectorDiv = document.getElementById("selector");
+
+      if (!slug) {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "No meet specified. Please return to the Meets page.";
+        return;
+      }
+
+      try {
+        // 1. Fetch Meet Details
+        currentMeetData = await window.getMeetBySlug(slug);
+        
+        if (!currentMeetData) {
+          throw new Error("Meet not found.");
+        }
+
+        // 2. Populate Header Info
+        document.getElementById("meet-title").textContent = currentMeetData.name;
+        metaDiv.innerHTML = `
+            <strong>Date:</strong> ${currentMeetData.date || 'TBA'} <span style="margin:0 10px">|</span> 
+            <strong>Location:</strong> ${currentMeetData.location || 'Unknown'}
+        `;
+
+        // 3. Fetch All Results for this Meet
+        allResults = await window.getResultsByMeet(slug);
+        
+        if (!allResults || allResults.length === 0) {
+            errorDiv.style.display = "block";
+            errorDiv.textContent = "Results have not been uploaded for this meet yet.";
+            return;
+        }
+
+        // 4. Initialize UI
+        selectorDiv.style.display = "block";
+        setupGenderTabs();
+        
+        // Trigger default view (Boys)
+        document.getElementById("tab-boys").click();
+
+      } catch (err) {
+        console.error(err);
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "Error loading meet data: " + err.message;
+      }
+    });
+
+    // ==========================================
+    // 4. UI LOGIC (TABS & BUTTONS)
+    // ==========================================
+
+    function setupGenderTabs() {
+        const btnBoys = document.getElementById('tab-boys');
+        const btnGirls = document.getElementById('tab-girls');
+
+        // Helper to reset classes
+        const resetTabs = () => {
+            [btnBoys, btnGirls].forEach(b => b.classList.remove('active'));
+        };
+
+        btnBoys.addEventListener('click', () => {
+            resetTabs();
+            btnBoys.classList.add('active');
+            activeGender = 'M';
+            updateRaceButtons();
+        });
+
+        btnGirls.addEventListener('click', () => {
+            resetTabs();
+            btnGirls.classList.add('active');
+            activeGender = 'F';
+            updateRaceButtons();
+        });
+
+    }
+
+    function updateRaceButtons() {
+        const container = document.getElementById('race-button-wrap');
+        container.innerHTML = ''; // Clear current buttons
+        document.getElementById('results-box').innerHTML = ''; // Clear table
+
+        // Filter results to find unique race types for current gender
+        // Normalize gender to uppercase for comparison
+        const relevantResults = allResults.filter(r => 
+            (r.gender || '').toUpperCase() === activeGender
+        );
+
+        if (relevantResults.length === 0) {
+            container.innerHTML = `<div style="color:#ccc; grid-column: 1/-1; text-align:center;">No results found for this category.</div>`;
+            return;
+        }
+
+        // Get unique race types (e.g., "Varsity", "JV", "Middle School")
+        const raceTypes = [...new Set(relevantResults.map(r => r.race_type))].sort();
+
+        // Create a button for each race type
+        raceTypes.forEach((type, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'race-button secondary'; // Default style
+            
+            // Format label (capitalize first letter)
+            const label = type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Unlabeled Race';
+            btn.textContent = label;
+
+            btn.onclick = () => {
+                // Remove primary class from all siblings
+                Array.from(container.children).forEach(c => {
+                    c.classList.remove('primary');
+                    c.classList.add('secondary');
+                });
+                // Set this one to primary
+                btn.classList.remove('secondary');
+                btn.classList.add('primary');
+
+                activeRaceType = type;
+                renderTableForSelection();
+            };
+
+            container.appendChild(btn);
+
+            // Automatically click the first button to show data immediately
+            if (index === 0) btn.click();
+        });
+    }
+
+    function renderTableForSelection() {
+        // Filter data based on active Gender AND active Race Type
+        const filteredData = allResults.filter(r => 
+            (r.gender || '').toUpperCase() === activeGender && 
+            r.race_type === activeRaceType
+        );
+
+        // Sort by Place (if available) or Time
+        filteredData.sort((a, b) => {
+            if (a.place && b.place) return a.place - b.place;
+            // Use parseFloat here to ensure proper number comparison
+            return parseFloat(a.time) - parseFloat(b.time); 
+        });
+
+        // Determine distance for pace calc (grab from first record)
+        const distance = filteredData.length > 0 ? parseFloat(filteredData[0].distance) : 5000;
+
+        renderResultsTable(filteredData, distance);
+    }
+
+    // ==========================================
+    // 5. TABLE RENDERING (UPDATED FOR ATHLETE LINK)
+    // ==========================================
+
+    function renderResultsTable(results, distanceMeters) {
+        const resultsBox = document.getElementById('results-box');
+        
+        if (!results || results.length === 0) {
+            resultsBox.innerHTML = '<section><p>No results found.</p></section>';
+            return;
+        }
+
+        const tableHTML = `
+            <section class="results-table-container">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Place</th>
+                            <th>Name</th>
+                            <th>Grade</th>
+                            <th>School</th>
+                            <th>Time</th>
+                            <th>Pace/Mile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(runner => {
+                            // FIX: Force 'runner.time' to be a float number and handle null/undefined
+                            const timeSeconds = runner.time ? parseFloat(runner.time) : 0; 
+
+                            // Create the URL slug from the runner's name
+                            const athleteSlug = slugify(runner.athlete_name || runner.name);
+
+                            return `
+                            <tr>
+                                <td data-label="Place">${runner.place || '-'}</td>
+                                <td data-label="Name">
+                                    <!-- Use athleteSlug for the link as intended -->
+                                    <a href="athlete.html?slug=${athleteSlug}" style="font-weight:bold; color:#002855;">
+                                        ${runner.athlete_name || runner.name || 'Unknown'}
+                                    </a>
+                                </td>
+                                <td data-label="Grade">${formatGrade(runner.gradYear)}</td>
+                                <td data-label="School">
+                                    <a href="schools.html?slug=${runner.school_slug || ''}">
+                                        ${runner.school_name || runner.school || ''}
+                                    </a>
+                                </td>
+                                <td data-label="Time" style="font-weight:700;">${formatTime(timeSeconds)}</td>
+                                <td data-label="Pace/Mile" style="color:#666;">${calculatePacePerMile(timeSeconds, distanceMeters)}</td>
+                            </tr>
+                        `}).join('')}
+                    </tbody>
+                </table>
+            </section>
+        `;
+        resultsBox.innerHTML = tableHTML;
+    }
+  </script>
+</body>
+</html>

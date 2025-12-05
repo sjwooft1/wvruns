@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meet Results — Mountain State Miles</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="track.css">
+</head>
+
+<body class="track-body">
+
+<nav class="track-nav">
+  <a href="/home">XC Home</a>
+  <a href="index.html">Track Home</a>
+  <a href="meets.html">Meets</a>
+  <a href="events.html">Events</a>
+  <a href="rankings.html">Rankings</a>
+  
+</nav>
+
+<main class="track-main">
+  <section class="track-section">
+    <h2 class="track-section-title" id="meet-title">Loading...</h2>
+    <div id="event-results">Loading results...</div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+  <a href="admin-login.html"
+     style="
+       display:inline-block;
+       margin-top:8px;
+       background:#6cb5d967;
+       padding:8px 14px;
+       color:white;
+       text-decoration:none;
+       border-radius:6px;
+       font-weight:bold;
+     ">
+     Admin Login
+  </a>
+</footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const slug = params.get("slug");
+
+async function loadMeet() {
+  // Load meet info
+  const meetSnapshot = await window.firebaseDatabase.ref("Track/meets")
+    .orderByChild("slug")
+    .equalTo(slug)
+    .limitToFirst(1)
+    .once("value");
+  
+  let meet = null;
+  meetSnapshot.forEach(child => {
+    meet = { id: child.key, ...child.val() };
+  });
+
+  document.getElementById("meet-title").textContent =
+    meet?.name ?? "Meet Not Found";
+
+  if (!meet) {
+    document.getElementById("event-results").innerHTML = "<p>Meet not found.</p>";
+    return;
+  }
+
+  // Load results for this meet
+  const resultsSnapshot = await window.firebaseDatabase.ref("Track/results")
+    .orderByChild("meet_id")
+    .equalTo(meet.id)
+    .once("value");
+  
+  const results = [];
+  resultsSnapshot.forEach(child => {
+    results.push({ id: child.key, ...child.val() });
+  });
+
+  if (!results || !results.length) {
+    document.getElementById("event-results").innerHTML = "<p>No results found.</p>";
+    return;
+  }
+
+  // Load athletes and events for results
+  const athleteIds = [...new Set(results.map(r => r.athlete_id).filter(Boolean))];
+  const eventIds = [...new Set(results.map(r => r.event_id).filter(Boolean))];
+  
+  const athletesMap = {};
+  const eventsMap = {};
+  
+  // Load athletes
+  if (athleteIds.length > 0) {
+      const athletesSnapshot = await window.firebaseDatabase.ref("Track/athletes").once("value");
+    athletesSnapshot.forEach(child => {
+      if (athleteIds.includes(child.key)) {
+        athletesMap[child.key] = { id: child.key, ...child.val() };
+      }
+    });
+  }
+  
+  // Load events
+  if (eventIds.length > 0) {
+      const eventsSnapshot = await window.firebaseDatabase.ref("Track/events").once("value");
+    eventsSnapshot.forEach(child => {
+      if (eventIds.includes(child.key)) {
+        eventsMap[child.key] = { id: child.key, ...child.val() };
+      }
+    });
+  }
+
+  // Attach athlete and event data to results
+  results.forEach(r => {
+    r.athlete = athletesMap[r.athlete_id] || {};
+    r.event = eventsMap[r.event_id] || {};
+  });
+
+  // Sort by placing
+  results.sort((a, b) => {
+    const placeA = a.placing || a.placement || 999;
+    const placeB = b.placing || b.placement || 999;
+    return placeA - placeB;
+  });
+
+  // Group by event
+  const groups = {};
+  results.forEach(r => {
+    const eventName = r.event?.name || 'Unknown Event';
+    if (!groups[eventName]) groups[eventName] = [];
+    groups[eventName].push(r);
+  });
+
+  const container = document.getElementById("event-results");
+  container.innerHTML = Object.entries(groups)
+    .map(([eventName, rows], idx) => `
+      <div class="event-block">
+        <h3>${eventName}</h3>
+        <div id="meet-grid-${idx}" style="height: 300px; width: 100%;"></div>
+      </div>
+    `).join("");
+
+  // Initialize grids for each event
+  Object.entries(groups).forEach(([eventName, rows], idx) => {
+    setTimeout(() => {
+      const gridId = `meet-grid-${idx}`;
+      const gridElement = document.getElementById(gridId);
+      if (!gridElement) return;
+
+      const headers = ['Place', 'Athlete', 'School', 'Mark'];
+      const rowData = rows.map(r => [
+        r.placing || r.placement || '',
+        `${r.athlete.first_name || ''} ${r.athlete.last_name || ''}`.trim(),
+        r.athlete.school || '',
+        r.mark || '',
+        r.athlete.id || ''
+      ]);
+
+      const columnDefs = [
+        { data: 0, title: 'Place', type: 'text', readOnly: true, width: 80 },
+        {
+          data: 1,
+          title: 'Athlete',
+          type: 'text',
+          readOnly: true,
+          renderer: function(instance, td, row, col, prop, value, cellProperties) {
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            const athleteId = instance.getDataAtRow(row)[4];
+            if (athleteId) {
+              td.innerHTML = `<a href="athlete.html?id=${athleteId}" style="color: #0056b3; text-decoration: none;">${value || ''}</a>`;
+            }
+          }
+        },
+        { data: 2, title: 'School', type: 'text', readOnly: true },
+        { data: 3, title: 'Mark', type: 'text', readOnly: true, width: 120 }
+      ];
+
+      new Handsontable(gridElement, {
+        data: rowData,
+        colHeaders: headers,
+        columns: columnDefs,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        maxHeight: '300px',
+        stretchH: 'all',
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true
+      });
+    }, idx * 50);
+  });
+}
+
+loadMeet();
+</script>
+
+</body>
+</html>

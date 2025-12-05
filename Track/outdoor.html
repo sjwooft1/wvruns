@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Outdoor — Track</title>
+<link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="track.css"></head>
+<body class="track-body">
+<nav class="track-nav"><a href="/index.html">Home</a><a href="index.html">Track Home</a><a href="meets.html">Meets</a><a href="events.html">Events</a><a href="rankings.html">Rankings</a></nav>
+<main class="track-main">
+<section class="track-section"><h2 class="track-section-title">Outdoor Meets</h2>
+<div id="outdoor-list">Loading…</div></section>
+</main>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+async function loadOutdoor() {
+  const snapshot = await window.firebaseDatabase.ref('Track/meets')
+    .orderByChild('season')
+    .equalTo('outdoor')
+    .once('value');
+  const meets = [];
+  snapshot.forEach(child => {
+    meets.push({ id: child.key, ...child.val() });
+  });
+  meets.sort((a, b) => {
+    const dateA = a.date || '';
+    const dateB = b.date || '';
+    return dateB.localeCompare(dateA);
+  });
+  const data = meets;
+  document.getElementById('outdoor-list').innerHTML = data?.length ? data.map(m => `<a class="track-meet-card" href="meet.html?slug=${m.slug}"><h3>${m.name}</h3><p>${new Date(m.date).toLocaleDateString()}</p></a>`).join('') : '<p>No outdoor meets.</p>';
+}
+loadOutdoor();
+</script>
+</body></html>

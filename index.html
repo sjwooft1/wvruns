@@ -1,154 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mountain State Miles</title>
-  <meta property="og:image" content="assets/Wvruns Logo.png" />
-  <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
-<link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-title" content="MSM" />
-<link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mountain State Miles — Track & Cross Country</title>
+  <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-  <!-- Primary SEO -->
-<meta name="description" content="Mountain State Miles — West Virginia's home for XC & Track results, rankings, rosters, records, schedules, and meet coverage." />
-<meta name="keywords" content="West Virginia running, WVHSXC, WVXC, WV Track, WV high school running, WV cross country, WV track and field, WV runs, Mountain State Miles" />
-<meta name="author" content="Mountain State Miles" />
-
-<!-- Mobile -->
-<meta name="theme-color" content="#002855" />
-
-<!-- Canonical URL -->
-<link rel="canonical" href="https://mountainstatemiles.com/" />
-
-<!-- Open Graph (Social Media Sharing) -->
-<meta property="og:title" content="Mountain State Miles — WV Cross Country & Track" />
-<meta property="og:description" content="Official West Virginia running hub: results, rankings, rosters, athlete profiles, meet schedules, and team stats." />
-<meta property="og:image" content="https://mountainstatemiles.com/assets/og-image.jpg" />
-<meta property="og:url" content="https://mountainstatemiles.com/" />
-<meta property="og:type" content="website" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Mountain State Miles" />
-<meta name="twitter:description" content="West Virginia's XC & Track results, rankings, and athlete profiles." />
-<meta name="twitter:image" content="https://mountainstatemiles.com/assets/og-image.jpg" />
-
-<!-- Robots Instructions -->
-<meta name="robots" content="index, follow" />
-
-<body>
-  <div class="hero-section">
-    <div class="hero-background"></div>
-    <img src="assets/background.jpg" alt="" class="hero-background-logo" />
-    <div style="
-  position:absolute;
-  bottom:10px;
-  right:10px;
-  font-size:0.75rem;
-  color:rgba(255, 255, 255, 0.255);
-  opacity:0.7;
-  text-shadow:1px 1px 4px rgba(174, 192, 194, 0.515);
-">
-  Photo by © Wv Metro News
-</div>
-    <header class="hero-header">
-      <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
-      <nav class="hero-nav">
-        <a href="index.html" class="nav-link active">Home</a>
-        <a href="schools.html" class="nav-link">Schools</a>
-        <a href="meets.html" class="nav-link">Meets</a>
-        <a href="rankings.html" class="nav-link">Rankings</a>
-        <a href="calendar.html" class="nav-link">Calendar</a>
-      </nav>
-    </header>
-    <div class="hero-content">
-      <h1 class="hero-title">Mountain State Miles</h1>
-      <p class="hero-subtitle">The home for West Virginia cross country and track results — school by school, meet by meet.</p>
-    </div>
-  </div>
-
-  <main>
-    <section id="featured-meets">
-      <h2 class="section-title">Recent Meets</h2>
-      <div id="meet-list">Loading recent meets...</div>
-    </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="login.html"
-       style="
-         display:inline-block;
-         margin-top:8px;
-         background:#6cb5d967;
-         padding:8px 14px;
-         color:white;
-         text-decoration:none;
-         border-radius:6px;
-         font-weight:bold;
-       ">
-       Admin Login
-    </a>
-  </footer>
-  
-  
-
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Supabase Configuration -->
-  <script src="supabase-config.js"></script>
-  <script>
-    async function loadRecentMeets() {
-      const container = document.getElementById('meet-list');
-      try {
-        const { data, error } = await supabase
-          .from('meets')
-          .select('*')
-          .order('date', { ascending: false })
-          .limit(10);
-        if (error) throw error;
-        const meets = data || [];
-        if (!meets.length) {
-          container.innerHTML = '<p>No recent meets found.</p>';
-          return;
-        }
-        function formatDate(dateString) {
-          if (!dateString) return 'Date TBD';
-          // Parse date string in local time to avoid timezone shift
-          const parts = dateString.split('-');
-          if (parts.length === 3) {
-            const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-            const day = parseInt(parts[2], 10);
-            const date = new Date(year, month, day);
-            return date.toLocaleDateString();
-          }
-          // Fallback to original method if format is unexpected
-          return new Date(dateString).toLocaleDateString();
-        }
-        container.innerHTML = meets.map(meet => {
-          const date = formatDate(meet.date);
-          const location = meet.location || '';
-          return `
-            <a href="meet.html?slug=${meet.slug}" class="meet-card">
-              <h3>${meet.name}</h3>
-              <p><strong>Date:</strong> ${date}</p>
-              ${location ? `<p><strong>Location:</strong> ${location}</p>` : ''}
-            </a>
-          `;
-        }).join('');
-      } catch (e) {
-        console.error('Error loading meets:', e);
-        container.innerHTML = '<p>Error loading recent meets.</p>';
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .hero {
+      text-align: center;
+      color: white;
+      max-width: 800px;
+      margin-bottom: 3rem;
+    }
+    
+    .hero-logo {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 2rem;
+      border-radius: 50%;
+      background: white;
+      padding: 1rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+      color: white;
+    }
+    
+    .hero p {
+      font-size: 1.25rem;
+      opacity: 0.95;
+      margin-bottom: 0;
+      color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .sport-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    .sport-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .sport-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .sport-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      text-decoration: none;
+    }
+    
+    .sport-card h3 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    
+    .sport-card p {
+      color: #6b7280;
+      margin-bottom: 0;
+    }
+    
+    .sport-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .track-card {
+      border-top-color: #3b82f6;
+    }
+    
+    .xc-card {
+      border-top-color: #10b981;
+    }
+    
+    footer {
+      margin-top: 4rem;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    footer a {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    footer a:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .sport-cards {
+        grid-template-columns: 1fr;
       }
     }
-    document.addEventListener('DOMContentLoaded', loadRecentMeets);
-  </script>
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <img src="home/assets/Wvruns Logo.png" alt="Mountain State Miles" class="hero-logo">
+    <h1>Mountain State Miles</h1>
+    <p>Your source for West Virginia track & cross country results, rankings, and records</p>
+  </div>
+  
+  <div class="sport-cards">
+    <a href="/Track/index.html" class="sport-card track-card">
+      <div class="sport-icon">🏃</div>
+      <h3>Track & Field</h3>
+      <p>View rankings, meet results, and athlete profiles for track & field events</p>
+    </a>
+    
+    <a href="/CrossCountry/xc.html" class="sport-card xc-card">
+      <div class="sport-icon">🏔️</div>
+      <h3>Cross Country</h3>
+      <p>Explore cross country rankings, meet results, and team standings</p>
+    </a>
+  </div>
+  
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="/admin.html">Admin Login</a>
+  </footer>
 </body>
 </html>

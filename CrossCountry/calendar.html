@@ -208,7 +208,7 @@
     <header>
       <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
       <nav>
-        <a href="index.html">Home</a>
+        <a href="xc.html">Home</a>
         <a href="schools.html">Schools</a>
         <a href="meets.html">Meets</a>
         <a href="rankings.html">Rankings</a>
@@ -242,7 +242,7 @@
       </div>
     </main>
     <footer>
-      <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+      <p>&copy; 2025 Mountain State Miles XC — Built by runners, for runners.</p>
       <a href="login.html"
          style="
            display:inline-block;
@@ -259,8 +259,12 @@
     </footer>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
   <script>
     let currentDate = new Date();
     let currentView = 'calendar';
@@ -285,10 +289,13 @@
 
     // Load meets
     async function loadMeets() {
-      const { data, error } = await supabase
-        .from('meets')
-        .select('*')
-        .order('date', { ascending: true });
+      const data = await getAllMeets(1000); // Get a large number of meets
+      // Sort by date ascending
+      const meets = data.sort((a, b) => {
+        const dateA = a.date || '';
+        const dateB = b.date || '';
+        return dateA.localeCompare(dateB);
+      });
       
       if (error) {
         console.error('Error loading meets:', error);

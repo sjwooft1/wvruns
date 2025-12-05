@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teams — Track</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="track.css">
+</head>
+<body class="track-body">
+
+<nav class="track-nav">
+  <a href="/home">XC Home</a>
+  <a href="index.html">Track Home</a>
+  <a href="meets.html">Meets</a>
+  <a href="events.html">Events</a>
+  <a href="rankings.html">Rankings</a>
+  <a class="active" href="teams.html">Teams</a>
+  
+</nav>
+
+<main class="track-main">
+  <section class="track-section">
+    <h2 class="track-section-title">Teams</h2>
+    <div id="teams-list">Loading teams...</div>
+  </section>
+</main>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+// This expects a 'school' value stored on track_athletes. We build a list of unique schools.
+async function loadTeams(){
+  try {
+    const snapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+    const athletes = [];
+    snapshot.forEach(child => {
+      const athlete = child.val();
+      if (athlete && athlete.school) {
+        athletes.push(athlete);
+      }
+    });
+    
+    if (!athletes || athletes.length === 0) {
+      document.getElementById('teams-list').innerHTML = '<p>No teams found.</p>';
+      return;
+    }
+    
+    const data = athletes;
+  const schools = Array.from(new Set(data.map(r => r.school))).sort();
+  document.getElementById('teams-list').innerHTML = schools.map(s => `<a class="event-card" href="team.html?school=${encodeURIComponent(s)}">${s}</a>`).join('');
+}
+loadTeams();
+</script>
+</body>
+</html>

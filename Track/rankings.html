@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rankings — Track</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="track.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+</head>
+<body class="track-body">
+
+<nav class="track-nav">
+  <a href="/home">XC Home</a>
+  <a href="index.html">Track Home</a>
+  <a href="meets.html">Meets</a>
+  <a href="events.html">Events</a>
+  <a class="active" href="rankings.html">Rankings</a>
+  
+</nav>
+
+<main class="track-main">
+<section class="track-section">
+  <h2 class="track-section-title">Rankings</h2>
+
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:18px;">
+    <select id="select-event" class="season-btn"><option>Loading events…</option></select>
+    <select id="select-season" class="season-btn">
+      <option value="">All seasons</option>
+      <option value="indoor">Indoor</option>
+      <option value="outdoor">Outdoor</option>
+    </select>
+    <select id="select-gender" class="season-btn">
+      <option value="">All genders</option>
+      <option value="M">Boys / M</option>
+      <option value="F">Girls / F</option>
+    </select>
+    <button id="btn-load" class="season-btn">Load</button>
+  </div>
+
+  <div id="rankings-container">Select filters and click Load.</div>
+  <div id="rankings-grid" style="height: 500px; width: 100%; display: none;"></div>
+</section>
+</main>
+<footer>
+  <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+  <a href="admin-login.html"
+     style="
+       display:inline-block;
+       margin-top:8px;
+       background:#6cb5d967;
+       padding:8px 14px;
+       color:white;
+       text-decoration:none;
+       border-radius:6px;
+       font-weight:bold;
+     ">
+     Admin Login
+  </a>
+</footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const selectEvent = document.getElementById('select-event');
+const selectSeason = document.getElementById('select-season');
+const selectGender = document.getElementById('select-gender');
+const btnLoad = document.getElementById('btn-load');
+const rankingsContainer = document.getElementById('rankings-container');
+
+async function initEvents() {
+  const snapshot = await window.firebaseDatabase.ref('Track/events').orderByChild('name').once('value');
+  const events = [];
+  snapshot.forEach(child => {
+    events.push({ id: child.key, ...child.val() });
+  });
+  events.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  selectEvent.innerHTML = `<option value="">-- choose event --</option>` + events.map(e => `<option value="${e.id}" data-slug="${e.slug}">${e.name} (${e.category})</option>`).join('');
+}
+btnLoad.addEventListener('click', loadRankings);
+
+async function loadRankings() {
+  const eventId = selectEvent.value;
+  const season = selectSeason.value;
+  const gender = selectGender.value;
+
+  if (!eventId) { rankingsContainer.innerHTML = '<p>Please pick an event.</p>'; return; }
+
+  try {
+    // Fetch results for this event
+    const resultsSnapshot = await window.firebaseDatabase.ref('Track/results')
+      .orderByChild('event_id')
+      .equalTo(eventId)
+      .limitToFirst(200)
+      .once('value');
+    
+    const results = [];
+    resultsSnapshot.forEach(child => {
+      const val = child.val();
+      // Skip results that are excluded from rankings
+      if (val.exclude_from_rankings === true) return;
+      results.push({ id: child.key, ...val });
+    });
+    
+    // Load meets and athletes
+    const meetIds = [...new Set(results.map(r => r.meet_id).filter(Boolean))];
+    const athleteIds = [...new Set(results.map(r => r.athlete_id).filter(Boolean))];
+    
+    const meetsMap = {};
+    const athletesMap = {};
+    
+    if (meetIds.length > 0) {
+      const meetsSnapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+      meetsSnapshot.forEach(child => {
+        if (meetIds.includes(child.key)) {
+          meetsMap[child.key] = { id: child.key, ...child.val() };
+        }
+      });
+    }
+    
+    if (athleteIds.length > 0) {
+      const athletesSnapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+      athletesSnapshot.forEach(child => {
+        if (athleteIds.includes(child.key)) {
+          athletesMap[child.key] = { id: child.key, ...child.val() };
+        }
+      });
+    }
+    
+    // Attach meet and athlete data
+    results.forEach(r => {
+      r.meet = meetsMap[r.meet_id] || {};
+      r.athlete = athletesMap[r.athlete_id] || {};
+    });
+    
+    // Filter by season if specified
+    let filteredResults = results;
+    if (season) {
+      filteredResults = results.filter(r => r.meet && r.meet.season === season);
+    }
+    
+    // Sort by mark
+    filteredResults.sort((a, b) => {
+      const markA = parseFloat(a.mark) || Infinity;
+      const markB = parseFloat(b.mark) || Infinity;
+      return markA - markB;
+    });
+    
+    const data = filteredResults.slice(0, 200);
+
+  let rows = data || [];
+  if (season) rows = rows.filter(r => r.meet?.season === season);
+  if (gender) {
+    // If event record has gender, we might filter by event; otherwise skip — this is a best-effort filter.
+    rows = rows.filter(r => (r.event?.gender ?? '') === '' || true);
+  }
+
+  if (!rows.length) { 
+    rankingsContainer.innerHTML = '<p>No rankings found.</p>'; 
+    document.getElementById('rankings-grid').style.display = 'none';
+    return; 
+  }
+
+  rankingsContainer.innerHTML = '';
+  const gridContainer = document.getElementById('rankings-grid');
+  gridContainer.style.display = 'block';
+
+  if (window.rankingsHot) {
+    try {
+      window.rankingsHot.destroy();
+    } catch (e) {
+      console.warn('Error destroying Handsontable:', e);
+    }
+  }
+
+  const headers = ['Rank', 'Mark', 'Athlete', 'School', 'Meet'];
+  const rowData = rows.map((r, idx) => [
+    idx + 1,
+    r.mark || '',
+    `${r.athlete.first_name || ''} ${r.athlete.last_name || ''}`.trim(),
+    r.athlete.school || '',
+    r.meet?.name || '',
+    r.athlete.id
+  ]);
+
+  const columnDefs = [
+    { data: 0, title: 'Rank', type: 'numeric', readOnly: true, width: 80 },
+    { data: 1, title: 'Mark', type: 'text', readOnly: true },
+    {
+      data: 2,
+      title: 'Athlete',
+      type: 'text',
+      readOnly: true,
+      renderer: function(instance, td, row, col, prop, value, cellProperties) {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        const athleteId = instance.getDataAtRow(row)[5];
+        if (athleteId) {
+          td.innerHTML = `<a href="athlete.html?id=${athleteId}" style="color: #0056b3; text-decoration: none;">${value || ''}</a>`;
+        }
+      }
+    },
+    { data: 3, title: 'School', type: 'text', readOnly: true },
+    { data: 4, title: 'Meet', type: 'text', readOnly: true }
+  ];
+
+  setTimeout(() => {
+    window.rankingsHot = new Handsontable(gridContainer, {
+      data: rowData,
+      colHeaders: headers,
+      columns: columnDefs,
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+      height: 'auto',
+      maxHeight: '500px',
+      stretchH: 'all',
+      columnSorting: true,
+      filters: true,
+      dropdownMenu: true,
+      contextMenu: true,
+      manualColumnResize: true
+    });
+  }, 100);
+}
+
+initEvents();
+</script>
+</body>
+</html>

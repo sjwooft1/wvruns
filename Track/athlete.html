@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Athlete — Track</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="track.css">
+</head>
+<body class="track-body">
+
+<nav class="track-nav">
+  <a href="/home">XC Home</a>
+  <a href="index.html">Track Home</a>
+  <a href="meets.html">Meets</a>
+  <a href="events.html">Events</a>
+  <a href="rankings.html">Rankings</a>
+  
+</nav>
+
+<main class="track-main">
+  <section class="track-section">
+    <h2 id="athlete-name" class="track-section-title">Loading athlete…</h2>
+    <div id="athlete-meta" style="margin-bottom:18px;"></div>
+
+    <h3>Personal Bests</h3>
+    <div id="pbs">Loading…</div>
+
+    <h3 style="margin-top:18px;">Recent Results</h3>
+    <div id="history">Loading…</div>
+  </section>
+</main>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const athleteId = params.get('id');
+
+async function loadAthlete() {
+  const athSnapshot = await window.firebaseDatabase.ref(`Track/athletes/${athleteId}`).once('value');
+  const ath = athSnapshot.exists() ? { id: athleteId, ...athSnapshot.val() } : null;
+  if (!ath) { document.getElementById('athlete-name').textContent = 'Athlete not found'; return; }
+  document.getElementById('athlete-name').textContent = `${ath.first_name} ${ath.last_name}`;
+  document.getElementById('athlete-meta').innerHTML = `<strong>School:</strong> ${ath.school ?? ''} &nbsp; <strong>Grade:</strong> ${ath.grade ?? ''}`;
+
+  // personal bests: find best mark per event for this athlete (naive: min mark)
+  const pbsSnapshot = await window.firebaseDatabase.ref('Track/results')
+    .orderByChild('athlete_id')
+    .equalTo(athleteId)
+    .limitToFirst(1000)
+    .once('value');
+  
+  const pbs = [];
+  pbsSnapshot.forEach(child => {
+    pbs.push({ id: child.key, ...child.val() });
+  });
+  
+  // Load events for results
+  const eventIds = [...new Set(pbs.map(r => r.event_id).filter(Boolean))];
+  const eventsMap = {};
+  if (eventIds.length > 0) {
+    const eventsSnapshot = await window.firebaseDatabase.ref('track_events').once('value');
+    eventsSnapshot.forEach(child => {
+      if (eventIds.includes(child.key)) {
+        eventsMap[child.key] = { id: child.key, ...child.val() };
+      }
+    });
+  }
+  
+  // Attach event data and sort by mark
+  pbs.forEach(r => {
+    r.event = eventsMap[r.event_id] || {};
+  });
+  pbs.sort((a, b) => {
+    const markA = parseFloat(a.mark) || Infinity;
+    const markB = parseFloat(b.mark) || Infinity;
+    return markA - markB;
+  });
+
+  if (!pbs || pbs.length===0) {
+    document.getElementById('pbs').innerHTML = '<p>No personal bests found.</p>';
+  } else {
+    // group by event
+    const bests = {};
+    pbs.forEach(r => {
+      const eventName = r.event?.name || 'Unknown';
+      if (!bests[eventName]) bests[eventName] = r.mark;
+    });
+    document.getElementById('pbs').innerHTML = `<ul>${Object.entries(bests).map(([ev,mark]) => `<li><strong>${ev}:</strong> ${mark}</li>`).join('')}</ul>`;
+  }
+
+  // Load history
+  const histSnapshot = await window.firebaseDatabase.ref('Track/results')
+    .orderByChild('athlete_id')
+    .equalTo(athleteId)
+    .limitToFirst(200)
+    .once('value');
+  
+  const hist = [];
+  histSnapshot.forEach(child => {
+    hist.push({ id: child.key, ...child.val() });
+  });
+  
+  // Load meets and events for history
+  const meetIds = [...new Set(hist.map(r => r.meet_id).filter(Boolean))];
+  const histEventIds = [...new Set(hist.map(r => r.event_id).filter(Boolean))];
+  const meetsMap = {};
+  const histEventsMap = {};
+  
+  if (meetIds.length > 0) {
+    const meetsSnapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+    meetsSnapshot.forEach(child => {
+      if (meetIds.includes(child.key)) {
+        meetsMap[child.key] = { id: child.key, ...child.val() };
+      }
+    });
+  }
+  
+  if (histEventIds.length > 0) {
+    const eventsSnapshot = await window.firebaseDatabase.ref('track_events').once('value');
+    eventsSnapshot.forEach(child => {
+      if (histEventIds.includes(child.key)) {
+        histEventsMap[child.key] = { id: child.key, ...child.val() };
+      }
+    });
+  }
+  
+  // Attach meet and event data
+  hist.forEach(r => {
+    r.meet = meetsMap[r.meet_id] || {};
+    r.event = histEventsMap[r.event_id] || {};
+  });
+  
+  // Sort by meet date descending
+  hist.sort((a, b) => {
+    const dateA = a.meet?.date || '';
+    const dateB = b.meet?.date || '';
+    return dateB.localeCompare(dateA);
+  });
+  const historyContainer = document.getElementById('history');
+  if (!hist || hist.length===0) {
+    historyContainer.innerHTML = '<p>No results found.</p>';
+  } else {
+    historyContainer.innerHTML = '<div id="history-grid" style="height: 400px; width: 100%;"></div>';
+    
+    setTimeout(() => {
+      const headers = ['Date', 'Event', 'Mark', 'Meet'];
+      const rowData = hist.map(r => [
+        r.meet?.date ? new Date(r.meet.date).toLocaleDateString() : '',
+        r.event.name || '',
+        r.mark || '',
+        r.meet.name || '',
+        r.event.slug || '',
+        r.meet.slug || ''
+      ]);
+
+      const columnDefs = [
+        { data: 0, title: 'Date', type: 'text', readOnly: true, width: 120 },
+        {
+          data: 1,
+          title: 'Event',
+          type: 'text',
+          readOnly: true,
+          renderer: function(instance, td, row, col, prop, value, cellProperties) {
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            const eventSlug = instance.getDataAtRow(row)[4];
+            if (eventSlug) {
+              td.innerHTML = `<a href="event.html?event=${eventSlug}" style="color: #0056b3; text-decoration: none;">${value || ''}</a>`;
+            }
+          }
+        },
+        { data: 2, title: 'Mark', type: 'text', readOnly: true, width: 120 },
+        {
+          data: 3,
+          title: 'Meet',
+          type: 'text',
+          readOnly: true,
+          renderer: function(instance, td, row, col, prop, value, cellProperties) {
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            const meetSlug = instance.getDataAtRow(row)[5];
+            if (meetSlug) {
+              td.innerHTML = `<a href="meet.html?slug=${meetSlug}" style="color: #0056b3; text-decoration: none;">${value || ''}</a>`;
+            }
+          }
+        }
+      ];
+
+      const gridElement = document.getElementById('history-grid');
+      if (gridElement) {
+        new Handsontable(gridElement, {
+          data: rowData,
+          colHeaders: headers,
+          columns: columnDefs,
+          rowHeaders: true,
+          licenseKey: 'non-commercial-and-evaluation',
+          height: 'auto',
+          maxHeight: '400px',
+          stretchH: 'all',
+          columnSorting: true,
+          filters: true,
+          dropdownMenu: true,
+          contextMenu: true,
+          manualColumnResize: true
+        });
+      }
+    }, 100);
+  }
+}
+
+loadAthlete();
+</script>
+</body>
+</html>

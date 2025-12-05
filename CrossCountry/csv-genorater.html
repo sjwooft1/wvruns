@@ -319,7 +319,7 @@
   <header>
     <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
     <nav>
-      <a href="index.html">Home</a>
+      <a href="xc.html">Home</a>
       <a href="schools.html">Schools</a>
       <a href="meets.html">Meets</a>
       <a href="rankings.html">Rankings</a>
@@ -529,8 +529,12 @@
     <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
 
   <script>
     let parsedResults = [];
