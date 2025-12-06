@@ -152,8 +152,8 @@
 <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
 <script src="firebase-config.js"></script>
 <script>
-  if (localStorage.getItem('trackAdmin') !== 'true') {
-    window.location.replace('admin-login.html');
+  if (localStorage.getItem('xcAdmin') !== 'false') {
+    window.location.replace('login.html');
   }
 
   const sideNav = document.getElementById('side-nav');
@@ -163,8 +163,8 @@
   const logoutBtn = document.getElementById('logoutBtn');
 
   logoutBtn.addEventListener('click', () => { 
-    localStorage.removeItem('trackAdmin'); 
-    window.location.replace('admin-login.html'); 
+    localStorage.removeItem('xcAdmin'); 
+    window.location.replace('login.html'); 
   });
 
   sideNav.addEventListener('click', (e) => {

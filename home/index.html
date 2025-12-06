@@ -19,6 +19,11 @@
             object-fit: cover; /* Ensures the image covers the entire screen without stretching */
             z-index: -1; /* Pushes the image behind all content */
         }
+        @font-face {
+         font-family: 'MSM'; /* Choose a name for your font family */
+         src: url('Running.ttf') format('truetype'); /* Specify the path to your .ttf file */
+      /* You can also add other font properties like font-weight and font-style here if needed */
+         }
 
         body {
             /* The original background gradient is kept as a solid color fallback */
@@ -144,6 +149,9 @@
                 grid-template-columns: 1fr;
             }
         }
+        h1 {
+      font-family: 'MSM', truetype; /* Apply your custom font, with a fallback */
+    }
     </style>
 </head>
 <body>
@@ -162,7 +170,7 @@
             <p>View rankings, meet results, and athlete profiles for track & field events</p>
         </a>
         <a href="/CrossCountry/xc.html" class="sport-card xc-card">
-            <div class="sport-icon">🏔️</div>
+            <div class="sport-icon">⛰️</div>
             <h3>Cross Country</h3>
             <p>Explore cross country rankings, meet results, and team standings</p>
         </a>
