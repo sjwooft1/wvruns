@@ -1,58 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Teams — Track</title>
-<link rel="stylesheet" href="../style.css">
-<link rel="stylesheet" href="track.css">
-</head>
-<body class="track-body">
-
-<nav class="track-nav">
-  <a href="/home">XC Home</a>
-  <a href="index.html">Track Home</a>
-  <a href="meets.html">Meets</a>
-  <a href="events.html">Events</a>
-  <a href="rankings.html">Rankings</a>
-  <a class="active" href="teams.html">Teams</a>
-  
-</nav>
-
-<main class="track-main">
-  <section class="track-section">
-    <h2 class="track-section-title">Teams</h2>
-    <div id="teams-list">Loading teams...</div>
-  </section>
-</main>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script>
-// This expects a 'school' value stored on track_athletes. We build a list of unique schools.
-async function loadTeams(){
-  try {
-    const snapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
-    const athletes = [];
-    snapshot.forEach(child => {
-      const athlete = child.val();
-      if (athlete && athlete.school) {
-        athletes.push(athlete);
-      }
-    });
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Teams — Mountain State Miles</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
     
-    if (!athletes || athletes.length === 0) {
-      document.getElementById('teams-list').innerHTML = '<p>No teams found.</p>';
-      return;
+    :root {
+      --primary: #002855;
+      --secondary: #0056b3;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --bg-light: #f8f9fa;
+      --border-light: #e0e0e0;
+      --accent: #ff6b35;
+      --accent-dark: #d9530a;
     }
     
-    const data = athletes;
-  const schools = Array.from(new Set(data.map(r => r.school))).sort();
-  document.getElementById('teams-list').innerHTML = schools.map(s => `<a class="event-card" href="team.html?school=${encodeURIComponent(s)}">${s}</a>`).join('');
-}
-loadTeams();
-</script>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    header {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .navbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+    
+    .navbar-brand {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .navbar-nav {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      gap: 30px;
+    }
+    
+    .navbar-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+      position: relative;
+    }
+    
+    .navbar-link:hover,
+    .navbar-link.active {
+      color: var(--secondary);
+    }
+    
+    .navbar-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+    
+    .section {
+      margin-bottom: 80px;
+    }
+    
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0 0 40px;
+      color: var(--primary);
+      position: relative;
+      padding-bottom: 15px;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      border-radius: 2px;
+    }
+    
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .team-card {
+      padding: 30px 20px;
+      background: linear-gradient(135deg, white 0%, #f8f9fa 100%);
+      border: 2px solid var(--border-light);
+      border-radius: 12px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+    }
+    
+    .team-card:hover {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #fff 0%, #fffaf0 100%);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15);
+      color: var(--accent);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+      grid-column: 1 / -1;
+    }
+    
+    footer {
+      background: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 80px;
+    }
+    
+    footer p {
+      margin: 0 0 20px;
+      opacity: 0.9;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 700;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+      .navbar-nav {
+        gap: 15px;
+        font-size: 0.9rem;
+      }
+      
+      .section-title {
+        font-size: 1.8rem;
+      }
+      
+      main {
+        padding: 40px 15px;
+      }
+      
+      .teams-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">🏫 Track Teams</a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" class="navbar-link">Home</a></li>
+        <li><a href="index.html" class="navbar-link">Track</a></li>
+        <li><a href="meets.html" class="navbar-link">Meets</a></li>
+        <li><a href="events.html" class="navbar-link">Events</a></li>
+        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <section class="section">
+      <h2 class="section-title">🏫 Track Teams</h2>
+      <div class="teams-grid" id="teams-list">
+        <div class="empty-state">Loading teams...</div>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="admin-login.html" class="btn">🔐 Admin Login</a>
+  </footer>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    async function loadTeams() {
+      const container = document.getElementById('teams-list');
+      try {
+        const snapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+        const athletes = [];
+        snapshot.forEach(child => {
+          const athlete = child.val();
+          if (athlete && athlete.school) {
+            athletes.push(athlete);
+          }
+        });
+        
+        if (!athletes.length) {
+          container.innerHTML = '<div class="empty-state">No teams found.</div>';
+          return;
+        }
+        
+        const schools = Array.from(new Set(athletes.map(a => a.school))).sort();
+        
+        container.innerHTML = schools.map(school => `
+          <a href="team.html?school=${encodeURIComponent(school)}" class="team-card">
+            ${school}
+          </a>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading teams:', error);
+        container.innerHTML = '<div class="empty-state">Error loading teams. Please try again later.</div>';
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadTeams);
+  </script>
 </body>
 </html>

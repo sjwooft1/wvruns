@@ -1,36 +1,303 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Outdoor — Track</title>
-<link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="track.css"></head>
-<body class="track-body">
-<nav class="track-nav"><a href="/index.html">Home</a><a href="index.html">Track Home</a><a href="meets.html">Meets</a><a href="events.html">Events</a><a href="rankings.html">Rankings</a></nav>
-<main class="track-main">
-<section class="track-section"><h2 class="track-section-title">Outdoor Meets</h2>
-<div id="outdoor-list">Loading…</div></section>
-</main>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script>
-async function loadOutdoor() {
-  const snapshot = await window.firebaseDatabase.ref('Track/meets')
-    .orderByChild('season')
-    .equalTo('outdoor')
-    .once('value');
-  const meets = [];
-  snapshot.forEach(child => {
-    meets.push({ id: child.key, ...child.val() });
-  });
-  meets.sort((a, b) => {
-    const dateA = a.date || '';
-    const dateB = b.date || '';
-    return dateB.localeCompare(dateA);
-  });
-  const data = meets;
-  document.getElementById('outdoor-list').innerHTML = data?.length ? data.map(m => `<a class="track-meet-card" href="meet.html?slug=${m.slug}"><h3>${m.name}</h3><p>${new Date(m.date).toLocaleDateString()}</p></a>`).join('') : '<p>No outdoor meets.</p>';
-}
-loadOutdoor();
-</script>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outdoor Track Meets — Mountain State Miles</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    
+    :root {
+      --primary: #002855;
+      --secondary: #0056b3;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --bg-light: #f8f9fa;
+      --border-light: #e0e0e0;
+      --accent: #ff6b35;
+      --accent-dark: #d9530a;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    header {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .navbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+    
+    .navbar-brand {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .navbar-nav {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      gap: 30px;
+    }
+    
+    .navbar-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+      position: relative;
+    }
+    
+    .navbar-link:hover,
+    .navbar-link.active {
+      color: var(--secondary);
+    }
+    
+    .navbar-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+    
+    .section {
+      margin-bottom: 80px;
+    }
+    
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0 0 40px;
+      color: var(--primary);
+      position: relative;
+      padding-bottom: 15px;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      border-radius: 2px;
+    }
+    
+    .meets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    
+    .meet-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--border-light);
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .meet-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+      border-color: var(--accent);
+    }
+    
+    .meet-card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--primary);
+    }
+    
+    .meet-card-date {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    .meet-card-location {
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin: 0;
+      font-weight: 600;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+      grid-column: 1 / -1;
+    }
+    
+    footer {
+      background: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 80px;
+    }
+    
+    footer p {
+      margin: 0 0 20px;
+      opacity: 0.9;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 700;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+      .navbar-nav {
+        gap: 15px;
+        font-size: 0.9rem;
+      }
+      
+      .section-title {
+        font-size: 1.8rem;
+      }
+      
+      main {
+        padding: 40px 15px;
+      }
+      
+      .meets-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">☀️ Outdoor Track</a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" class="navbar-link">Home</a></li>
+        <li><a href="index.html" class="navbar-link">Track</a></li>
+        <li><a href="meets.html" class="navbar-link">Meets</a></li>
+        <li><a href="events.html" class="navbar-link">Events</a></li>
+        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <section class="section">
+      <h2 class="section-title">☀️ Outdoor Track Meets</h2>
+      <div class="meets-grid" id="outdoor-list">
+        <div class="empty-state">Loading meets...</div>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="admin-login.html" class="btn">🔐 Admin Login</a>
+  </footer>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    async function loadOutdoor() {
+      const container = document.getElementById('outdoor-list');
+      try {
+        const snapshot = await window.firebaseDatabase.ref('Track/meets')
+          .orderByChild('season')
+          .equalTo('outdoor')
+          .once('value');
+        
+        const meets = [];
+        snapshot.forEach(child => {
+          meets.push({ id: child.key, ...child.val() });
+        });
+        
+        meets.sort((a, b) => {
+          const dateA = a.date || '';
+          const dateB = b.date || '';
+          return dateB.localeCompare(dateA);
+        });
+        
+        if (!meets.length) {
+          container.innerHTML = '<div class="empty-state">No outdoor meets found.</div>';
+          return;
+        }
+        
+        function formatDate(str) {
+          if (!str) return 'Date TBD';
+          const [y, m, d] = str.split('-');
+          return new Date(y, m - 1, d).toLocaleDateString();
+        }
+        
+        container.innerHTML = meets.map(m => `
+          <a href="meet.html?slug=${encodeURIComponent(m.slug)}" class="meet-card">
+            <h3 class="meet-card-title">${m.name}</h3>
+            <p class="meet-card-date">📅 ${formatDate(m.date)}</p>
+            ${m.location ? `<p class="meet-card-location">📍 ${m.location}</p>` : ''}
+          </a>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading meets:', error);
+        container.innerHTML = '<div class="empty-state">Error loading meets. Please try again later.</div>';
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadOutdoor);
+  </script>
+</body>
+</html>

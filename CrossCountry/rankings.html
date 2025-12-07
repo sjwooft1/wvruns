@@ -99,7 +99,7 @@
             <li><a href="schools.html" class="navbar-link">Schools</a></li>
             <li><a href="meets.html" class="navbar-link">Meets</a></li>
             <li><a href="rankings.html" class="navbar-link active">Rankings</a></li>
-            <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+            
           </ul>
         </div>
       </div>
@@ -124,13 +124,14 @@
 
         <!-- 2. Distance Filter -->
         <div class="filter-group">
-          <select id="distance-filter" onchange="setFilter(distance)">
+          <select id="distance-filter" onchange="setFilter('distance', this.value)">
             <option value="all">All Distances</option>
-            <option value="5000">5K</option>
+            <option value="5000">5K (5000m)</option>
             <option value="3200">3200m</option>
-            <option value="1600">1600m</option>
-        </select>
-        
+            <option value="3000">3K (3000m)</option>
+            <option value="1600">1 Mile (1600m)</option>
+            <option value="2000">2000m</option>
+          </select>
         </div>
 
         <!-- 3. Meet Filter -->

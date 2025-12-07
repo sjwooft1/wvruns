@@ -723,6 +723,72 @@
     ::-webkit-scrollbar-thumb:hover {
       background: var(--muted);
     }
+    
+    .csv-form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .csv-form-label {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .csv-form-input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: var (--card);
+      color: #e6f0f7;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    
+    .csv-form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 123, 45, 0.1);
+    }
+    
+    .race-type-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    
+    .race-type-btn {
+      padding: 8px 16px;
+      border: 2px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    
+    .race-type-btn:hover {
+      border-color: var(--accent);
+      background: var(--hover);
+      color: #fff;
+    }
+    
+    .race-type-btn.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 123, 45, 0.3);
+    }
+    
+    .csv-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
   </style>
 </head>
 <body>
@@ -744,6 +810,13 @@
         <button class="nav-btn" data-section="schools">🏫 Schools</button>
         <button class="nav-btn" data-section="athletes">👤 Athletes</button>
         <button class="nav-btn" data-section="results">🏆 Results</button>
+      </div>
+      
+      <div class="nav-section-title">Tools</div>
+      <div class="nav-section" id="tools-nav">
+        <button class="nav-btn" data-section="bulk-edit">⚙️ Bulk Edit</button>
+        <button class="nav-btn" data-section="analytics">📈 Analytics</button>
+        <button class="nav-btn" data-section="settings">⚙️ Settings</button>
       </div>
     </nav>
     
@@ -830,6 +903,17 @@
     loadSection(btn.dataset.section);
   });
   
+  // Tools navigation
+  document.getElementById('tools-nav').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-section]');
+    if (!btn) return;
+    
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    loadSection(btn.dataset.section);
+  });
+  
   // ==========================================
   // Section Loading
   // ==========================================
@@ -855,6 +939,15 @@
           break;
         case 'results':
           await renderResults();
+          break;
+        case 'bulk-edit':
+          await renderBulkEdit();
+          break;
+        case 'analytics':
+          await renderAnalytics();
+          break;
+        case 'settings':
+          await renderSettings();
           break;
       }
     } catch (error) {
@@ -1383,7 +1476,38 @@
     if (!preview) return;
     
     const columns = Object.keys(csvData[0] || {});
+    
+    // Check if race_type column exists, if not add race type selector
+    const hasRaceType = columns.includes('race_type');
+    const raceTypeForm = !hasRaceType ? `
+      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+        <label class="csv-form-label" style="margin-bottom: 12px; display: block;">🏃 Select, Enter, or Replace Race Type</label>
+        <div class="race-type-options">
+          <button class="race-type-btn" onclick="selectRaceType('5K')">5K</button>
+          <button class="race-type-btn" onclick="selectRaceType('3K')">3K</button>
+          <button class="race-type-btn" onclick="selectRaceType('2 Mile')">2 Mile</button>
+          <button class="race-type-btn" onclick="selectRaceType('1600')">1 Mile</button>
+          <button class="race-type-btn" onclick="selectRaceType('4K')">4K</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="custom-race-type" class="csv-form-input" placeholder="Or enter custom race type..." style="flex: 1;">
+          <button class="btn btn-primary" onclick="addCustomRaceType()">Add</button>
+        </div>
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+          <label class="csv-form-label" style="display: block; margin-bottom: 8px;">📝 Replace Existing race_type Values:</label>
+          <div style="display: flex; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.9rem;">
+              <input type="checkbox" id="replace-race-type" style="cursor: pointer;">
+              Replace all race_type values in CSV with selected type
+            </label>
+          </div>
+        </div>
+        <div id="selected-race-type" style="margin-top: 12px; padding: 12px; background: var(--card); border-radius: 6px; color: var(--muted); font-size: 0.9rem;">No race type selected</div>
+      </div>
+    ` : '';
+    
     const html = `
+      ${raceTypeForm}
       <div class="csv-preview">
         <table>
           <thead>
@@ -1407,6 +1531,54 @@
     `;
     preview.innerHTML = html;
     preview.style.display = 'block';
+  }
+  
+  // Race type selection
+  let selectedRaceType = null;
+  
+  function selectRaceType(raceType) {
+    selectedRaceType = raceType;
+    document.querySelectorAll('.race-type-btn').forEach(btn => {
+      btn.classList.remove('selected');
+      if (btn.textContent === raceType) {
+        btn.classList.add('selected');
+      }
+    });
+    document.getElementById('custom-race-type').value = '';
+    updateRaceTypeDisplay();
+  }
+  
+  function addCustomRaceType() {
+    const customInput = document.getElementById('custom-race-type');
+    const customType = customInput.value.trim();
+    
+    if (!customType) {
+      showCSVStatus('warning', 'Please enter a custom race type');
+      return;
+    }
+    
+    selectedRaceType = customType;
+    document.querySelectorAll('.race-type-btn').forEach(btn => btn.classList.remove('selected'));
+    updateRaceTypeDisplay();
+  }
+  
+  function updateRaceTypeDisplay() {
+    const display = document.getElementById('selected-race-type');
+    if (!display) return;
+    
+    if (selectedRaceType) {
+      display.innerHTML = `✓ Selected: <strong>${selectedRaceType}</strong>`;
+      display.style.background = 'rgba(40, 167, 69, 0.2)';
+      display.style.color = '#28a745';
+      display.style.borderLeft = '3px solid #28a745';
+      display.style.paddingLeft = '12px';
+    } else {
+      display.innerHTML = 'No race type selected';
+      display.style.background = 'var(--card)';
+      display.style.color = 'var(--muted)';
+      display.style.borderLeft = 'none';
+      display.style.paddingLeft = '12px';
+    }
   }
   
   async function importRow(index) {
@@ -1450,6 +1622,11 @@
         if (row.distance) row.distance = parseFloat(row.distance);
         if (row.place) row.place = parseInt(row.place);
         
+        // Replace race_type if checkbox is checked
+        if (document.getElementById('replace-race-type')?.checked && selectedRaceType) {
+          row.race_type = selectedRaceType;
+        }
+        
         await currentOptions.onCreate(row);
       }
       
@@ -1491,6 +1668,387 @@
   
   // Load initial section
   loadSection('dashboard');
+  
+  // ==========================================
+  // Bulk Edit
+  // ==========================================
+  async function renderBulkEdit() {
+    const [resultsSnap, meetsSnap, schoolsSnap] = await Promise.all([
+      window.firebaseDatabase.ref('crosscountry/results').once('value'),
+      window.firebaseDatabase.ref('crosscountry/meets').once('value'),
+      window.firebaseDatabase.ref('crosscountry/schools').once('value')
+    ]);
+    
+    const results = [];
+    resultsSnap.forEach(child => {
+      results.push({ id: child.key, ...child.val() });
+    });
+    
+    const meets = [];
+    meetsSnap.forEach(child => {
+      meets.push({ slug: child.val().slug, name: child.val().name });
+    });
+    
+    const schools = [];
+    schoolsSnap.forEach(child => {
+      schools.push({ slug: child.val().slug, name: child.val().name });
+    });
+    
+    // Get unique race types from results
+    const raceTypes = [...new Set(results.map(r => r.race_type).filter(Boolean))].sort();
+    const blankRaceTypeCount = results.filter(r => !r.race_type || r.race_type.trim() === '').length;
+    
+    const html = `
+      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Bulk Edit Results</h3>
+        <p style="color: var(--muted); margin-bottom: 20px;">Filter results and apply changes to multiple records at once.</p>
+        
+        <div style="display: grid; gap: 16px; margin-bottom: 24px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div>
+              <label style="display: block; font-weight: 600; color: var(--muted); margin-bottom: 8px;">Filter by Meet:</label>
+              <select id="bulk-meet-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px;">
+                <option value="">All Meets</option>
+                ${meets.map(m => `<option value="${m.slug}">${m.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; color: var(--muted); margin-bottom: 8px;">Filter by School:</label>
+              <select id="bulk-school-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px;">
+                <option value="">All Schools</option>
+                ${schools.map(s => `<option value="${s.slug}">${s.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; color: var(--muted); margin-bottom: 8px;">Filter by Gender:</label>
+              <select id="bulk-gender-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px;">
+                <option value="">All Genders</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; color: var(--muted); margin-bottom: 8px;">Filter by Race Type:</label>
+              <select id="bulk-race-type-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px;">
+                <option value="">All Race Types</option>
+                <option value="__BLANK__" style="background: #dc3545;">⚠️ Blank/Missing (${blankRaceTypeCount})</option>
+                ${raceTypes.map(rt => `<option value="${rt}">${rt}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          
+          <div id="bulk-preview" style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+            <p style="color: var(--muted);">0 records will be affected</p>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div>
+              <label style="display: block; font-weight: 600; color: var(--muted); margin-bottom: 8px;">Update Race Type:</label>
+              <input type="text" id="bulk-race-type" placeholder="Leave blank to skip" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px;">
+            </div>
+          </div>
+          
+          <button class="btn btn-primary" onclick="applyBulkEdit()" style="width: 100%;">Apply Changes to Filtered Results</button>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('content').innerHTML = html;
+    updateBulkPreview(results);
+    
+    document.getElementById('bulk-meet-filter').addEventListener('change', () => updateBulkPreview(results));
+    document.getElementById('bulk-school-filter').addEventListener('change', () => updateBulkPreview(results));
+    document.getElementById('bulk-gender-filter').addEventListener('change', () => updateBulkPreview(results));
+    document.getElementById('bulk-race-type-filter').addEventListener('change', () => updateBulkPreview(results));
+  }
+  
+  function updateBulkPreview(allResults) {
+    const meetFilter = document.getElementById('bulk-meet-filter')?.value || '';
+    const schoolFilter = document.getElementById('bulk-school-filter')?.value || '';
+    const genderFilter = document.getElementById('bulk-gender-filter')?.value || '';
+    const raceTypeFilter = document.getElementById('bulk-race-type-filter')?.value || '';
+    
+    let filtered = allResults;
+    if (meetFilter) filtered = filtered.filter(r => r.meet_slug === meetFilter);
+    if (schoolFilter) filtered = filtered.filter(r => r.school_slug === schoolFilter);
+    if (genderFilter) filtered = filtered.filter(r => r.gender === genderFilter);
+    
+    // Handle blank race type filter
+    if (raceTypeFilter === '__BLANK__') {
+      filtered = filtered.filter(r => !r.race_type || r.race_type.trim() === '');
+    } else if (raceTypeFilter) {
+      filtered = filtered.filter(r => r.race_type === raceTypeFilter);
+    }
+    
+    const preview = document.getElementById('bulk-preview');
+    if (preview) {
+      preview.innerHTML = `<p style="color: var(--muted);"><strong style="color: #fff;">${filtered.length}</strong> records will be affected</p>`;
+    }
+    
+    window.bulkEditData = filtered;
+  }
+  
+  async function applyBulkEdit() {
+    if (!window.bulkEditData || window.bulkEditData.length === 0) {
+      alert('No records to update');
+      return;
+    }
+    
+    const raceType = document.getElementById('bulk-race-type')?.value || '';
+    
+    if (!raceType) {
+      alert('Please enter a race type to update');
+      return;
+    }
+    
+    if (!confirm(`Update race_type to "${raceType}" for ${window.bulkEditData.length} records?`)) {
+      return;
+    }
+    
+    try {
+      let updated = 0;
+      for (const record of window.bulkEditData) {
+        await updateRecord(`crosscountry/results/${record.id}`, { race_type: raceType });
+        updated++;
+      }
+      alert(`Successfully updated ${updated} records`);
+      await loadSection('bulk-edit');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+  
+  // ==========================================
+  // Analytics
+  // ==========================================
+  async function renderAnalytics() {
+    const [resultsSnap, meetsSnap, schoolsSnap, athletesSnap] = await Promise.all([
+      window.firebaseDatabase.ref('crosscountry/results').once('value'),
+      window.firebaseDatabase.ref('crosscountry/meets').once('value'),
+      window.firebaseDatabase.ref('crosscountry/schools').once('value'),
+      window.firebaseDatabase.ref('crosscountry/athletes').once('value')
+    ]);
+    
+    const results = [];
+    resultsSnap.forEach(child => {
+      results.push(child.val());
+    });
+    
+    const schools = {};
+    schoolsSnap.forEach(child => {
+      schools[child.val().slug] = child.val().name;
+    });
+    
+    const meets = {};
+    meetsSnap.forEach(child => {
+      meets[child.val().slug] = child.val().name;
+    });
+    
+    // Calculate analytics
+    const totalResults = results.length;
+    const maleResults = results.filter(r => r.gender === 'M').length;
+    const femaleResults = results.filter(r => r.gender === 'F').length;
+    
+    const schoolStats = {};
+    results.forEach(r => {
+      if (!schoolStats[r.school_slug]) {
+        schoolStats[r.school_slug] = { name: schools[r.school_slug], count: 0, male: 0, female: 0 };
+      }
+      schoolStats[r.school_slug].count++;
+      if (r.gender === 'M') schoolStats[r.school_slug].male++;
+      else if (r.gender === 'F') schoolStats[r.school_slug].female++;
+    });
+    
+    const meetStats = {};
+    results.forEach(r => {
+      if (!meetStats[r.meet_slug]) {
+        meetStats[r.meet_slug] = { name: meets[r.meet_slug], count: 0 };
+      }
+      meetStats[r.meet_slug].count++;
+    });
+    
+    const topSchools = Object.entries(schoolStats)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5);
+    
+    const topMeets = Object.entries(meetStats)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5);
+    
+    const html = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">${totalResults}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Total Results</div>
+        </div>
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">${maleResults}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Male Results</div>
+        </div>
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">${femaleResults}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Female Results</div>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+          <h3 style="margin: 0 0 16px 0;">Top Schools by Results</h3>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${topSchools.map(([slug, stat]) => `
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--card); border-radius: 6px;">
+                <span style="font-weight: 500;">${stat.name}</span>
+                <span style="color: var(--accent);">${stat.count} <span style="color: var(--muted);">(M: ${stat.male}, F: ${stat.female})</span></span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+          <h3 style="margin: 0 0 16px 0;">Top Meets by Results</h3>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${topMeets.map(([slug, stat]) => `
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--card); border-radius: 6px;">
+                <span style="font-weight: 500;">${stat.name}</span>
+                <span style="color: var(--accent);">${stat.count} results</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('content').innerHTML = html;
+    updateRecordCount(totalResults);
+  }
+  
+  // ==========================================
+  // Settings
+  // ==========================================
+  async function renderSettings() {
+    const [meetsSnap, schoolsSnap, athletesSnap, resultsSnap] = await Promise.all([
+      window.firebaseDatabase.ref('crosscountry/meets').once('value'),
+      window.firebaseDatabase.ref('crosscountry/schools').once('value'),
+      window.firebaseDatabase.ref('crosscountry/athletes').once('value'),
+      window.firebaseDatabase.ref('crosscountry/results').once('value')
+    ]);
+    
+    const stats = {
+      meets: meetsSnap.numChildren(),
+      schools: schoolsSnap.numChildren(),
+      athletes: athletesSnap.numChildren(),
+      results: resultsSnap.numChildren()
+    };
+    
+    const html = `
+      <div style="display: grid; gap: 20px;">
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <h3 style="margin: 0 0 16px 0;">Database Statistics</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${stats.meets}</div>
+              <div style="font-size: 0.85rem; color: var(--muted);">Meets</div>
+            </div>
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${stats.schools}</div>
+              <div style="font-size: 0.85rem; color: var(--muted);">Schools</div>
+            </div>
+            <div style="background: var (--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${stats.athletes}</div>
+              <div style="font-size: 0.85rem; color: var(--muted);">Athletes</div>
+            </div>
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${stats.results}</div>
+              <div style="font-size: 0.85rem; color: var(--muted);">Results</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <h3 style="margin: 0 0 16px 0;">Admin Tools</h3>
+          <div style="display: grid; gap: 12px;">
+            <button class="btn btn-secondary" onclick="exportAllData()" style="width: 100%; justify-content: center;">📥 Export All Data</button>
+            <button class="btn btn-secondary" onclick="downloadDatabase()" style="width: 100%; justify-content: center;">💾 Download Database Backup</button>
+            <button class="btn btn-danger" onclick="clearAllResults()" style="width: 100%; justify-content: center;">🗑️ Clear All Results (Destructive)</button>
+          </div>
+        </div>
+        
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <h3 style="margin: 0 0 16px 0;">About</h3>
+          <p style="color: var(--muted); margin: 0;">
+            <strong>Mountain State Miles Admin</strong><br>
+            Cross Country Results Management System<br>
+            Version 1.0.0
+          </p>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('content').innerHTML = html;
+  }
+  
+  async function exportAllData() {
+    const [meetsSnap, schoolsSnap, athletesSnap, resultsSnap] = await Promise.all([
+      window.firebaseDatabase.ref('crosscountry/meets').once('value'),
+      window.firebaseDatabase.ref('crosscountry/schools').once('value'),
+      window.firebaseDatabase.ref('crosscountry/athletes').once('value'),
+      window.firebaseDatabase.ref('crosscountry/results').once('value')
+    ]);
+    
+    const data = {
+      meets: [],
+      schools: [],
+      athletes: [],
+      results: []
+    };
+    
+    meetsSnap.forEach(child => data.meets.push({ id: child.key, ...child.val() }));
+    schoolsSnap.forEach(child => data.schools.push({ id: child.key, ...child.val() }));
+    athletesSnap.forEach(child => data.athletes.push({ id: child.key, ...child.val() }));
+    resultsSnap.forEach(child => data.results.push({ id: child.key, ...child.val() }));
+    
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cc-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  async function downloadDatabase() {
+    const snapshot = await window.firebaseDatabase.ref('crosscountry').once('value');
+    const data = snapshot.val();
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crosscountry-full-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  async function clearAllResults() {
+    if (!confirm('⚠️ WARNING: This will delete ALL results. This cannot be undone. Type "DELETE ALL" to confirm.')) {
+      return;
+    }
+    
+    const confirmation = prompt('Type "DELETE ALL" to permanently delete all results:');
+    if (confirmation !== 'DELETE ALL') {
+      alert('Cancelled');
+      return;
+    }
+    
+    try {
+      await window.firebaseDatabase.ref('crosscountry/results').remove();
+      alert('All results have been deleted');
+      await loadSection('settings');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
 </script>
 </body>
 </html>
