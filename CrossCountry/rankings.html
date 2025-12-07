@@ -124,10 +124,13 @@
 
         <!-- 2. Distance Filter -->
         <div class="filter-group">
-          <button class="filter-btn active" data-filter-type="distance" data-value="all" onclick="setFilter('distance', 'all', event)">All Distances</button>
-          <button class="filter-btn" data-filter-type="distance" data-value="5000" onclick="setFilter('distance', '5000', event)">5K</button>
-          <button class="filter-btn" data-filter-type="distance" data-value="3200" onclick="setFilter('distance', '3200', event)">3200m</button>
-          <button class="filter-btn" data-filter-type="distance" data-value="2000" onclick="setFilter('distance', '2000', event)">2000m</button>
+          <select id="distance-filter" onchange="setFilter(distance)">
+            <option value="all">All Distances</option>
+            <option value="5000">5K</option>
+            <option value="3200">3200m</option>
+            <option value="1600">1600m</option>
+        </select>
+        
         </div>
 
         <!-- 3. Meet Filter -->

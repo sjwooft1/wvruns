@@ -47,18 +47,30 @@
 <style>
   @font-face {
 font-family: 'MsM'; /* Choose a name for your font family */
-src: url('/home/Running.ttf') format('truetype'); /* Specify the path to your .ttf file */
+src: url('Running.ttf') format('truetype'); /* Specify the path to your .ttf file */
 /* You can also add other font properties like font-weight and font-style here if needed */
 }
 h1 {
 font-family: 'MsM', sans-serif; /* Apply your custom font, with a fallback */
 }
+h5{
+  text-align: center;
+
+}
+h6 {
+  color:black ;
+  text-align:center
+}
+
 </style>
 
 <body>
   <div class="hero-section">
     <div class="hero-content">
-      <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
+      <a href="/index.html" target="_self">
+        <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
+    </a>
+    
       <h1 class="hero-title">Mountain State Miles</h1>
       <p class="hero-subtitle">The home for West Virginia cross country and track results — school by school, meet by meet.</p>
     </div>
@@ -74,7 +86,7 @@ font-family: 'MsM', sans-serif; /* Apply your custom font, with a fallback */
           <li><a href="meets.html" class="navbar-link">Meets</a></li>
           <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
           <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
-          <li><a href="/index.html" class="navbar-link">Back to Home</a></li>
+          <li><a href="/index.html" class="navbar-link">MSM Home</a></li>
         </ul>
       </div>
     </div>
@@ -126,9 +138,9 @@ font-family: 'MsM', sans-serif; /* Apply your custom font, with a fallback */
           const location = meet.location || '';
           return `
             <a href="meet.html?slug=${meet.slug}" class="meet-card">
-              <h3 class="meet-card-title">${meet.name}</h3>
-              <p class="meet-card-date">📅 ${date}</p>
-              ${location ? `<p class="meet-card-location">📍 ${location}</p>` : ''}
+              <h5 class="meet-card-title">${meet.name}</h5>
+              <h6 class="meet-card-date">📅 ${date}</h6>
+              ${location ? `<h6 class="meet-card-location">📍 ${location}</h6>` : ''}
             </a>
           `;
         }).join('');

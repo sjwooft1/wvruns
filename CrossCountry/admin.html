@@ -5,1858 +5,1492 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cross Country Admin Dashboard</title>
   <style>
-    :root{ 
-      --bg:#0a0e1a; 
-      --panel:#0f1626; 
-      --accent:#ff7b2d; 
-      --muted:#9fb4c8; 
-      --card:#151f2e; 
-      --glass: rgba(255,255,255,0.04); 
-      --ok: #28a745; 
-      --danger: #dc3545;
+    * { box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0e1a;
+      --panel: #0f1626;
+      --card: #151f2e;
+      --accent: #ff7b2d;
+      --accent-hover: #ff8c42;
+      --muted: #9fb4c8;
       --border: rgba(255,255,255,0.08);
       --hover: rgba(255,255,255,0.05);
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #007bff;
     }
-    * { box-sizing: border-box; }
-    html,body{height:100%;margin:0;font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;background:var(--bg);color:#e6f0f7;overflow:hidden}
-    .wrap{display:flex;height:100vh;gap:0;padding:0;box-sizing:border-box}
-    .sidebar{ width:280px; background:var(--panel); border-right:1px solid var(--border); padding:24px; display:flex;flex-direction:column;gap:20px; overflow-y:auto; }
-    .brand{display:flex;align-items:center;gap:12px;padding-bottom:20px;border-bottom:1px solid var(--border)}
-    .brand img{width:48px;height:48px;border-radius:10px;object-fit:contain}
-    .brand h3{font-size:1.1rem;margin:0;font-weight:700}
-    .brand .small{font-size:0.85rem;color:var(--muted);margin-top:4px}
-    nav.side-nav{display:flex;flex-direction:column;gap:4px}
-    nav.side-nav button{ background:transparent;border:none;color:var(--muted);padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-weight:500;transition:all 0.2s;display:flex;align-items:center;gap:10px}
-    nav.side-nav button:hover{background:var(--hover);color:#fff}
-    nav.side-nav button.active{background:linear-gradient(90deg, var(--accent), #ff8c42);color:#fff;box-shadow:0 2px 8px rgba(255,123,45,0.3)}
-    .logout{margin-top:auto;padding-top:20px;border-top:1px solid var(--border)}
-    .logout button{width:100%;padding:12px;border-radius:8px;border:none;background:var(--danger);color:white;font-weight:600;cursor:pointer;transition:all 0.2s}
-    .logout button:hover{background:#c82333;transform:translateY(-1px);box-shadow:0 4px 12px rgba(220,53,69,0.3)}
-    .content{ flex:1; display:flex; flex-direction:column; gap:0; min-width:0; overflow:hidden; }
-    .topbar{ display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:var(--panel);border-bottom:1px solid var(--border) }
-    .topbar h2{margin:0;font-size:1.4rem;font-weight:700}
-    .topbar .info{color:var(--muted);font-size:0.9rem}
-    .main-content{flex:1;overflow:auto;padding:24px;background:var(--bg)}
     
-    /* Excel-like Table Styles */
-    .data-table-container{background:var(--panel);border-radius:12px;border:1px solid var(--border);overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
-    .table-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card)}
-    .table-header h3{margin:0;font-size:1.1rem;font-weight:600}
-    .table-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .table-toolbar input, .table-toolbar select{padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:#e6f0f7;font-size:0.9rem;min-width:150px}
-    .table-toolbar button{padding:8px 16px;border-radius:6px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;transition:all 0.2s;font-size:0.9rem}
-    .table-toolbar button:hover{background:#ff8c42;transform:translateY(-1px)}
-    .table-toolbar button.secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
-    .table-toolbar button.secondary:hover{background:var(--hover);color:#fff}
-    .table-toolbar button.danger{background:var(--danger)}
-    .table-toolbar button.danger:hover{background:#c82333}
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: #e6f0f7;
+    }
     
-    .data-table-wrapper{overflow-x:auto;max-height:calc(100vh - 250px);position:relative}
-    .data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:0.9rem}
-    .data-table thead{position:sticky;top:0;z-index:10;background:var(--card)}
-    .data-table thead th{padding:12px 16px;text-align:left;font-weight:600;color:var(--muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);white-space:nowrap;user-select:none}
-    .data-table thead th.sortable{cursor:pointer;transition:all 0.2s}
-    .data-table thead th.sortable:hover{background:var(--hover);color:#fff}
-    .data-table tbody tr{transition:all 0.15s;border-bottom:1px solid var(--border)}
-    .data-table tbody tr:hover{background:var(--hover)}
-    .data-table tbody tr.selected{background:rgba(255,123,45,0.15);border-left:3px solid var(--accent)}
-    .data-table tbody td{padding:12px 16px;border-right:1px solid var(--border);position:relative}
-    .data-table tbody td:last-child{border-right:none}
-    .data-table tbody td.editable{cursor:pointer;position:relative}
-    .data-table tbody td.editable:hover{background:rgba(255,123,45,0.1)}
-    .data-table tbody td.editable.editing{background:rgba(255,123,45,0.2);padding:0}
-    .data-table tbody td input, .data-table tbody td select{width:100%;padding:8px;border:none;background:transparent;color:#e6f0f7;font-size:0.9rem;outline:none;border-radius:4px}
-    .data-table tbody td input:focus{background:rgba(255,255,255,0.1);outline:2px solid var(--accent)}
-    .data-table tbody td .cell-value{display:block;min-height:20px}
-    .data-table tbody td .cell-actions{display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);gap:4px}
-    .data-table tbody td:hover .cell-actions{display:flex}
-    .data-table tbody td .cell-actions button{padding:4px 8px;font-size:0.75rem;border-radius:4px;border:none;cursor:pointer;background:var(--accent);color:#fff}
+    body {
+      overflow: hidden;
+    }
     
-    /* Filters Panel */
-    .filters-panel{background:var(--panel);border-radius:12px;border:1px solid var(--border);padding:20px;margin-bottom:20px}
-    .filters-panel h4{margin:0 0 16px 0;font-size:1rem;font-weight:600;color:var(--muted)}
-    .filters-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px}
-    .filter-group{display:flex;flex-direction:column;gap:6px}
-    .filter-group label{font-size:0.85rem;color:var(--muted);font-weight:500}
-    .filter-group input, .filter-group select{padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7;font-size:0.9rem}
+    .app-wrapper {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
     
-    /* Stats Cards */
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px}
-    .stat-card{background:var(--panel);border-radius:12px;padding:20px;border:1px solid var(--border);transition:all 0.2s}
-    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);border-color:var(--accent)}
-    .stat-card h4{margin:0 0 8px 0;font-size:0.85rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
-    .stat-card .value{font-size:2rem;font-weight:700;color:#fff;margin:0}
-    .stat-card .change{font-size:0.85rem;color:var(--ok);margin-top:8px}
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 24px;
+      gap: 24px;
+    }
     
-    /* Bulk Actions */
-    .bulk-actions{display:none;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--border);align-items:center;gap:12px}
-    .bulk-actions.active{display:flex}
-    .bulk-actions .count{color:var(--muted);font-size:0.9rem}
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
     
-    /* Loading & Empty States */
-    .loading{text-align:center;padding:40px;color:var(--muted)}
-    .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
-    .empty-state svg{width:64px;height:64px;margin-bottom:16px;opacity:0.3}
+    .sidebar-brand img {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+    
+    .sidebar-brand h1 {
+      font-size: 1.1rem;
+      margin: 0;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    
+    .sidebar-brand .subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .nav-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      padding: 8px 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+    
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+    }
+    
+    .nav-btn:hover {
+      background: var(--hover);
+      color: #fff;
+    }
+    
+    .nav-btn.active {
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 123, 45, 0.3);
+    }
+    
+    .sidebar-spacer {
+      flex: 1;
+    }
+    
+    .logout-section {
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .logout-btn {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      background: var(--danger);
+      color: white;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .logout-btn:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Main Content */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      gap: 20px;
+    }
+    
+    .topbar h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    
+    .topbar-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .content {
+      flex: 1;
+      overflow: auto;
+      padding: 24px;
+      background: var(--bg);
+    }
+    
+    /* Grid Container */
+    .grid-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .grid-header {
+      padding: 16px 20px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .grid-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .grid-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--hover);
+      color: #fff;
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    
+    .btn-danger:hover {
+      background: #c82333;
+      transform: translateY(-1px);
+    }
+    
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    
+    .btn-success:hover {
+      background: #218838;
+    }
+    
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 0.8rem;
+    }
+    
+    /* Grid Table */
+    .grid-scroll {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+    
+    .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    
+    .grid-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--card);
+    }
+    
+    .grid-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+      user-select: none;
+    }
+    
+    .grid-table th.sortable {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .grid-table th.sortable:hover {
+      background: var(--hover);
+      color: #fff;
+    }
+    
+    .grid-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: all 0.15s;
+    }
+    
+    .grid-table tbody tr:hover {
+      background: var(--hover);
+    }
+    
+    .grid-table tbody tr.selected {
+      background: rgba(255, 123, 45, 0.15);
+      border-left: 3px solid var(--accent);
+    }
+    
+    .grid-table td {
+      padding: 12px 16px;
+      border-right: 1px solid var(--border);
+    }
+    
+    .grid-table td:last-child {
+      border-right: none;
+    }
+    
+    .grid-table td input,
+    .grid-table td select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: #e6f0f7;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    
+    .grid-table td input:focus,
+    .grid-table td select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 123, 45, 0.1);
+    }
+    
+    .cell-view {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .cell-view:hover {
+      color: var(--accent);
+    }
+    
+    .cell-edit-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      background: var(--border);
+      border: none;
+      border-radius: 3px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    
+    .grid-table td:hover .cell-edit-btn {
+      opacity: 1;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+    
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow: auto;
+      animation: slideUp 0.3s;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-header {
+      padding: 24px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .modal-close:hover {
+      background: var(--hover);
+      color: #fff;
+    }
+    
+    .modal-body {
+      padding: 24px;
+    }
+    
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-label {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .form-input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: #e6f0f7;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 123, 45, 0.1);
+    }
+    
+    /* CSV Import Section */
+    .csv-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .csv-section h3 {
+      margin: 0 0 16px 0;
+      font-size: 1.1rem;
+    }
+    
+    .csv-dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--panel);
+    }
+    
+    .csv-dropzone:hover {
+      border-color: var(--accent);
+      background: var(--hover);
+    }
+    
+    .csv-dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(255, 123, 45, 0.1);
+    }
+    
+    .csv-dropzone p {
+      margin: 0;
+      color: #e6f0f7;
+      font-weight: 600;
+    }
+    
+    .csv-dropzone small {
+      color: var(--muted);
+      display: block;
+      margin-top: 8px;
+    }
+    
+    #csv-file-input {
+      display: none;
+    }
+    
+    .csv-preview {
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      margin-top: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .csv-preview table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    
+    .csv-preview th {
+      background: var(--card);
+      padding: 8px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+    }
+    
+    .csv-preview td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .status-message {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 12px 0;
+      display: none;
+    }
+    
+    .status-message.success {
+      background: rgba(40, 167, 69, 0.2);
+      color: #28a745;
+      border: 1px solid #28a745;
+      display: block;
+    }
+    
+    .status-message.error {
+      background: rgba(220, 53, 69, 0.2);
+      color: #dc3545;
+      border: 1px solid #dc3545;
+      display: block;
+    }
+    
+    .status-message.warning {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid #ffc107;
+      display: block;
+    }
+    
+    .status-message.info {
+      background: rgba(0, 123, 255, 0.2);
+      color: #007bff;
+      border: 1px solid #007bff;
+      display: block;
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
     
     /* Responsive */
-    @media (max-width:1200px){.sidebar{width:240px}}
-    @media (max-width:768px){.wrap{flex-direction:column}.sidebar{width:100%;height:auto}.main-content{padding:16px}}
+    @media (max-width: 768px) {
+      .app-wrapper {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 12px;
+        gap: 12px;
+      }
+      
+      .content {
+        padding: 16px;
+      }
+      
+      .grid-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .grid-actions {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
     
     /* Scrollbar */
-    ::-webkit-scrollbar{width:8px;height:8px}
-    ::-webkit-scrollbar-track{background:var(--panel)}
-    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-    ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--panel);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
+    }
   </style>
 </head>
 <body>
-<div class="wrap">
+<div class="app-wrapper">
   <aside class="sidebar">
-    <div class="brand">
+    <div class="sidebar-brand">
       <img src="assets/Wvruns Logo.png" alt="logo">
       <div>
-        <h3>Mountain State Miles</h3>
-        <div class="small">Cross Country Admin</div>
+        <h1>Mountain State Miles</h1>
+        <div class="subtitle">Cross Country Admin</div>
       </div>
     </div>
-    <nav class="side-nav" id="side-nav">
-      <button data-section="dashboard" class="active">📊 Dashboard</button>
-      <button data-section="meets">🏃 Meets</button>
-      <button data-section="athletes">👤 Athletes</button>
-      <button data-section="results">🏆 Results</button>
-      <button data-section="schools">🏫 Schools</button>
-      <button data-section="teams">👥 Teams</button>
+    
+    <nav>
+      <div class="nav-section-title">Main</div>
+      <div class="nav-section" id="main-nav">
+        <button class="nav-btn active" data-section="dashboard">📊 Dashboard</button>
+        <button class="nav-btn" data-section="meets">🏃 Meets</button>
+        <button class="nav-btn" data-section="schools">🏫 Schools</button>
+        <button class="nav-btn" data-section="athletes">👤 Athletes</button>
+        <button class="nav-btn" data-section="results">🏆 Results</button>
+      </div>
     </nav>
-    <div class="logout">
-      <button id="logoutBtn">Log Out</button>
+    
+    <div class="sidebar-spacer"></div>
+    
+    <div class="logout-section">
+      <button class="logout-btn" id="logout-btn">Log Out</button>
     </div>
   </aside>
-
-  <main class="content">
+  
+  <main class="main">
     <div class="topbar">
-      <h2 id="panel-title">Dashboard</h2>
-      <div class="info">Firebase Connected • <span id="record-count">0 records</span></div>
+      <h2 id="page-title">Dashboard</h2>
+      <div class="topbar-info">
+        <span>🔗 Firebase Connected</span>
+        <span id="record-count">0 records</span>
+      </div>
     </div>
-    <div class="main-content" id="main-content">
-      <div class="loading">Loading...</div>
-      <!-- Handsontable container -->
-      <div id="hot-container" style="height: 70vh; width: 100%; display: none;"></div>
+    
+    <div class="content" id="content">
+      <div class="loading">
+        <span class="spinner"></span>
+        Loading...
+      </div>
     </div>
   </main>
 </div>
 
+<!-- Modal Template -->
+<template id="modal-template">
+  <div class="modal-overlay" onclick="if(event.target === this) closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Modal Title</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="modal-submit" onclick="handleModalSubmit()">Save</button>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
-<script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
 <script src="firebase-config.js"></script>
+<script src="firebase-helpers.js"></script>
+
 <script>
-  if (localStorage.getItem('xcAdmin') !== 'false') {
-    window.location.replace('login.html');
-  }
-
-  const sideNav = document.getElementById('side-nav');
-  const panelTitle = document.getElementById('panel-title');
-  const mainContent = document.getElementById('main-content');
-  const recordCount = document.getElementById('record-count');
-  const logoutBtn = document.getElementById('logoutBtn');
-
-  logoutBtn.addEventListener('click', () => { 
-    localStorage.removeItem('xcAdmin'); 
-    window.location.replace('login.html'); 
-  });
-
-  sideNav.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-section]');
-    if (!btn) return;
-    sideNav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const section = btn.dataset.section;
-    showSection(section);
-  });
-
+  // ==========================================
+  // App State
+  // ==========================================
   let currentSection = 'dashboard';
   let currentData = [];
-  let selectedRows = new Set();
+  let currentColumns = [];
+  let currentOptions = {};
   let sortColumn = null;
   let sortDirection = 'asc';
-
-  async function showSection(section) {
+  
+  // ==========================================
+  // Auth Check
+  // ==========================================
+  if (localStorage.getItem('xcAdmin') !== 'true') {
+    window.location.replace('login.html');
+  }
+  
+  // ==========================================
+  // Navigation
+  // ==========================================
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    localStorage.removeItem('xcAdmin');
+    window.location.replace('login.html');
+  });
+  
+  document.getElementById('main-nav').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-section]');
+    if (!btn) return;
+    
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    loadSection(btn.dataset.section);
+  });
+  
+  // ==========================================
+  // Section Loading
+  // ==========================================
+  async function loadSection(section) {
     currentSection = section;
-    panelTitle.textContent = section[0].toUpperCase() + section.slice(1);
-    selectedRows.clear();
+    document.getElementById('page-title').textContent = 
+      section.charAt(0).toUpperCase() + section.slice(1);
+    document.getElementById('content').innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
     
-    // Destroy existing Handsontable
-    if (window.hotInstance) {
-      try {
-        window.hotInstance.destroy();
-      } catch (e) {
-        console.warn('Error destroying Handsontable:', e);
+    try {
+      switch (section) {
+        case 'dashboard':
+          await renderDashboard();
+          break;
+        case 'meets':
+          await renderMeets();
+          break;
+        case 'schools':
+          await renderSchools();
+          break;
+        case 'athletes':
+          await renderAthletes();
+          break;
+        case 'results':
+          await renderResults();
+          break;
       }
-      window.hotInstance = null;
-    }
-    
-    // Clear content but preserve container
-    const container = document.getElementById('hot-container');
-    if (container) {
-      container.style.display = 'none';
-    }
-    
-    mainContent.innerHTML = '<div class="loading">Loading...</div>';
-    if (container && !mainContent.contains(container)) {
-      mainContent.appendChild(container);
-    }
-    
-    switch(section) {
-      case 'dashboard': await renderDashboard(); break;
-      case 'meets': await renderMeets(); break;
-      case 'athletes': await renderAthletes(); break;
-      case 'results': await renderResults(); break;
-      case 'schools': await renderSchools(); break;
-      case 'teams': await renderTeams(); break;
+    } catch (error) {
+      console.error('Error loading section:', error);
+      document.getElementById('content').innerHTML = 
+        `<div class="empty-state" style="color: var(--danger);">Error loading section: ${error.message}</div>`;
     }
   }
-
+  
+  // ==========================================
+  // Dashboard
+  // ==========================================
   async function renderDashboard() {
-    const [mSnapshot, sSnapshot, aSnapshot, rSnapshot] = await Promise.all([
+    const [meetsSnap, schoolsSnap, athletesSnap, resultsSnap] = await Promise.all([
       window.firebaseDatabase.ref('crosscountry/meets').once('value'),
       window.firebaseDatabase.ref('crosscountry/schools').once('value'),
       window.firebaseDatabase.ref('crosscountry/athletes').once('value'),
-      window.firebaseDatabase.ref('crosscountry/results').once('value'),
+      window.firebaseDatabase.ref('crosscountry/results').once('value')
     ]);
-    const mCount = mSnapshot.numChildren();
-    const sCount = sSnapshot.numChildren();
-    const aCount = aSnapshot.numChildren();
-    const rCount = rSnapshot.numChildren();
     
-    mainContent.innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h4>Meets</h4>
-          <p class="value">${mCount}</p>
+    const stats = {
+      meets: meetsSnap.numChildren(),
+      schools: schoolsSnap.numChildren(),
+      athletes: athletesSnap.numChildren(),
+      results: resultsSnap.numChildren()
+    };
+    
+    document.getElementById('content').innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">${stats.meets}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Meets</div>
         </div>
-        <div class="stat-card">
-          <h4>Schools</h4>
-          <p class="value">${sCount}</p>
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">${stats.schools}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Schools</div>
         </div>
-        <div class="stat-card">
-          <h4>Athletes</h4>
-          <p class="value">${aCount}</p>
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 700; color: var (--accent);">${stats.athletes}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Athletes</div>
         </div>
-        <div class="stat-card">
-          <h4>Results</h4>
-          <p class="value">${rCount}</p>
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">${stats.results}</div>
+          <div style="color: var(--muted); margin-top: 8px;">Results</div>
         </div>
       </div>
-      <div style="background:var(--panel);border-radius:12px;padding:24px;border:1px solid var(--border)">
-        <h3 style="margin:0 0 16px 0">Quick Actions</h3>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <button class="table-toolbar button" onclick="showSection('meets')">Manage Meets</button>
-          <button class="table-toolbar button" onclick="showSection('athletes')">Manage Athletes</button>
-          <button class="table-toolbar button" onclick="showSection('results')">Manage Results</button>
-          <button class="table-toolbar button" onclick="showSection('schools')">Manage Schools</button>
+      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+        <h3 style="margin: 0 0 16px 0;">Quick Links</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="loadSection('meets')">📊 Manage Meets</button>
+          <button class="btn btn-primary" onclick="loadSection('schools')">🏫 Manage Schools</button>
+          <button class="btn btn-primary" onclick="loadSection('athletes')">👤 Manage Athletes</button>
+          <button class="btn btn-primary" onclick="loadSection('results')">🏆 Manage Results</button>
         </div>
       </div>
     `;
-    updateRecordCount(mCount + sCount + aCount + rCount);
   }
-
+  
+  // ==========================================
+  // Meets
+  // ==========================================
   async function renderMeets() {
     const snapshot = await window.firebaseDatabase.ref('crosscountry/meets').once('value');
-    const meets = [];
+    const data = [];
     snapshot.forEach(child => {
-      meets.push({ id: child.key, ...child.val() });
+      data.push({ id: child.key, ...child.val() });
     });
-    currentData = meets;
     
-    const columns = [
-      { key: 'name', label: 'Name', editable: true, type: 'text' },
-      { key: 'slug', label: 'Slug', editable: true, type: 'text' },
-      { key: 'date', label: 'Date', editable: true, type: 'date' },
-      { key: 'location', label: 'Location', editable: true, type: 'text' },
-      { key: 'description', label: 'Description', editable: true, type: 'text' }
-    ];
-    
-    renderAGGrid('Meets', columns, meets, {
-      onCreate: createMeet,
-      onDelete: deleteMeet,
-      onUpdate: updateMeet
+    renderGrid('Meets', [
+      { key: 'name', label: 'Name', type: 'text' },
+      { key: 'slug', label: 'Slug', type: 'text' },
+      { key: 'date', label: 'Date', type: 'date' },
+      { key: 'location', label: 'Location', type: 'text' },
+      { key: 'description', label: 'Description', type: 'text' }
+    ], data, {
+      onCreate: (row) => createRecord('crosscountry/meets', row),
+      onUpdate: (id, updates) => updateRecord(`crosscountry/meets/${id}`, updates),
+      onDelete: (id) => deleteRecord(`crosscountry/meets/${id}`)
     });
   }
-
+  
+  // ==========================================
+  // Schools
+  // ==========================================
+  async function renderSchools() {
+    const snapshot = await window.firebaseDatabase.ref('crosscountry/schools').once('value');
+    const data = [];
+    snapshot.forEach(child => {
+      data.push({ id: child.key, ...child.val() });
+    });
+    
+    renderGrid('Schools', [
+      { key: 'name', label: 'Name', type: 'text' },
+      { key: 'slug', label: 'Slug', type: 'text' }
+    ], data, {
+      onCreate: (row) => createRecord('crosscountry/schools', row),
+      onUpdate: (id, updates) => updateRecord(`crosscountry/schools/${id}`, updates),
+      onDelete: (id) => deleteRecord(`crosscountry/schools/${id}`)
+    });
+  }
+  
+  // ==========================================
+  // Athletes
+  // ==========================================
   async function renderAthletes() {
-    const [athletesSnapshot, schoolsSnapshot] = await Promise.all([
+    const [athletesSnap, schoolsSnap] = await Promise.all([
       window.firebaseDatabase.ref('crosscountry/athletes').once('value'),
       window.firebaseDatabase.ref('crosscountry/schools').once('value')
     ]);
     
-    const athletes = [];
-    athletesSnapshot.forEach(child => {
-      athletes.push({ id: child.key, ...child.val() });
+    const data = [];
+    athletesSnap.forEach(child => {
+      data.push({ id: child.key, ...child.val() });
     });
     
     const schools = [];
-    schoolsSnapshot.forEach(child => {
-      schools.push({ id: child.key, ...child.val() });
+    schoolsSnap.forEach(child => {
+      schools.push(child.val().slug);
     });
     
-    currentData = athletes;
-    
-    const schoolOptions = '<option value="">-- Select --</option>' + schools.map(s => `<option value="${s.slug}">${s.name}</option>`).join('');
-    
-    const schoolOptionsArray = schools.map(s => s.slug);
-    
-    const columns = [
-      { key: 'name', label: 'Name', editable: true, type: 'text' },
-      { key: 'school_slug', label: 'School', editable: true, type: 'select', options: schoolOptionsArray },
-      { key: 'grade', label: 'Grade', editable: true, type: 'number' },
-      { key: 'gender', label: 'Gender', editable: true, type: 'select', options: ['M', 'F'] }
-    ];
-    
-    renderAGGrid('Athletes', columns, athletes, {
-      onCreate: createAthlete,
-      onDelete: deleteAthlete,
-      onUpdate: updateAthlete
+    renderGrid('Athletes', [
+      { key: 'name', label: 'Name', type: 'text' },
+      { key: 'school_slug', label: 'School', type: 'select', options: schools },
+      { key: 'grade', label: 'Grade', type: 'number' },
+      { key: 'gender', label: 'Gender', type: 'select', options: ['M', 'F'] }
+    ], data, {
+      onCreate: (row) => createRecord('crosscountry/athletes', row),
+      onUpdate: (id, updates) => updateRecord(`crosscountry/athletes/${id}`, updates),
+      onDelete: (id) => deleteRecord(`crosscountry/athletes/${id}`)
     });
   }
-
+  
+  // ==========================================
+  // Results with CSV Import
+  // ==========================================
   async function renderResults() {
-    const [resultsSnapshot, meetsSnapshot, schoolsSnapshot] = await Promise.all([
+    const [resultsSnap, meetsSnap, schoolsSnap] = await Promise.all([
       window.firebaseDatabase.ref('crosscountry/results').once('value'),
       window.firebaseDatabase.ref('crosscountry/meets').once('value'),
       window.firebaseDatabase.ref('crosscountry/schools').once('value')
     ]);
-    const results = [];
-    resultsSnapshot.forEach(child => results.push({ id: child.key, ...child.val() }));
-    const meets = [];
-    meetsSnapshot.forEach(child => meets.push({ id: child.key, ...child.val() }));
-    const schools = [];
-    schoolsSnapshot.forEach(child => schools.push({ id: child.key, ...child.val() }));
-
-    const meetOptions = meets.map(m => m.slug);
-    const schoolOptions = schools.map(s => s.slug);
-
-    const columns = [
-      { key: 'athlete_name', label: 'Athlete', editable: true, type: 'text' },
-      { key: 'meet_slug', label: 'Meet', editable: true, type: 'select', options: meetOptions },
-      { key: 'school_slug', label: 'School', editable: true, type: 'select', options: schoolOptions },
-      { key: 'gender', label: 'Gender', editable: true, type: 'select', options: ["M", "F"] },
-      { key: 'time', label: 'Time (sec)', editable: true, type: 'number' },
-      { key: 'distance', label: 'Distance (m)', editable: true, type: 'number' },
-      { key: 'place', label: 'Place', editable: true, type: 'number' },
-      { key: 'race_type', label: 'Race Type', editable: true, type: 'text' },
-    ];
-
-    // Destroy existing Handsontable
-    if (window.hotInstance) {
-      try {
-        window.hotInstance.destroy();
-      } catch (e) {
-        console.warn('Error destroying Handsontable:', e);
-      }
-      window.hotInstance = null;
-    }
-
-    const loadingDiv = mainContent.querySelector('.loading');
-    if (loadingDiv) loadingDiv.remove();
     
-    // Add CSV Import section
-    const csvSection = document.createElement('div');
-    csvSection.className = 'filters-panel';
-    csvSection.style.cssText = 'margin-bottom:20px;background:var(--panel);border-radius:12px;border:1px solid var(--border);padding:20px';
-    csvSection.innerHTML = `
-      <h4 style="margin:0 0 16px 0;display:flex;justify-content:space-between;align-items:center">
-        <span>📥 CSV Import & Generator</span>
-        <button class="table-toolbar button secondary" onclick="toggleCSVSection()" id="csv-toggle-btn">Show CSV Tools</button>
-      </h4>
-      <div id="csv-import-section" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-          <div>
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted)">Select Meet for Import</label>
-            <select id="csv-meet-select" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7">
-              <option value="">-- Select Meet --</option>
-              ${meets.map(m => `<option value="${m.slug}">${m.name}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted)">Race Type</label>
-            <select id="csv-race-type" onchange="toggleCustomRaceType()" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7">
-              <option value="varsity">Varsity</option>
-              <option value="varsity b">Varsity B</option>
-              <option value="championship">Championship</option>
-              <option value="elite">Elite</option>
-              <option value="emerging-elite">Emerging Elite</option>
-              <option value="freshman">Freshman</option>
-              <option value="jv">JV</option>
-              <option value="jv2">JV2</option>
-              <option value="middle school">Middle School</option>
-              <option value="elementary">Elementary</option>
-              <option value="modified">Modified</option>
-              <option value="novice">Novice</option>
-              <option value="open">Open</option>
-              <option value="open invitational">Open Invitational</option>
-              <option value="sophomore">Sophomore</option>
-              <option value="custom">Custom...</option>
-            </select>
-            <input type="text" id="csv-custom-race-type" placeholder="Enter custom race type" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7;margin-top:8px;display:none">
-          </div>
-        </div>
-        <div style="display:flex;gap:20px;margin-bottom:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#e6f0f7;font-size:0.9rem">
-            <input type="checkbox" id="csv-dont-import-teams" style="width:18px;height:18px;cursor:pointer">
-            <span>Don't import teams (skip school_slug)</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#e6f0f7;font-size:0.9rem">
-            <input type="checkbox" id="csv-dont-include-rankings" style="width:18px;height:18px;cursor:pointer">
-            <span>Don't include in rankings</span>
-          </label>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div>
-            <h5 style="margin:0 0 12px 0;font-size:0.9rem;color:var(--muted)">📥 Import CSV</h5>
-            <div id="csv-dropzone" style="border:2px dashed var(--border);border-radius:8px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--card)" 
-                 ondrop="handleCSVDrop(event)" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" 
-                 ondragleave="this.style.borderColor='var(--border)'"
-                 onclick="document.getElementById('csv-file-input').click()">
-              <p style="margin:0;color:#e6f0f7;font-weight:600">📁 Drop CSV file here</p>
-              <small style="color:var(--muted);display:block;margin-top:8px">or click to browse</small>
-              <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleCSVFile(event)">
-            </div>
-            <div id="csv-preview" style="margin-top:16px;display:none">
-              <div style="background:var(--card);border-radius:8px;padding:16px;border:1px solid var(--border)">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                  <span style="color:var(--muted);font-size:0.9rem">Preview: <strong id="csv-preview-count">0</strong> rows</span>
-                  <button class="table-toolbar button" onclick="importCSVData()">✅ Import All</button>
-                </div>
-                <div style="max-height:200px;overflow:auto">
-                  <table style="width:100%;font-size:0.85rem;border-collapse:collapse">
-                    <thead style="background:var(--panel);position:sticky;top:0">
-                      <tr>
-                        <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">Athlete</th>
-                        <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">School</th>
-                        <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">Time</th>
-                        <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">Place</th>
-                      </tr>
-                    </thead>
-                    <tbody id="csv-preview-body"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div id="csv-import-status" style="margin-top:12px;display:none"></div>
-          </div>
-          <div>
-            <h5 style="margin:0 0 12px 0;font-size:0.9rem;color:var(--muted)">📤 Generate CSV Template</h5>
-            <div style="background:var(--card);border-radius:8px;padding:16px;border:1px solid var(--border)">
-              <p style="margin:0 0 12px 0;color:var(--muted);font-size:0.9rem">Download a CSV template with sample data to get started</p>
-              <button class="table-toolbar button" onclick="downloadCSVTemplate()" style="width:100%;margin-bottom:8px">⬇️ Download Template</button>
-              <a href="csv-genorater.html" target="_blank" style="display:block;width:100%;padding:8px 12px;background:var(--accent);color:#fff;text-align:center;text-decoration:none;border-radius:6px;font-weight:600;transition:all 0.2s" onmouseover="this.style.background='#ff8c42'" onmouseout="this.style.background='var(--accent)'">🔧 Advanced CSV Generator →</a>
-              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-                <p style="margin:0 0 8px 0;font-size:0.85rem;color:var(--muted)">Required columns:</p>
-                <code style="display:block;background:var(--panel);padding:8px;border-radius:4px;font-size:0.8rem;color:#e6f0f7">
-                  athlete_name, school_slug, gender, time, distance, place
-                </code>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    mainContent.appendChild(csvSection);
-
-    const container = document.getElementById('hot-container');
-    if (!container) {
-      const newContainer = document.createElement('div');
-      newContainer.id = 'hot-container';
-      mainContent.appendChild(newContainer);
-    }
-    
-    const hotContainer = document.getElementById('hot-container');
-    hotContainer.style.display = 'block';
-    hotContainer.style.height = '70vh';
-    hotContainer.style.width = '100%';
-
-    const headers = columns.map(col => col.label);
-    const rowData = results.map(row => columns.map(col => {
-      const val = row[col.key];
-      return val === null || val === undefined ? '' : val;
-    }));
-
-    const columnDefs = columns.map((col, idx) => {
-      const colDef = {
-        data: idx,
-        title: col.label,
-        type: col.type === 'number' ? 'numeric' : 'text',
-        readOnly: !col.editable
-      };
-      
-      if (col.type === 'select') {
-        colDef.type = 'dropdown';
-        colDef.source = Array.isArray(col.options) ? col.options : [];
-      }
-      
-      return colDef;
+    const data = [];
+    resultsSnap.forEach(child => {
+      data.push({ id: child.key, ...child.val() });
     });
-
-    const toolbar = document.createElement('div');
-    toolbar.className = 'table-header';
-    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:16px 20px;margin-bottom:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)';
-    toolbar.innerHTML = `
-      <h3 style="margin:0;font-size:1.1rem;font-weight:600">Results (${results.length})</h3>
-      <div style="display:flex;gap:10px">
-        <button class="table-toolbar button" onclick="addNewResultToGrid()">+ Add New</button>
-        <button class="table-toolbar button secondary" onclick="exportGridData()">📥 Export</button>
-        <button class="table-toolbar button danger" onclick="deleteSelectedResults()">🗑️ Delete Selected</button>
-      </div>
-    `;
-    mainContent.appendChild(toolbar);
-
-    window.currentResultsData = results;
-    window.addNewResultToGrid = () => {
-      if (window.hotInstance) {
-        window.hotInstance.alter('insert_row', window.hotInstance.countRows());
-        window.hotInstance.setDataAtRow(window.hotInstance.countRows() - 1, ['', '', '', '', null, 5000, null, 'varsity']);
-      }
-      const newRow = {
-        athlete_name: '',
-        meet_slug: '',
-        school_slug: '',
-        gender: '',
-        time: null,
-        distance: 5000,
-        place: null,
-        race_type: 'varsity'
-      };
-      createResult(newRow).then(() => {
-        showSection('results');
-      });
+    
+    const meets = [];
+    meetsSnap.forEach(child => {
+      meets.push(child.val().slug);
+    });
+    
+    const schools = [];
+    schoolsSnap.forEach(child => {
+      schools.push(child.val().slug);
+    });
+    
+    // Create grid content with CSV import
+    currentData = data;
+    currentColumns = [
+      { key: 'athlete_name', label: 'Athlete', type: 'text' },
+      { key: 'meet_slug', label: 'Meet', type: 'select', options: meets },
+      { key: 'school_slug', label: 'School', type: 'select', options: schools },
+      { key: 'gender', label: 'Gender', type: 'select', options: ['M', 'F'] },
+      { key: 'time', label: 'Time (sec)', type: 'number' },
+      { key: 'distance', label: 'Distance (m)', type: 'number' },
+      { key: 'place', label: 'Place', type: 'number' },
+      { key: 'race_type', label: 'Race Type', type: 'text' }
+    ];
+    currentOptions = {
+      onCreate: (row) => createRecord('crosscountry/results', row),
+      onUpdate: (id, updates) => updateRecord(`crosscountry/results/${id}`, updates),
+      onDelete: (id) => deleteRecord(`crosscountry/results/${id}`),
+      csvImport: true,
+      csvMeets: meetsSnap.val() ? Object.values(meetsSnap.val()) : []
     };
     
-    window.exportGridData = () => {
-      if (window.hotInstance) {
-        const csv = window.hotInstance.getPlugin('exportFile').exportAsString('csv', {
-          bom: false,
-          columnDelimiter: ',',
-          columnHeaders: true,
-          exportHiddenColumns: true,
-          exportHiddenRows: true,
-          fileExtension: 'csv',
-          filename: `results-${new Date().toISOString().split('T')[0]}`,
-          mimeType: 'text/csv',
-          rowDelimiter: '\r\n',
-          rowHeaders: false
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `results-${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    };
-    
-    window.deleteSelectedResults = () => {
-      if (!window.hotInstance) return;
-      const selected = window.hotInstance.getSelected();
-      if (!selected || selected.length === 0) {
-        alert('No rows selected');
-        return;
-      }
-      const rowsToDelete = [...new Set(selected.map(s => s[0][0]))].sort((a, b) => b - a);
-      if (!confirm(`Delete ${rowsToDelete.length} selected row(s)?`)) return;
-      
-      rowsToDelete.forEach(rowIndex => {
-        if (rowIndex < results.length) {
-          deleteResult(results[rowIndex].id).then(() => {
-            if (rowIndex === rowsToDelete[rowsToDelete.length - 1]) {
-              showSection('results');
-            }
-          });
-        }
-      });
-    };
-
-    setTimeout(() => {
-      window.hotInstance = new Handsontable(hotContainer, {
-        data: rowData,
-        colHeaders: headers,
-        columns: columnDefs,
-        rowHeaders: true,
-        licenseKey: 'non-commercial-and-evaluation',
-        height: 'auto',
-        maxHeight: '70vh',
-        stretchH: 'all',
-        columnSorting: true,
-        filters: true,
-        dropdownMenu: true,
-        contextMenu: true,
-        manualColumnResize: true,
-        afterChange: async (changes, source) => {
-          if (source === 'edit') {
-            for (const [row, col, oldVal, newVal] of changes) {
-              if (oldVal !== newVal && row < results.length) {
-                const colKey = columns[col].key;
-                await updateResult(results[row].id, { [colKey]: newVal });
-              }
-            }
-          }
-        }
-      });
-      updateRecordCount(results.length);
-    }, 100);
+    // Render with CSV section
+    renderGridWithCSV('Results', currentColumns, data, currentOptions);
   }
   
-  let csvImportData = [];
-  let csvImportSectionVisible = false;
+  // ==========================================
+  // Grid Rendering
+  // ==========================================
+  function renderGrid(title, columns, data, options = {}) {
+    currentColumns = columns;
+    currentData = data;
+    currentOptions = options;
+    
+    const html = `
+      <div class="grid-container">
+        <div class="grid-header">
+          <h3>${title} (${data.length})</h3>
+          <div class="grid-actions">
+            <input type="text" id="search-input" placeholder="🔍 Search..." style="padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px; min-width: 200px;">
+            <button class="btn btn-primary" onclick="openAddModal()">+ Add</button>
+            <button class="btn btn-secondary" onclick="exportToCSV('${title.toLowerCase()}')">📥 Export</button>
+          </div>
+        </div>
+        <div class="grid-scroll">
+          ${data.length === 0 ? '<div class="empty-state">No records yet. Click "+ Add" to create one.</div>' : `
+            <table class="grid-table">
+              <thead>
+                <tr>
+                  ${columns.map(col => `
+                    <th class="sortable" onclick="sortTable('${col.key}')" style="cursor: pointer;">
+                      ${col.label}
+                      <span id="sort-${col.key}" style="font-size: 0.8rem;"></span>
+                    </th>
+                  `).join('')}
+                  <th style="width: 120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="grid-body">
+                ${renderTableRows(data, columns)}
+              </tbody>
+            </table>
+          `}
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('content').innerHTML = html;
+    document.getElementById('search-input')?.addEventListener('input', filterTable);
+    updateRecordCount(data.length);
+  }
   
-  window.toggleCSVSection = () => {
-    csvImportSectionVisible = !csvImportSectionVisible;
-    const section = document.getElementById('csv-import-section');
-    const btn = document.getElementById('csv-toggle-btn');
-    if (section) {
-      section.style.display = csvImportSectionVisible ? 'block' : 'none';
-      btn.textContent = csvImportSectionVisible ? 'Hide CSV Tools' : 'Show CSV Tools';
+  function renderGridWithCSV(title, columns, data, options = {}) {
+    const csvHtml = `
+      <div class="csv-section">
+        <h3>📥 CSV Import</h3>
+        <div class="csv-dropzone" id="csv-dropzone" ondrop="handleCSVDrop(event)" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" onclick="document.getElementById('csv-file-input').click()">
+          <p>📁 Drop CSV file here or click to browse</p>
+          <small>Supported format: athlete_name, school_slug, gender, time, distance, place, race_type, meet_slug</small>
+          <input type="file" id="csv-file-input" accept=".csv" onchange="handleCSVFile(event)">
+        </div>
+        <div id="csv-status" class="status-message"></div>
+        <div id="csv-preview" style="display: none;"></div>
+      </div>
+    `;
+    
+    const gridHtml = `
+      <div class="grid-container">
+        <div class="grid-header">
+          <h3>${title} (${data.length})</h3>
+          <div class="grid-actions">
+            <input type="text" id="search-input" placeholder="🔍 Search..." style="padding: 8px 12px; border: 1px solid var(--border); background: var(--card); color: #e6f0f7; border-radius: 6px; min-width: 200px;">
+            <button class="btn btn-primary" onclick="openAddModal()">+ Add</button>
+            <button class="btn btn-secondary" onclick="exportToCSV('${title.toLowerCase()}')">📥 Export</button>
+          </div>
+        </div>
+        <div class="grid-scroll">
+          ${data.length === 0 ? '<div class="empty-state">No records yet. Click "+ Add" or import from CSV.</div>' : `
+            <table class="grid-table">
+              <thead>
+                <tr>
+                  ${columns.map(col => `
+                    <th class="sortable" onclick="sortTable('${col.key}')" style="cursor: pointer;">
+                      ${col.label}
+                      <span id="sort-${col.key}" style="font-size: 0.8rem;"></span>
+                    </th>
+                  `).join('')}
+                  <th style="width: 120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="grid-body">
+                ${renderTableRows(data, columns)}
+              </tbody>
+            </table>
+          `}
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('content').innerHTML = csvHtml + gridHtml;
+    document.getElementById('search-input')?.addEventListener('input', filterTable);
+    updateRecordCount(data.length);
+  }
+  
+  function renderTableRows(data, columns) {
+    return data.map(row => `
+      <tr>
+        ${columns.map(col => {
+          const value = row[col.key] ?? '';
+          const displayValue = formatValue(value, col.type);
+          return `<td>${displayValue}</td>`;
+        }).join('')}
+        <td>
+          <button class="btn btn-secondary btn-small" onclick="openEditModal('${row.id}')">Edit</button>
+          <button class="btn btn-danger btn-small" onclick="confirmDelete('${row.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+  
+  function formatValue(value, type) {
+    if (value === null || value === undefined || value === '') return '—';
+    if (type === 'date') return new Date(value).toLocaleDateString();
+    if (type === 'number') return Number(value).toLocaleString();
+    return String(value);
+  }
+  
+  function updateRecordCount(count) {
+    document.getElementById('record-count').textContent = `${count} records`;
+  }
+  
+  function sortTable(column) {
+    if (sortColumn === column) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = column;
+      sortDirection = 'asc';
     }
-  };
+    
+    currentData.sort((a, b) => {
+      const aVal = a[column] ?? '';
+      const bVal = b[column] ?? '';
+      const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+    
+    // Update sort indicators
+    document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '');
+    const indicator = document.getElementById(`sort-${column}`);
+    if (indicator) indicator.textContent = sortDirection === 'asc' ? ' ↑' : ' ↓';
+    
+    document.getElementById('grid-body').innerHTML = renderTableRows(currentData, currentColumns);
+  }
   
-  window.handleCSVDrop = (e) => {
+  function filterTable() {
+    const search = (document.getElementById('search-input')?.value || '').toLowerCase();
+    if (!search) {
+      document.getElementById('grid-body').innerHTML = renderTableRows(currentData, currentColumns);
+      updateRecordCount(currentData.length);
+      return;
+    }
+    
+    const filtered = currentData.filter(row => {
+      return currentColumns.some(col => {
+        const value = String(row[col.key] ?? '').toLowerCase();
+        return value.includes(search);
+      });
+    });
+    
+    document.getElementById('grid-body').innerHTML = renderTableRows(filtered, currentColumns);
+    updateRecordCount(filtered.length);
+  }
+  
+  function exportToCSV(filename) {
+    const headers = currentColumns.map(col => col.label).join(',');
+    const rows = currentData.map(row => {
+      return currentColumns.map(col => {
+        const value = row[col.key] ?? '';
+        return `"${String(value).replace(/"/g, '""')}"`;
+      }).join(',');
+    });
+    
+    const csv = [headers, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  // ==========================================
+  // Modal
+  // ==========================================
+  let editingId = null;
+  
+  function openAddModal() {
+    editingId = null;
+    openModal('Add New Record', generateFormHTML({}), 'Create');
+  }
+  
+  async function openEditModal(id) {
+    editingId = id;
+    const record = currentData.find(r => r.id === id);
+    if (!record) return;
+    
+    openModal('Edit Record', generateFormHTML(record), 'Update');
+  }
+  
+  function generateFormHTML(record) {
+    return currentColumns.map(col => {
+      const value = record[col.key] ?? '';
+      
+      if (col.type === 'select') {
+        return `
+          <div class="form-group">
+            <label class="form-label">${col.label}</label>
+            <select class="form-input" name="${col.key}">
+              <option value="">-- Select --</option>
+              ${(col.options || []).map(opt => `
+                <option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>
+              `).join('')}
+            </select>
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="form-group">
+          <label class="form-label">${col.label}</label>
+          <input type="${col.type}" class="form-input" name="${col.key}" value="${String(value)}" placeholder="${col.label}">
+        </div>
+      `;
+    }).join('');
+  }
+  
+  function openModal(title, body, submitText = 'Save') {
+    const template = document.getElementById('modal-template');
+    const clone = template.content.cloneNode(true);
+    
+    clone.querySelector('#modal-title').textContent = title;
+    clone.querySelector('#modal-body').innerHTML = body;
+    clone.querySelector('#modal-submit').textContent = submitText;
+    
+    const overlay = clone.querySelector('.modal-overlay');
+    document.body.appendChild(overlay);
+    
+    window.currentModal = overlay;
+  }
+  
+  function closeModal() {
+    if (window.currentModal) {
+      window.currentModal.remove();
+      window.currentModal = null;
+    }
+  }
+  
+  async function handleModalSubmit() {
+    const modal = window.currentModal;
+    if (!modal) return;
+    
+    const formData = {};
+    modal.querySelectorAll('.form-input').forEach(input => {
+      let value = input.value;
+      if (input.type === 'number') value = value ? parseFloat(value) : null;
+      formData[input.name] = value;
+    });
+    
+    try {
+      if (editingId) {
+        await currentOptions.onUpdate(editingId, formData);
+      } else {
+        await currentOptions.onCreate(formData);
+      }
+      closeModal();
+      await loadSection(currentSection);
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+  
+  async function confirmDelete(id) {
+    if (!confirm('Are you sure you want to delete this record?')) return;
+    try {
+      await currentOptions.onDelete(id);
+      await loadSection(currentSection);
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+  
+  // ==========================================
+  // CSV Import
+  // ==========================================
+  let csvData = [];
+  
+  async function handleCSVDrop(e) {
     e.preventDefault();
-    e.currentTarget.style.borderColor = 'var(--border)';
-    const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].name.endsWith('.csv')) {
-      processCSVFile(files[0]);
+    e.currentTarget.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      processCSVFile(e.dataTransfer.files[0]);
     }
-  };
+  }
   
-  window.handleCSVFile = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      processCSVFile(file);
+  async function handleCSVFile(e) {
+    if (e.target.files.length > 0) {
+      processCSVFile(e.target.files[0]);
     }
-  };
+  }
   
   async function processCSVFile(file) {
-    const text = await file.text();
-    const lines = text.trim().split('\n');
-    if (lines.length < 2) {
-      showCSVStatus('error', 'CSV file must have at least a header row and one data row');
-      return;
-    }
-    
-    // Parse header
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-    const requiredHeaders = ['athlete_name', 'school_slug', 'gender', 'time', 'distance', 'place'];
-    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-    
-    if (missingHeaders.length > 0) {
-      showCSVStatus('error', `Missing required columns: ${missingHeaders.join(', ')}`);
-      return;
-    }
-    
-    // Parse data
-    csvImportData = [];
-    const errors = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+    try {
+      const text = await file.text();
+      const lines = text.trim().split('\n');
       
-      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-      if (values.length !== headers.length) {
-        errors.push(`Row ${i + 1}: Column count mismatch`);
-        continue;
+      if (lines.length < 2) {
+        showCSVStatus('error', 'CSV must have headers and at least one row');
+        return;
       }
       
-      const row = {};
-      headers.forEach((header, idx) => {
-        row[header] = values[idx] || '';
-      });
+      // Parse CSV
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      csvData = [];
       
-      // Validate required fields
-      if (!row.athlete_name) {
-        errors.push(`Row ${i + 1}: Missing athlete_name`);
-        continue;
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        if (values.length !== headers.length) continue;
+        
+        const row = {};
+        headers.forEach((header, idx) => {
+          row[header] = values[idx] || null;
+        });
+        csvData.push(row);
       }
       
-      // Convert time to seconds if needed
-      if (row.time) {
-        const timeStr = row.time.toString();
-        if (timeStr.includes(':')) {
-          const parts = timeStr.split(':');
-          if (parts.length === 2) {
-            row.time = parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
-          } else if (parts.length === 3) {
-            row.time = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
-          }
-        } else {
-          row.time = parseFloat(row.time);
-        }
+      if (csvData.length === 0) {
+        showCSVStatus('error', 'No valid rows in CSV');
+        return;
       }
       
-      // Convert numeric fields
-      if (row.distance) row.distance = parseFloat(row.distance) || 5000;
-      if (row.place) row.place = parseInt(row.place) || null;
-      if (row.gender) row.gender = row.gender.toUpperCase();
-      
-      csvImportData.push(row);
-    }
-    
-    if (csvImportData.length === 0) {
-      showCSVStatus('error', 'No valid rows found in CSV file');
-      return;
-    }
-    
-    // Show preview
-    showCSVPreview();
-    if (errors.length > 0) {
-      showCSVStatus('warning', `Imported ${csvImportData.length} rows. ${errors.length} errors found.`);
-    } else {
-      showCSVStatus('success', `Successfully parsed ${csvImportData.length} rows`);
+      showCSVStatus('success', `Loaded ${csvData.length} rows`);
+      showCSVPreview();
+    } catch (error) {
+      showCSVStatus('error', 'Error reading CSV: ' + error.message);
     }
   }
   
   function showCSVPreview() {
     const preview = document.getElementById('csv-preview');
-    const previewBody = document.getElementById('csv-preview-body');
-    const previewCount = document.getElementById('csv-preview-count');
+    if (!preview) return;
     
-    if (!preview || !previewBody) return;
-    
+    const columns = Object.keys(csvData[0] || {});
+    const html = `
+      <div class="csv-preview">
+        <table>
+          <thead>
+            <tr>
+              ${columns.map(col => `<th>${col}</th>`).join('')}
+              <th style="width: 80px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${csvData.slice(0, 5).map((row, idx) => `
+              <tr>
+                ${columns.map(col => `<td>${row[col] || '—'}</td>`).join('')}
+                <td><button class="btn btn-success btn-small" onclick="importRow(${idx})">Import</button></td>
+              </tr>
+            `).join('')}
+            ${csvData.length > 5 ? `<tr><td colspan="${columns.length + 1}" style="text-align: center; padding: 12px; color: var(--muted);">... and ${csvData.length - 5} more rows</td></tr>` : ''}
+          </tbody>
+        </table>
+        <button class="btn btn-success" style="width: 100%; margin-top: 12px;" onclick="importAllCSV()">Import All (${csvData.length} rows)</button>
+      </div>
+    `;
+    preview.innerHTML = html;
     preview.style.display = 'block';
-    previewCount.textContent = csvImportData.length;
-    
-    previewBody.innerHTML = csvImportData.slice(0, 10).map((row, idx) => `
-      <tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:6px">${row.athlete_name || '—'}</td>
-        <td style="padding:6px">${row.school_slug || '—'}</td>
-        <td style="padding:6px">${formatTime(row.time)}</td>
-        <td style="padding:6px">${row.place || '—'}</td>
-      </tr>
-    `).join('') + (csvImportData.length > 10 ? `<tr><td colspan="4" style="padding:6px;text-align:center;color:var(--muted);font-size:0.8rem">... and ${csvImportData.length - 10} more rows</td></tr>` : '');
   }
   
-  window.toggleCustomRaceType = () => {
-    const raceTypeSelect = document.getElementById('csv-race-type');
-    const customInput = document.getElementById('csv-custom-race-type');
-    if (raceTypeSelect && customInput) {
-      if (raceTypeSelect.value === 'custom') {
-        customInput.style.display = 'block';
-        customInput.focus();
+  async function importRow(index) {
+    try {
+      const row = csvData[index];
+      await currentOptions.onCreate(row);
+      csvData.splice(index, 1);
+      if (csvData.length === 0) {
+        showCSVStatus('success', 'All rows imported!');
+        document.getElementById('csv-preview').style.display = 'none';
+        await loadSection(currentSection);
       } else {
-        customInput.style.display = 'none';
-        customInput.value = '';
+        showCSVPreview();
       }
+    } catch (error) {
+      showCSVStatus('error', `Error importing row ${index + 1}: ${error.message}`);
     }
-  };
+  }
   
-  async function importCSVData() {
-    const meetSlug = document.getElementById('csv-meet-select').value;
-    const raceTypeSelect = document.getElementById('csv-race-type');
-    const customRaceType = document.getElementById('csv-custom-race-type');
-    const dontImportTeams = document.getElementById('csv-dont-import-teams').checked;
-    const dontIncludeRankings = document.getElementById('csv-dont-include-rankings').checked;
-    
-    let raceType = raceTypeSelect.value;
-    if (raceType === 'custom') {
-      raceType = customRaceType.value.trim();
-      if (!raceType) {
-        showCSVStatus('error', 'Please enter a custom race type');
-        return;
+  async function importAllCSV() {
+    try {
+      showCSVStatus('info', `Importing ${csvData.length} rows...`);
+      
+      for (const row of csvData) {
+        // Convert time to seconds if needed
+        if (row.time) {
+          const timeStr = String(row.time).trim();
+          if (timeStr.includes(':')) {
+            const parts = timeStr.split(':');
+            if (parts.length === 2) {
+              row.time = parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+            } else if (parts.length === 3) {
+              row.time = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+            }
+          } else {
+            row.time = parseFloat(row.time);
+          }
+        }
+        
+        // Convert numeric fields
+        if (row.distance) row.distance = parseFloat(row.distance);
+        if (row.place) row.place = parseInt(row.place);
+        
+        await currentOptions.onCreate(row);
       }
-    }
-    
-    if (!meetSlug) {
-      showCSVStatus('error', 'Please select a meet first');
-      return;
-    }
-    
-    if (csvImportData.length === 0) {
-      showCSVStatus('error', 'No data to import');
-      return;
-    }
-    
-    showCSVStatus('info', `Importing ${csvImportData.length} results...`);
-    
-    let successCount = 0;
-    let errorCount = 0;
-    const errors = [];
-    
-    for (let i = 0; i < csvImportData.length; i++) {
-      const row = csvImportData[i];
-      try {
-        const resultData = {
-          meet_slug: meetSlug,
-          athlete_name: row.athlete_name,
-          gender: row.gender || null,
-          time: row.time || null,
-          distance: row.distance || 5000,
-          place: row.place || null,
-          race_type: raceType || 'varsity'
-        };
-        
-        // Only include school_slug if "Don't import teams" is NOT checked
-        if (!dontImportTeams) {
-          resultData.school_slug = row.school_slug || null;
-        }
-        
-        // Add exclude_from_rankings flag if "Don't include in rankings" is checked
-        if (dontIncludeRankings) {
-          resultData.exclude_from_rankings = true;
-        }
-        
-        await window.firebaseDatabase.ref('crosscountry/results').push(resultData);
-        successCount++;
-
-        // Check if athlete exists
-        const existingAthleteSnapshot = await window.firebaseDatabase.ref('crosscountry/athletes').orderByChild('name').equalTo(row.athlete_name).once('value');
-        if (!existingAthleteSnapshot.exists()) {
-          // create athlete
-          await window.firebaseDatabase.ref('crosscountry/athletes').push({
-            name: row.athlete_name,
-            school_slug: !dontImportTeams ? (row.school_slug || null) : null,
-            gender: row.gender || null
-          });
-        }
-      } catch (error) {
-        errorCount++;
-        errors.push(`Row ${i + 1}: ${error.message}`);
-      }
-    }
-    
-    if (successCount > 0) {
-      showCSVStatus('success', `✅ Successfully imported ${successCount} results${errorCount > 0 ? ` (${errorCount} errors)` : ''}`);
-      csvImportData = [];
+      
+      showCSVStatus('success', `Successfully imported ${csvData.length} rows!`);
+      csvData = [];
       document.getElementById('csv-preview').style.display = 'none';
       document.getElementById('csv-file-input').value = '';
-      // Refresh results table
-      setTimeout(() => showSection('results'), 1000);
-      clearFilters(); // <-- ensures any new custom types are shown
-    } else {
-      showCSVStatus('error', `Failed to import: ${errors.join(', ')}`);
+      
+      setTimeout(() => loadSection(currentSection), 1000);
+    } catch (error) {
+      showCSVStatus('error', 'Error importing CSV: ' + error.message);
     }
   }
   
-  window.importCSVData = importCSVData;
-  
   function showCSVStatus(type, message) {
-    const statusEl = document.getElementById('csv-import-status');
+    const statusEl = document.getElementById('csv-status');
     if (!statusEl) return;
     
-    statusEl.style.display = 'block';
-    statusEl.className = `csv-status ${type}`;
-    statusEl.style.padding = '12px';
-    statusEl.style.borderRadius = '6px';
-    statusEl.style.marginTop = '12px';
-    
-    if (type === 'success') {
-      statusEl.style.background = 'rgba(40, 167, 69, 0.2)';
-      statusEl.style.color = '#28a745';
-      statusEl.style.border = '1px solid #28a745';
-    } else if (type === 'error') {
-      statusEl.style.background = 'rgba(220, 53, 69, 0.2)';
-      statusEl.style.color = '#dc3545';
-      statusEl.style.border = '1px solid #dc3545';
-    } else if (type === 'warning') {
-      statusEl.style.background = 'rgba(255, 193, 7, 0.2)';
-      statusEl.style.color = '#ffc107';
-      statusEl.style.border = '1px solid #ffc107';
-    } else {
-      statusEl.style.background = 'rgba(0, 123, 255, 0.2)';
-      statusEl.style.color = '#007bff';
-      statusEl.style.border = '1px solid #007bff';
-    }
-    
+    statusEl.className = `status-message ${type}`;
     statusEl.textContent = message;
   }
   
-  function formatTime(seconds) {
-    if (!seconds && seconds !== 0) return '—';
-    const sec = Number(seconds);
-    if (Number.isNaN(sec)) return seconds;
-    const ms = Math.floor((sec % 1) * 100);
-    const totalSeconds = Math.floor(sec);
-    const minutes = Math.floor(totalSeconds / 60);
-    const remainingSeconds = totalSeconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+  // ==========================================
+  // Firebase Operations
+  // ==========================================
+  async function createRecord(path, data) {
+    const ref = window.firebaseDatabase.ref(path).push();
+    await ref.set(data);
+    return ref.key;
   }
   
-  window.downloadCSVTemplate = () => {
-    const headers = 'athlete_name,school_slug,gender,time,distance,place\n';
-    const sampleRows = [
-      'John Smith,morgantown,M,1110.45,5000,1',
-      'Jane Doe,university-high,F,1200.30,5000,2',
-      'Mike Johnson,bridgeport,M,1125.15,5000,3',
-      'Sarah Williams,parkersburg,F,1215.50,5000,4'
-    ];
-    const csv = headers + sampleRows.join('\n');
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `results-template-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  async function renderSchools() {
-    const snapshot = await window.firebaseDatabase.ref('crosscountry/schools').once('value');
-    const schools = [];
-    snapshot.forEach(child => {
-      schools.push({ id: child.key, ...child.val() });
-    });
-    currentData = schools;
-    
-    const columns = [
-      { key: 'name', label: 'Name', editable: true, type: 'text' },
-      { key: 'slug', label: 'Slug', editable: true, type: 'text' }
-    ];
-    
-    renderAGGrid('Schools', columns, schools, {
-      onCreate: createSchool,
-      onDelete: deleteSchool,
-      onUpdate: updateSchool
-    });
+  async function updateRecord(path, updates) {
+    await window.firebaseDatabase.ref(path).update(updates);
   }
-
-  async function renderTeams() {
-    const [athletesSnapshot, schoolsSnapshot] = await Promise.all([
-      window.firebaseDatabase.ref('crosscountry/athletes').once('value'),
-      window.firebaseDatabase.ref('crosscountry/schools').once('value')
-    ]);
-    
-    const athletes = [];
-    athletesSnapshot.forEach(child => {
-      const athlete = child.val();
-      if (athlete && athlete.school_slug) {
-        athletes.push(athlete);
-      }
-    });
-    
-    const schools = [];
-    schoolsSnapshot.forEach(child => {
-      schools.push({ id: child.key, ...child.val() });
-    });
-    
-    const schoolSlugs = [...new Set(athletes.map(a => a.school_slug).filter(Boolean))];
-    const schoolsMap = {};
-    schools.forEach(s => {
-      if (schoolSlugs.includes(s.slug)) {
-        schoolsMap[s.slug] = s.name;
-      }
-    });
-    
-    const teamsData = schoolSlugs.sort().map(slug => {
-      const count = athletes.filter(a => a.school_slug === slug).length;
-      return {
-        id: slug,
-        school: schoolsMap[slug] || slug,
-        athleteCount: count,
-        slug: slug
-      };
-    });
-    
-    const columns = [
-      { key: 'school', label: 'School', editable: false, type: 'text' },
-      { key: 'athleteCount', label: 'Athletes', editable: false, type: 'number' },
-      { key: 'slug', label: 'Actions', editable: false, type: 'text' }
-    ];
-    
-    // Destroy existing Handsontable
-    if (window.hotInstance) {
-      try {
-        window.hotInstance.destroy();
-      } catch (e) {
-        console.warn('Error destroying Handsontable:', e);
-      }
-      window.hotInstance = null;
-    }
-    
-    const loadingDiv = mainContent.querySelector('.loading');
-    if (loadingDiv) loadingDiv.remove();
-    
-    const container = document.getElementById('hot-container');
-    if (!container) {
-      const newContainer = document.createElement('div');
-      newContainer.id = 'hot-container';
-      mainContent.appendChild(newContainer);
-    }
-    
-    const hotContainer = document.getElementById('hot-container');
-    hotContainer.style.display = 'block';
-    hotContainer.style.height = '70vh';
-    hotContainer.style.width = '100%';
-    
-    const headers = ['School', 'Athletes', 'Actions'];
-    const rowData = teamsData.map(team => [
-      team.school,
-      team.athleteCount,
-      team.slug
-    ]);
-    
-    const columnDefs = [
-      { data: 0, title: 'School', type: 'text', readOnly: true },
-      { data: 1, title: 'Athletes', type: 'numeric', readOnly: true },
-      {
-        data: 2,
-        title: 'Actions',
-        type: 'text',
-        readOnly: true,
-        renderer: function(instance, td, row, col, prop, value, cellProperties) {
-          Handsontable.renderers.TextRenderer.apply(this, arguments);
-          if (value) {
-            td.innerHTML = `<a href="school.html?slug=${encodeURIComponent(value)}" target="_blank" style="color:var(--accent);text-decoration:none">View →</a>`;
-          }
-        }
-      }
-    ];
-    
-    setTimeout(() => {
-      window.hotInstance = new Handsontable(hotContainer, {
-        data: rowData,
-        colHeaders: headers,
-        columns: columnDefs,
-        rowHeaders: true,
-        licenseKey: 'non-commercial-and-evaluation',
-        height: 'auto',
-        maxHeight: '70vh',
-        stretchH: 'all',
-        columnSorting: true,
-        filters: true,
-        dropdownMenu: true,
-        contextMenu: true,
-        manualColumnResize: true
-      });
-      updateRecordCount(teamsData.length);
-    }, 100);
+  
+  async function deleteRecord(path) {
+    await window.firebaseDatabase.ref(path).remove();
   }
-
-  function renderAGGrid(title, columns, data, options = {}) {
-    // Destroy existing Handsontable instance if present
-    if (window.hotInstance) {
-      try {
-        window.hotInstance.destroy();
-      } catch (e) {
-        console.warn('Error destroying Handsontable:', e);
-      }
-      window.hotInstance = null;
-    }
-
-    // Get container first before clearing
-    let container = document.getElementById('hot-container');
-    
-    // Clear main content but preserve container
-    const loadingDiv = mainContent.querySelector('.loading');
-    if (loadingDiv) loadingDiv.remove();
-    
-    // Remove old toolbar if exists
-    const oldToolbar = mainContent.querySelector('.table-header');
-    if (oldToolbar) oldToolbar.remove();
-    
-    // Show container or create it
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'hot-container';
-      mainContent.appendChild(container);
-    }
-    
-    container.style.display = 'block';
-    container.style.height = '70vh';
-    container.style.width = '100%';
-
-    // Prepare data for Handsontable (array of arrays)
-    const headers = columns.map(col => col.label);
-    const rowData = data.map(row => columns.map(col => {
-      const val = row[col.key];
-      return val === null || val === undefined ? '' : val;
-    }));
-
-    // Build column definitions for Handsontable
-    const colHeaders = headers;
-    const columnDefs = columns.map((col, idx) => {
-      const colDef = {
-        data: idx,
-        title: col.label,
-        type: col.type === 'number' ? 'numeric' : 'text',
-        readOnly: !col.editable
-      };
-      
-      if (col.type === 'select') {
-        colDef.type = 'dropdown';
-        colDef.source = Array.isArray(col.options) ? col.options : [];
-      }
-      
-      if (col.type === 'date') {
-        colDef.type = 'date';
-        colDef.dateFormat = 'YYYY-MM-DD';
-      }
-      
-      return colDef;
-    });
-
-    // Add "Add New" button
-    const toolbar = document.createElement('div');
-    toolbar.className = 'table-header';
-    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:16px 20px;margin-bottom:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)';
-    toolbar.innerHTML = `
-      <h3 style="margin:0;font-size:1.1rem;font-weight:600">${title} (${data.length})</h3>
-      <div style="display:flex;gap:10px">
-        <button class="table-toolbar button" onclick="addNewRowToGrid()">+ Add New</button>
-        <button class="table-toolbar button secondary" onclick="exportGridData()">📥 Export</button>
-        <button class="table-toolbar button danger" onclick="deleteSelectedRows()">🗑️ Delete Selected</button>
-      </div>
-    `;
-    mainContent.appendChild(toolbar);
-
-    // Store data for add/export functions
-    window.currentGridData = data;
-    window.currentGridColumns = columns;
-    window.currentGridOptions = options;
-    window.currentHotData = rowData;
-    
-    window.addNewRowToGrid = () => {
-      const newRow = columns.map(col => {
-        if (col.type === 'select') return '';
-        if (col.type === 'number') return null;
-        return '';
-      });
-      if (window.hotInstance) {
-        window.hotInstance.alter('insert_row', window.hotInstance.countRows());
-        window.hotInstance.setDataAtRow(window.hotInstance.countRows() - 1, newRow);
-      }
-      if (options.onCreate) {
-        const newRowObj = {};
-        columns.forEach((col, idx) => {
-          newRowObj[col.key] = newRow[idx];
-        });
-        options.onCreate(newRowObj).then(() => {
-          showSection(currentSection);
-        });
-      }
-    };
-    
-    window.exportGridData = () => {
-      if (window.hotInstance) {
-        const csv = window.hotInstance.getPlugin('exportFile').exportAsString('csv', {
-          bom: false,
-          columnDelimiter: ',',
-          columnHeaders: true,
-          exportHiddenColumns: true,
-          exportHiddenRows: true,
-          fileExtension: 'csv',
-          filename: `${currentSection}-${new Date().toISOString().split('T')[0]}`,
-          mimeType: 'text/csv',
-          rowDelimiter: '\r\n',
-          rowHeaders: false
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${currentSection}-${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    };
-    
-    window.deleteSelectedRows = () => {
-      if (!window.hotInstance) return;
-      const selected = window.hotInstance.getSelected();
-      if (!selected || selected.length === 0) {
-        alert('No rows selected');
-        return;
-      }
-      const rowsToDelete = [...new Set(selected.map(s => s[0][0]))].sort((a, b) => b - a);
-      if (!confirm(`Delete ${rowsToDelete.length} selected row(s)?`)) return;
-      
-      rowsToDelete.forEach(rowIndex => {
-        if (rowIndex < data.length && options.onDelete) {
-          options.onDelete(data[rowIndex].id).then(() => {
-            if (rowIndex === rowsToDelete[rowsToDelete.length - 1]) {
-              showSection(currentSection);
-            }
-          });
-        }
-      });
-    };
-
-    // Initialize Handsontable
-    setTimeout(() => {
-      try {
-        window.hotInstance = new Handsontable(container, {
-          data: rowData,
-          colHeaders: colHeaders,
-          columns: columnDefs,
-          rowHeaders: true,
-          licenseKey: 'non-commercial-and-evaluation',
-          height: 'auto',
-          maxHeight: '70vh',
-          stretchH: 'all',
-          columnSorting: true,
-          filters: true,
-          dropdownMenu: true,
-          contextMenu: true,
-          manualColumnResize: true,
-          manualRowResize: true,
-          afterChange: async (changes, source) => {
-            if (source === 'edit' && options.onUpdate) {
-              for (const [row, col, oldVal, newVal] of changes) {
-                if (oldVal !== newVal && row < data.length) {
-                  const colKey = columns[col].key;
-                  await options.onUpdate(data[row].id, { [colKey]: newVal });
-                }
-              }
-            }
-          },
-          afterCreateRow: (index, amount) => {
-            if (options.onCreate) {
-              const newRowObj = {};
-              const rowData = window.hotInstance.getDataAtRow(index);
-              columns.forEach((col, idx) => {
-                newRowObj[col.key] = rowData[idx];
-              });
-              options.onCreate(newRowObj).then(() => {
-                showSection(currentSection);
-              });
-            }
-          }
-        });
-        updateRecordCount(data.length);
-      } catch (error) {
-        console.error('Error creating Handsontable:', error);
-        mainContent.innerHTML = `<div style="padding:20px;color:var(--danger)">Error loading grid: ${error.message}</div>`;
-      }
-    }, 100);
-  }
-
-  function renderDataTable(title, columns, data, options = {}) {
-    // Store data for filtering
-    window.currentTableData = data;
-    window.currentTableColumns = columns;
-    window.currentTableOptions = options;
-    
-    let filteredData = [...data];
-    
-    // Apply sorting
-    if (sortColumn) {
-      filteredData.sort((a, b) => {
-        const aVal = a[sortColumn] || '';
-        const bVal = b[sortColumn] || '';
-        const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-        return sortDirection === 'asc' ? comparison : -comparison;
-      });
-    }
-
-    // Always collect all unique values for each filter
-    if (options && options.filters && Array.isArray(options.filters)) {
-      options.filters.forEach(filterKey => {
-        window[`unique_${filterKey}_values`] = [...new Set(data.map(d => d[filterKey]).filter(Boolean))].sort();
-      });
-    }
-
-    console.log('Admin Results Table: loaded table data array:', data);
-
-    // After import or reload, always clear filter dropdowns
-    setTimeout(() => {
-      options.filters && options.filters.forEach(key=>{
-        const el = document.getElementById('filter-' + key);
-        if (el) el.value = '';
-      });
-    }, 200);
-
-    updateRecordCount(filteredData.length);
-    
-    // Initialize bulk delete button state
-    setTimeout(() => updateBulkDeleteButton(), 100);
-    
-    // Add CSV Import section if enabled
-    const csvImportHTML = options.csvImport ? `
-      <div class="filters-panel" style="margin-bottom:20px">
-        <h4 style="margin:0 0 16px 0;display:flex;justify-content:space-between;align-items:center">
-          <span>📥 CSV Import & Generator</span>
-          <button class="table-toolbar button secondary" onclick="toggleCSVSection()" id="csv-toggle-btn">Show CSV Tools</button>
-        </h4>
-        <div id="csv-import-section" style="display:none">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-            <div>
-              <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted)">Select Meet for Import</label>
-              <select id="csv-meet-select" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7">
-                <option value="">-- Select Meet --</option>
-                ${(options.csvImportMeets || []).map(m => `<option value="${m.slug}">${m.name}</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted)">Race Type</label>
-              <select id="csv-race-type" onchange="toggleCustomRaceType()" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7">
-                <option value="varsity">Varsity</option>
-                <option value="varsity b">Varsity B</option>
-                <option value="championship">Championship</option>
-                <option value="elite">Elite</option>
-                <option value="emerging-elite">Emerging Elite</option>
-                <option value="freshman">Freshman</option>
-                <option value="jv">JV</option>
-                <option value="jv2">JV2</option>
-                <option value="middle school">Middle School</option>
-                <option value="elementary">Elementary</option>
-                <option value="modified">Modified</option>
-                <option value="novice">Novice</option>
-                <option value="open">Open</option>
-                <option value="open invitational">Open Invitational</option>
-                <option value="sophomore">Sophomore</option>
-                <option value="custom">Custom...</option>
-              </select>
-              <input type="text" id="csv-custom-race-type" placeholder="Enter custom race type" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e6f0f7;margin-top:8px;display:none">
-            </div>
-          </div>
-          <div style="display:flex;gap:20px;margin-bottom:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#e6f0f7;font-size:0.9rem">
-              <input type="checkbox" id="csv-dont-import-teams" style="width:18px;height:18px;cursor:pointer">
-              <span>Don't import teams (skip school_slug)</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#e6f0f7;font-size:0.9rem">
-              <input type="checkbox" id="csv-dont-include-rankings" style="width:18px;height:18px;cursor:pointer">
-              <span>Don't include in rankings</span>
-            </label>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div>
-              <h5 style="margin:0 0 12px 0;font-size:0.9rem;color:var(--muted)">📥 Import CSV</h5>
-              <div id="csv-dropzone" style="border:2px dashed var(--border);border-radius:8px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--card)" 
-                   ondrop="handleCSVDrop(event)" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" 
-                   ondragleave="this.style.borderColor='var(--border)'"
-                   onclick="document.getElementById('csv-file-input').click()">
-                <p style="margin:0;color:#e6f0f7;font-weight:600">📁 Drop CSV file here</p>
-                <small style="color:var(--muted);display:block;margin-top:8px">or click to browse</small>
-                <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleCSVFile(event)">
-              </div>
-              <div id="csv-preview" style="margin-top:16px;display:none">
-                <div style="background:var(--card);border-radius:8px;padding:16px;border:1px solid var(--border)">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                    <span style="color:var(--muted);font-size:0.9rem">Preview: <strong id="csv-preview-count">0</strong> rows</span>
-                    <button class="table-toolbar button" onclick="importCSVData()">✅ Import All</button>
-                  </div>
-                  <div style="max-height:200px;overflow:auto">
-                    <table style="width:100%;font-size:0.85rem;border-collapse:collapse">
-                      <thead style="background:var(--panel);position:sticky;top:0">
-                        <tr>
-                          <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">Athlete</th>
-                          <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">School</th>
-                          <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">Time</th>
-                          <th style="padding:6px;text-align:left;font-size:0.75rem;color:var(--muted)">Place</th>
-                        </tr>
-                      </thead>
-                      <tbody id="csv-preview-body"></tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <div id="csv-import-status" style="margin-top:12px;display:none"></div>
-            </div>
-            <div>
-              <h5 style="margin:0 0 12px 0;font-size:0.9rem;color:var(--muted)">📤 Generate CSV Template</h5>
-              <div style="background:var(--card);border-radius:8px;padding:16px;border:1px solid var(--border)">
-                <p style="margin:0 0 12px 0;color:var(--muted);font-size:0.9rem">Download a CSV template with sample data to get started</p>
-                <button class="table-toolbar button" onclick="downloadCSVTemplate()" style="width:100%;margin-bottom:8px">⬇️ Download Template</button>
-                <a href="csv-genorater.html" target="_blank" style="display:block;width:100%;padding:8px 12px;background:var(--accent);color:#fff;text-align:center;text-decoration:none;border-radius:6px;font-weight:600;transition:all 0.2s" onmouseover="this.style.background='#ff8c42'" onmouseout="this.style.background='var(--accent)'">🔧 Advanced CSV Generator →</a>
-                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-                  <p style="margin:0 0 8px 0;font-size:0.85rem;color:var(--muted)">Required columns:</p>
-                  <code style="display:block;background:var(--panel);padding:8px;border-radius:4px;font-size:0.8rem;color:#e6f0f7">
-                    athlete_name, school_slug, gender, time, distance, place
-                  </code>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    ` : '';
-    
-    const filtersHTML = options.filters ? `
-      <div class="filters-panel">
-        <h4>🔍 Advanced Filters</h4>
-        <div class="filters-grid">
-          ${options.filters.map(filterKey => {
-            const col = columns.find(c => c.key === filterKey);
-            if (!col) return '';
-            const uniqueValues = [...new Set(data.map(d => d[filterKey]).filter(Boolean))].sort();
-            return `
-              <div class="filter-group">
-                <label>${col.label}</label>
-                <select id="filter-${filterKey}" onchange="applyTableFilters()">
-                  <option value="">All ${col.label}</option>
-                  ${uniqueValues.map(v => `<option value="${v}">${v}</option>`).join('')}
-                </select>
-              </div>
-            `;
-          }).join('')}
-          <div class="filter-group" style="align-items:flex-end">
-            <button class="table-toolbar button secondary" onclick="clearFilters()">Clear Filters</button>
-          </div>
-        </div>
-      </div>
-    ` : '';
-    
-    mainContent.innerHTML = csvImportHTML + `
-      ${filtersHTML}
-      <div class="data-table-container">
-        <div class="table-header">
-          <h3>${title} (${filteredData.length})</h3>
-          <div class="table-toolbar">
-            <input type="text" id="global-search" placeholder="🔍 Search..." oninput="applyTableFilters()" style="min-width:200px">
-            <button class="table-toolbar button" onclick="addNewRow()">+ Add New</button>
-            <button class="table-toolbar button secondary" onclick="exportData()">📥 Export</button>
-            <button class="table-toolbar button danger" id="bulk-delete-btn" onclick="bulkDelete()" style="display:none">🗑️ Delete Selected (<span id="selected-count">0</span>)</button>
-          </div>
-        </div>
-        <div class="bulk-actions" id="bulk-actions-bar" style="display:none">
-          <span class="count"><span id="bulk-selected-count">0</span> selected</span>
-          <button class="table-toolbar button secondary" onclick="clearSelection()">Clear Selection</button>
-        </div>
-        <div class="data-table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width:40px"><input type="checkbox" onchange="toggleAllRows(this.checked)"></th>
-                ${columns.map(col => `<th class="sortable" onclick="sortTable('${col.key}')">${col.label} ${sortColumn === col.key ? (sortDirection === 'asc' ? '↑' : '↓') : ''}</th>`).join('')}
-                <th style="width:100px">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${filteredData.map((row, idx) => `
-                <tr data-id="${row.id}" class="${selectedRows.has(row.id) ? 'selected' : ''}">
-                  <td><input type="checkbox" ${selectedRows.has(row.id) ? 'checked' : ''} onchange="toggleRowSelection('${row.id}', this.checked)"></td>
-                  ${columns.map(col => {
-                    const value = row[col.key] || '';
-                    if (col.editable) {
-                      if (col.type === 'select') {
-                        const optionsWithSelected = col.options.replace(
-                          new RegExp(`value="${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`), 
-                          `value="${value}" selected`
-                        );
-                        return `<td class="editable" data-key="${col.key}" data-id="${row.id}">
-                          <select class="cell-edit" onchange="saveCellEdit('${row.id}', '${col.key}', this.value)" style="width:100%;padding:4px;border:1px solid var(--border);background:var(--card);color:#e6f0f7;border-radius:4px">
-                            ${optionsWithSelected}
-                          </select>
-                        </td>`;
-                      } else {
-                        return `<td class="editable" data-key="${col.key}" data-id="${row.id}" onclick="editCell(this)">
-                          <span class="cell-value">${formatCellValue(value, col.type)}</span>
-                          <input type="${col.type}" class="cell-edit" value="${value}" style="display:none" 
-                            onblur="saveCellEdit('${row.id}', '${col.key}', this.value)"
-                            onkeydown="if(event.key==='Enter'){this.blur()}">
-                        </td>`;
-                      }
-                    }
-                    return `<td>${formatCellValue(value, col.type)}</td>`;
-                  }).join('')}
-                  <td>
-                    <button class="table-toolbar button secondary" style="padding:4px 8px;font-size:0.8rem" onclick="deleteRow('${row.id}')">Delete</button>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-    
-    window.applyTableFilters = () => {
-      const data = window.currentTableData || [];
-      const filters = window.currentTableOptions?.filters || [];
-      let filtered = applyFilters(data, filters);
-      
-      // Re-render table with filtered data
-      const tbody = document.querySelector('.data-table tbody');
-      if (tbody) {
-        tbody.innerHTML = filtered.map((row, idx) => {
-          const cols = window.currentTableColumns || [];
-          return `
-            <tr data-id="${row.id}" class="${selectedRows.has(row.id) ? 'selected' : ''}">
-              <td><input type="checkbox" ${selectedRows.has(row.id) ? 'checked' : ''} onchange="toggleRowSelection('${row.id}', this.checked)"></td>
-              ${cols.map(col => {
-                const value = row[col.key] || '';
-                if (col.editable) {
-                  if (col.type === 'select') {
-                    const optionsWithSelected = col.options.replace(
-                      new RegExp(`value="${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`), 
-                      `value="${value}" selected`
-                    );
-                    return `<td class="editable" data-key="${col.key}" data-id="${row.id}">
-                      <select class="cell-edit" onchange="saveCellEdit('${row.id}', '${col.key}', this.value)" style="width:100%;padding:4px;border:1px solid var(--border);background:var(--card);color:#e6f0f7;border-radius:4px">
-                        ${optionsWithSelected}
-                      </select>
-                    </td>`;
-                  } else {
-                    return `<td class="editable" data-key="${col.key}" data-id="${row.id}" onclick="editCell(this)">
-                      <span class="cell-value">${formatCellValue(value, col.type)}</span>
-                      <input type="${col.type}" class="cell-edit" value="${value}" style="display:none" 
-                        onblur="saveCellEdit('${row.id}', '${col.key}', this.value)"
-                        onkeydown="if(event.key==='Enter'){this.blur()}">
-                    </td>`;
-                  }
-                }
-                return `<td>${formatCellValue(value, col.type)}</td>`;
-              }).join('')}
-              <td>
-                <button class="table-toolbar button secondary" style="padding:4px 8px;font-size:0.8rem" onclick="deleteRow('${row.id}')">Delete</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      }
-      
-      // Update count
-      const header = document.querySelector('.table-header h3');
-      if (header) {
-        header.textContent = `${title} (${filtered.length})`;
-      }
-      updateRecordCount(filtered.length);
-    };
-    window.clearFilters = () => {
-      const searchInput = document.getElementById('global-search');
-      if (searchInput) searchInput.value = '';
-      document.querySelectorAll('[id^="filter-"]').forEach(el => el.value = '');
-      window.applyTableFilters();
-    };
-    window.addNewRow = () => {
-      const newRow = {};
-      columns.forEach(col => {
-        if (col.type === 'select') {
-          newRow[col.key] = '';
-        } else if (col.type === 'number') {
-          newRow[col.key] = null;
-        } else {
-          newRow[col.key] = '';
-        }
-      });
-      if (options.onCreate) {
-        options.onCreate(newRow);
-      }
-    };
-    window.deleteRow = (id) => {
-      if (confirm('Delete this record?')) {
-        if (options.onDelete) {
-          options.onDelete(id);
-        }
-      }
-    };
-    window.bulkDelete = async () => {
-      if (selectedRows.size === 0) {
-        alert('No rows selected');
-        return;
-      }
-      if (!confirm(`Delete ${selectedRows.size} selected records? This cannot be undone.`)) return;
-      
-      let successCount = 0;
-      let errorCount = 0;
-      const errors = [];
-      
-      for (const id of selectedRows) {
-        try {
-          if (options.onDelete) {
-            await options.onDelete(id);
-            successCount++;
-          }
-        } catch (error) {
-          errorCount++;
-          errors.push(error.message);
-        }
-      }
-      
-      selectedRows.clear();
-      
-      if (successCount > 0) {
-        // Refresh the current section
-        showSection(currentSection);
-        alert(`Successfully deleted ${successCount} record(s)${errorCount > 0 ? `. ${errorCount} error(s) occurred.` : ''}`);
-      } else {
-        alert(`Failed to delete records: ${errors.join(', ')}`);
-      }
-    };
-    window.toggleAllRows = (checked) => {
-  // Get currently displayed (filtered) rows in DOM
-  const tableRows = document.querySelectorAll('tbody tr[data-id]');
-  tableRows.forEach(rowEl => {
-    const rowId = rowEl.getAttribute('data-id');
-    if (checked) {
-      selectedRows.add(rowId);
-      rowEl.classList.add('selected');
-      const cb = rowEl.querySelector('input[type="checkbox"]');
-      if (cb) cb.checked = true;
-    } else {
-      selectedRows.delete(rowId);
-      rowEl.classList.remove('selected');
-      const cb = rowEl.querySelector('input[type="checkbox"]');
-      if (cb) cb.checked = false;
-    }
-  });
-  updateBulkDeleteButton();
-};
-    window.toggleRowSelection = (id, checked) => {
-      if (checked) selectedRows.add(id);
-      else selectedRows.delete(id);
-      const row = document.querySelector(`tr[data-id="${id}"]`);
-      if (row) {
-        if (checked) row.classList.add('selected');
-        else row.classList.remove('selected');
-      }
-      updateBulkDeleteButton();
-    };
-    
-    function updateBulkDeleteButton() {
-      const count = selectedRows.size;
-      const bulkBtn = document.getElementById('bulk-delete-btn');
-      const bulkBar = document.getElementById('bulk-actions-bar');
-      const countSpan = document.getElementById('selected-count');
-      const bulkCountSpan = document.getElementById('bulk-selected-count');
-      
-      if (bulkBtn) {
-        if (count > 0) {
-          bulkBtn.style.display = 'inline-block';
-          if (countSpan) countSpan.textContent = count;
-        } else {
-          bulkBtn.style.display = 'none';
-        }
-      }
-      
-      if (bulkBar) {
-        if (count > 0) {
-          bulkBar.style.display = 'flex';
-          if (bulkCountSpan) bulkCountSpan.textContent = count;
-        } else {
-          bulkBar.style.display = 'none';
-        }
-      }
-    }
-    
-    window.updateBulkDeleteButton = updateBulkDeleteButton;
-    window.clearSelection = () => {
-      selectedRows.clear();
-      document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-        const row = cb.closest('tr');
-        if (row) row.classList.remove('selected');
-      });
-      updateBulkDeleteButton();
-    };
-    window.sortTable = (column) => {
-      if (sortColumn === column) {
-        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        sortColumn = column;
-        sortDirection = 'asc';
-      }
-      showSection(currentSection);
-    };
-    window.editCell = (cell) => {
-      const input = cell.querySelector('.cell-edit');
-      const value = cell.querySelector('.cell-value');
-      if (input && value) {
-        value.style.display = 'none';
-        input.style.display = 'block';
-        input.focus();
-        input.select();
-      }
-    };
-    window.saveCellEdit = async (id, key, value) => {
-      const row = currentData.find(r => r.id === id);
-      if (!row) return;
-      
-      const cell = document.querySelector(`td[data-id="${id}"][data-key="${key}"]`);
-      if (cell) {
-        const input = cell.querySelector('.cell-edit');
-        const valueSpan = cell.querySelector('.cell-value');
-        if (input && valueSpan) {
-          input.style.display = 'none';
-          valueSpan.style.display = 'block';
-        }
-      }
-      
-      // Convert value based on type
-      const col = columns.find(c => c.key === key);
-      let processedValue = value;
-      if (col && col.type === 'number') {
-        processedValue = value ? parseFloat(value) : null;
-      } else if (col && col.type === 'date') {
-        processedValue = value || null;
-      } else {
-        processedValue = value.trim() || null;
-      }
-      
-      row[key] = processedValue;
-      
-      if (options.onUpdate) {
-        await options.onUpdate(id, { [key]: processedValue });
-      }
-    };
-    window.exportData = () => {
-      const csv = [
-        columns.map(c => c.label).join(','),
-        ...filteredData.map(row => 
-          columns.map(col => {
-            const val = row[col.key] || '';
-            return `"${val.toString().replace(/"/g, '""')}"`;
-          }).join(',')
-        )
-      ].join('\n');
-      
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentSection}-${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-  }
-
-  function applyFilters(data, filterKeys) {
-    let filtered = [...data];
-    
-    // Global search
-    const globalSearch = document.getElementById('global-search')?.value.toLowerCase() || '';
-    if (globalSearch) {
-      filtered = filtered.filter(row => {
-        return Object.values(row).some(val => 
-          val && val.toString().toLowerCase().includes(globalSearch)
-        );
-      });
-    }
-    
-    // Column filters
-    filterKeys.forEach(key => {
-      const filterValue = document.getElementById(`filter-${key}`)?.value;
-      if (filterValue) {
-        if (key === 'race_type') {
-          filtered = filtered.filter(row => (row['race_type']||'').toLowerCase() === filterValue.toLowerCase());
-        } else {
-          filtered = filtered.filter(row => row[key] === filterValue);
-        }
-      }
-    });
-    
-    // Sorting
-    if (sortColumn) {
-      filtered.sort((a, b) => {
-        const aVal = a[sortColumn] || '';
-        const bVal = b[sortColumn] || '';
-        const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-        return sortDirection === 'asc' ? comparison : -comparison;
-      });
-    }
-    
-    return filtered;
-  }
-
-  function clearFilters() {
-    document.getElementById('global-search').value = '';
-    document.querySelectorAll('[id^="filter-"]').forEach(el => el.value = '');
-    showSection(currentSection);
-  }
-
-  function formatCellValue(value, type) {
-    if (value === null || value === undefined || value === '') return '—';
-    if (type === 'date' && value) {
-      return new Date(value).toLocaleDateString();
-    }
-    if (type === 'number' && typeof value === 'number') {
-      return value.toLocaleString();
-    }
-    return value.toString();
-  }
-
-  function updateRecordCount(count) {
-    recordCount.textContent = `${count} records`;
-  }
-
-  // CRUD Operations
-  async function createMeet(data) {
-    try {
-      await window.firebaseDatabase.ref('crosscountry/meets').push(data);
-      await renderMeets();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function updateMeet(id, updates) {
-    try {
-      await window.firebaseDatabase.ref(`crosscountry/meets/${id}`).update(updates);
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function deleteMeet(id) {
-    await window.firebaseDatabase.ref(`crosscountry/meets/${id}`).remove();
-  }
-
-  async function createAthlete(data) {
-    try {
-      await window.firebaseDatabase.ref('crosscountry/athletes').push(data);
-      await renderAthletes();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function updateAthlete(id, updates) {
-    try {
-      await window.firebaseDatabase.ref(`crosscountry/athletes/${id}`).update(updates);
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function deleteAthlete(id) {
-    await window.firebaseDatabase.ref(`crosscountry/athletes/${id}`).remove();
-  }
-
-  async function createResult(data) {
-    try {
-      await window.firebaseDatabase.ref('crosscountry/results').push(data);
-      await renderResults();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function updateResult(id, updates) {
-    try {
-      await window.firebaseDatabase.ref(`crosscountry/results/${id}`).update(updates);
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function deleteResult(id) {
-    await window.firebaseDatabase.ref(`crosscountry/results/${id}`).remove();
-  }
-
-  async function createSchool(data) {
-    try {
-      await window.firebaseDatabase.ref('crosscountry/schools').push(data);
-      await renderSchools();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function updateSchool(id, updates) {
-    try {
-      await window.firebaseDatabase.ref(`crosscountry/schools/${id}`).update(updates);
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function deleteSchool(id) {
-    await window.firebaseDatabase.ref(`crosscountry/schools/${id}`).remove();
-  }
-
-  showSection('dashboard');
+  
+  // Load initial section
+  loadSection('dashboard');
 </script>
 </body>
 </html>

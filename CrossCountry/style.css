@@ -54,7 +54,10 @@ body {
   padding: .4rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
-
+.hero-logo:hover{
+  transform: scale(1.5);
+  transition: transform 0.5s ease;
+}
 
 .hero-subtitle {
   font-size: 1.5rem;
@@ -250,10 +253,8 @@ table a:hover {
 
 /* Meet Cards */
 .meet-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  display: -moz-grid-group;
+  gap: 24px;
 }
 
 .meet-card {
@@ -279,18 +280,6 @@ table a:hover {
   color: var(--xc-primary);
   margin-bottom: 0.5rem;
 }
-
-.meet-card-date {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-}
-
-.meet-card-location {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
 /* Athlete Profile */
 .athlete-header {
   background: white;
