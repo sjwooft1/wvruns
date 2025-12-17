@@ -99,6 +99,7 @@
             <li><a href="schools.html" class="navbar-link">Schools</a></li>
             <li><a href="meets.html" class="navbar-link">Meets</a></li>
             <li><a href="rankings.html" class="navbar-link active">Rankings</a></li>
+            <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
             
           </ul>
         </div>
@@ -142,6 +143,14 @@
             </select>
         </div>
 
+        <!-- 4. Course Filter -->
+        <div class="filter-group">
+            <select id="course-filter" onchange="setFilter('course', this.value)" class="p-2 border rounded-lg shadow-sm text-gray-700 focus:ring-xc-primary focus:border-xc-primary cursor-pointer">
+                <option value="all">All Courses</option>
+                <!-- Options populated by JS -->
+            </select>
+        </div>
+
       </div>
     </section>
 
@@ -169,8 +178,9 @@
   </main>
 
   <!-- Footer Placeholder -->
-  <footer class="text-center p-4 mt-8 text-gray-500 border-t">
-    &copy; 2025 Mountain State Miles. All rights reserved.
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="login.html" class="btn btn-secondary">Admin Login</a>
   </footer>
 
   <!-- Firebase Setup and Helpers -->
@@ -178,6 +188,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="firebase-config.js"></script>
   <script src="firebase-helpers.js"></script>
+  <script src="email-signup.js"></script>
 
   <script>
     // Global variables
@@ -192,6 +203,8 @@
     let currentDistance = 'all'; 
     // currentYear and currentGrade removed
     let currentMeetSlug = 'all'; 
+    let currentCourseSlug = 'all';
+    let coursesMap = {}; // slug -> name
     
     // =========================================
     // HELPER FUNCTIONS (Formatting)
@@ -379,6 +392,7 @@
         if (type === 'distance') currentDistance = value;
         // currentYear and currentGrade handlers removed
         if (type === 'meet') currentMeetSlug = value;
+        if (type === 'course') currentCourseSlug = value;
 
         // 2. Update button active/inactive states (only for buttons)
         if (event && event.target.tagName === 'BUTTON') {
@@ -393,7 +407,7 @@
     }
     
     /**
-     * Finds unique meets in the data and populates the dropdowns.
+     * Finds unique meets and courses in the data and populates the dropdowns.
      */
     function populateFilters() {
         // --- Populate Meet Filter ---
@@ -412,6 +426,23 @@
             option.value = meet.slug;
             option.textContent = meet.name;
             meetSelect.appendChild(option);
+        });
+
+        // --- Populate Course Filter ---
+        const courseSelect = document.getElementById('course-filter');
+        courseSelect.innerHTML = '<option value="all">All Courses</option>';
+        
+        // Convert map to array and sort by course name
+        const sortedCourses = Object.keys(coursesMap).map(slug => ({
+            slug: slug,
+            name: coursesMap[slug]
+        })).sort((a, b) => a.name.localeCompare(b.name));
+
+        sortedCourses.forEach(course => {
+            const option = document.createElement('option');
+            option.value = course.slug;
+            option.textContent = course.name;
+            courseSelect.appendChild(option);
         });
     }
 
@@ -436,9 +467,20 @@
           meetsMap[meet.slug] = meet.name;
         });
 
+        // 3. Load Courses
+        try {
+          const coursesSnapshot = await firebaseDatabase.ref('crosscountry/courses').once('value');
+          const coursesArray = snapshotToArray(coursesSnapshot);
+          coursesArray.forEach(course => {
+            coursesMap[course.slug] = course.name;
+          });
+        } catch (e) {
+          console.warn("Courses not available:", e);
+        }
+
         await loadRankingsData();
       } catch (error) {
-        console.error("Error loading initial data (schools/meets):", error);
+        console.error("Error loading initial data (schools/meets/courses):", error);
       }
     }
 
@@ -531,6 +573,13 @@
         if (currentMeetSlug !== 'all') {
             filteredResults = filteredResults.filter(r => {
                 return r.meet_slug === currentMeetSlug;
+            });
+        }
+        
+        // Filter C: Course Slug (filter by the course associated with the meet)
+        if (currentCourseSlug !== 'all') {
+            filteredResults = filteredResults.filter(r => {
+                return r.course_slug === currentCourseSlug;
             });
         }
         

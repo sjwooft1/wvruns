@@ -351,6 +351,7 @@
               <li><a href="schools.html" class="navbar-link">Schools</a></li>
               <li><a href="meets.html" class="navbar-link active">Meets</a></li>
               <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+              <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
               
             </ul>
           </div>
@@ -369,22 +370,7 @@
 
   <footer>
     <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="login.html"
-       style="
-         display:inline-block;
-         margin-top:8px;
-         background:#6cb5d967;
-         padding:8px 14px;
-         color:white;
-         text-decoration:none;
-         border-radius:6px;
-         font-weight:bold;
-         transition: all 0.3s ease;
-       "
-       onmouseover="this.style.background='#6cb5d9';"
-       onmouseout="this.style.background='#6cb5d967';">
-       Admin Login
-    </a>
+    <a href="login.html" class="btn btn-secondary">Admin Login</a>
   </footer>
 
   <!-- Firebase SDK Scripts (Good as is) -->
@@ -393,6 +379,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="firebase-helpers.js"></script>
+  <script src="email-signup.js"></script>
 
   <script>
     async function loadMeets() {

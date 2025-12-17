@@ -34,12 +34,11 @@
 
         body {
             /* The original background gradient is kept as a solid color fallback */
-            background-color: #667eea; 
+            background-color: #000000; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             padding: 2rem;
             /* Ensure body content is above the background image */
             position: relative;
@@ -120,10 +119,99 @@
             margin-bottom: 1rem;
         }
         .track-card {
-            border-top-color: #3b82f6;
+            border-top-color: #000000;
         }
         .xc-card {
             border-top-color: #10b981;
+        }
+        .meets-section {
+            margin-top: 3rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .meets-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        .meets-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .view-all-link {
+            color: #000000;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .view-all-link:hover {
+            color: #1d4ed8;
+        }
+        .meets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .meet-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .meet-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: left;
+        }
+        .meet-card:hover::before {
+            transform: scaleX(1);
+        }
+        .meet-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(16, 185, 129, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 253, 250, 1) 100%);
+        }
+        .meet-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #002855;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .meet-date {
+            font-size: 0.95rem;
+            color: #10b981;
+            font-weight: 600;
+            margin: 0;
+        }
+        .meet-location {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin: 0;
+        }
+        .loading-state {
+            color: white;
+            text-align: center;
+            font-size: 1.25rem;
         }
         footer {
             margin-top: 4rem;
@@ -155,6 +243,9 @@
             .sport-cards {
                 grid-template-columns: 1fr;
             }
+            .meets-grid {
+                grid-template-columns: 1fr;
+            }
         }
         h1 {
       font-family: 'MSM', truetype; /* Apply your custom font, with a fallback */
@@ -163,10 +254,9 @@
 </head>
 <body>
     <!-- This image tag is now used for the background -->
-    <img src="bg.jpg" alt="Background Image" class="page-background-image" />
+    <img src="assets/home.png" alt="Background Image" class="page-background-image" />
     
     <div class="hero">
-        <img src="assets/Wvruns Logo.png" alt="Mountain State Miles" class="hero-logo">
         <h1>Mountain State Miles</h1>
         <p>Your source for West Virginia track & cross country results, rankings, and records</p>
     </div>
@@ -182,9 +272,87 @@
             <p>Explore cross country rankings, meet results, and team standings</p>
         </a>
     </div>
+
+    
+
     <footer>
         <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-        <a href="admin.html">Admin Login</a>
+        <a href="admin.html" class="btn btn-secondary">Admin Login</a>
     </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+    
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3u6WU8dKLdvNqT6RQbKGqPvv3i45NdcI",
+            authDomain: "wvruns-8a73f.firebaseapp.com",
+            databaseURL: "https://wvruns-8a73f-default-rtdb.firebaseio.com",
+            projectId: "wvruns-8a73f",
+            storageBucket: "wvruns-8a73f.appspot.com",
+            messagingSenderId: "833073282866",
+            appId: "1:833073282866:web:a99c01f3e6c2b8a54c5e3b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        async function loadRecentMeets() {
+            const container = document.getElementById('meets-grid');
+            try {
+                const snapshot = await database.ref('CrossCountry/meets').limitToLast(6).once('value');
+                const meets = [];
+                
+                snapshot.forEach(child => {
+                    meets.push({ slug: child.key, ...child.val() });
+                });
+
+                // Sort by date descending (most recent first)
+                meets.sort((a, b) => {
+                    const dateA = a.date || '';
+                    const dateB = b.date || '';
+                    return dateB.localeCompare(dateA);
+                });
+
+                if (!meets.length) {
+                    container.innerHTML = '<div class="loading-state">No recent meets found.</div>';
+                    return;
+                }
+
+                function formatDate(dateString) {
+                    if (!dateString) return 'Date TBD';
+                    const parts = dateString.split('-');
+                    if (parts.length === 3) {
+                        const year = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1;
+                        const day = parseInt(parts[2], 10);
+                        const date = new Date(year, month, day);
+                        return date.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric'
+                        });
+                    }
+                    return dateString;
+                }
+
+                container.innerHTML = meets.map(meet => `
+                    <a href="/CrossCountry/meet.html?slug=${encodeURIComponent(meet.slug)}" class="meet-card">
+                        <h3 class="meet-title">${meet.name}</h3>
+                        <p class="meet-date">📅 ${formatDate(meet.date)}</p>
+                        ${meet.location ? `<p class="meet-location">📍 ${meet.location}</p>` : ''}
+                    </a>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading meets:', error);
+                container.innerHTML = '<div class="loading-state">Error loading meets. Please try again later.</div>';
+            }
+        }
+
+        // Load meets when page is ready
+        document.addEventListener('DOMContentLoaded', loadRecentMeets);
+    </script>
 </body>
 </html>

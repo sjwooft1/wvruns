@@ -29,8 +29,11 @@
       <div class="navbar-content">
         <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
         <ul class="navbar-nav">
-          <li><a href="meet.html">Meets</a></li>
-          <li><a href="rankings.html">Rankings</a></li>
+          <li><a href="xc.html" class="navbar-link">Home</a></li>
+            <li><a href="schools.html" class="navbar-link active">Schools</a></li>
+            <li><a href="meets.html" class="navbar-link">Meets</a></li>
+            <li><a href="rankings.html" class="navbar-link">Rankings</a>
+            </li><li><a href="analytics.html" class="navbar-link">Analytics</a></li>
         </ul>
       </div>
     </div>
@@ -70,6 +73,41 @@
         </div>
         <div id="meets-list">
             <!-- Meet list will be injected here -->
+        </div>
+
+        <!-- Team Statistics Section -->
+        <h2 class="section-title mt-10 mb-4">Team Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Average Team Time</div>
+            <div class="stat-value" id="avg-time">--:--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Athletes</div>
+            <div class="stat-value" id="total-athletes">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Personal Records Set</div>
+            <div class="stat-value" id="pr-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Meet Appearances</div>
+            <div class="stat-value" id="meet-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Best Team Performance</div>
+            <div class="stat-value" id="best-time">--:--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Fastest Athlete</div>
+            <div class="stat-value" id="fastest-athlete">--</div>
+          </div>
+        </div>
+
+        <!-- Season Trends Section -->
+        <h2 class="section-title mt-10 mb-4">Season Performance</h2>
+        <div id="trends-container" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+          <canvas id="trendsChart" style="max-height: 400px;"></canvas>
         </div>
         
       </div>
