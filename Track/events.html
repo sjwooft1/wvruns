@@ -218,7 +218,8 @@
         <li><a href="index.html" class="navbar-link">Track</a></li>
         <li><a href="meets.html" class="navbar-link">Meets</a></li>
         <li><a href="events.html" class="navbar-link active">Events</a></li>
-        <li><a href="rankings.html" class="navbar-link">Rankings</a></li><li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+        <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
       </ul>
     </nav>
   </header>
@@ -241,17 +242,38 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
+    async function waitForFirebase() {
+      let attempts = 0;
+      while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      if (typeof window.firebaseDatabase === 'undefined') {
+        throw new Error('Firebase database not initialized');
+      }
+    }
+    
     async function loadEvents() {
       const container = document.getElementById('event-grid');
       try {
+        await waitForFirebase();
+        console.log('Loading events from Track/events...');
         const snapshot = await window.firebaseDatabase.ref('Track/events').once('value');
+        
+        console.log('Events snapshot exists:', snapshot.exists());
+        console.log('Events snapshot val:', snapshot.val());
+        
         const events = [];
         snapshot.forEach(child => {
-          events.push({ id: child.key, ...child.val() });
+          const eventData = child.val();
+          console.log('Event found:', child.key, eventData);
+          events.push({ id: child.key, ...eventData });
         });
         
+        console.log('Total events found:', events.length);
+        
         if (!events.length) {
-          container.innerHTML = '<div class="empty-state">No events found.</div>';
+          container.innerHTML = '<div class="empty-state">No events found. Check console for details.</div>';
           return;
         }
         
@@ -269,11 +291,13 @@
         `).join('');
       } catch (error) {
         console.error('Error loading events:', error);
-        container.innerHTML = '<div class="empty-state">Error loading events. Please try again later.</div>';
+        container.innerHTML = '<div class="empty-state" style="color: #dc3545;">⚠️ Error loading events. Please check your connection and try again.</div>';
       }
     }
     
-    document.addEventListener('DOMContentLoaded', loadEvents);
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(loadEvents, 100);
+    });
   </script>
 </body>
 </html>

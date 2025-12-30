@@ -258,7 +258,8 @@
         <li><a href="index.html" class="navbar-link">Track</a></li>
         <li><a href="meets.html" class="navbar-link active">Meets</a></li>
         <li><a href="events.html" class="navbar-link">Events</a></li>
-        <li><a href="rankings.html" class="navbar-link">Rankings</a></li><li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+        <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
       </ul>
     </nav>
   </header>
@@ -288,18 +289,39 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
+    async function waitForFirebase() {
+      let attempts = 0;
+      while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      if (typeof window.firebaseDatabase === 'undefined') {
+        throw new Error('Firebase database not initialized');
+      }
+    }
+    
     let allMeets = [];
     
     async function loadMeets(season = 'all') {
       const container = document.getElementById('meets-list');
       
       try {
+        await waitForFirebase();
         if (!allMeets.length) {
+          console.log('Loading meets from Track/meets...');
           const snapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+          
+          console.log('Meets snapshot exists:', snapshot.exists());
+          console.log('Meets snapshot val:', snapshot.val());
+          
           allMeets = [];
           snapshot.forEach(child => {
-            allMeets.push({ id: child.key, ...child.val() });
+            const meetData = child.val();
+            console.log('Meet found:', child.key, meetData);
+            allMeets.push({ id: child.key, ...meetData });
           });
+          
+          console.log('Total meets loaded:', allMeets.length);
         }
         
         let meets = allMeets;
@@ -338,11 +360,13 @@
         `).join('');
       } catch (error) {
         console.error('Error loading meets:', error);
-        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">Error loading meets. Please try again later.</div>';
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; color: #dc3545;">⚠️ Error loading meets. Please check your connection and try again.</div>';
       }
     }
     
-    document.addEventListener('DOMContentLoaded', () => loadMeets('all'));
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => loadMeets('all'), 100);
+    });
   </script>
 </body>
 </html>

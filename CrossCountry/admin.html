@@ -740,7 +740,7 @@
     .csv-form-input {
       padding: 10px 12px;
       border: 1px solid var(--border);
-      background: var (--card);
+      background: var(--card);
       color: #e6f0f7;
       border-radius: 6px;
       font-size: 0.95rem;
@@ -815,6 +815,7 @@
       
       <div class="nav-section-title">Tools</div>
       <div class="nav-section" id="tools-nav">
+        <a href="csv-import.html" class="nav-btn" style="text-decoration: none; display: block;">📊 CSV Import</a>
         <button class="nav-btn" data-section="bulk-edit">⚙️ Bulk Edit</button>
         <button class="nav-btn" data-section="analytics">📈 Analytics</button>
         <button class="nav-btn" data-section="settings">⚙️ Settings</button>
@@ -869,6 +870,9 @@
   </div>
 </template>
 
+
+
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
@@ -884,6 +888,7 @@
   let currentOptions = {};
   let sortColumn = null;
   let sortDirection = 'asc';
+  let csvData = [];
   
   // ==========================================
   // Auth Check
@@ -1013,7 +1018,7 @@
           <div style="color: var(--muted); margin-top: 8px;">Schools</div>
         </div>
         <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-          <div style="font-size: 2.5rem; font-weight: 700; color: var (--accent);">${stats.athletes}</div>
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">${stats.athletes}</div>
           <div style="color: var(--muted); margin-top: 8px;">Athletes</div>
         </div>
         <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
@@ -1182,13 +1187,88 @@
       onUpdate: (id, updates) => updateRecord(`crosscountry/results/${id}`, updates),
       onDelete: (id) => deleteRecord(`crosscountry/results/${id}`),
       csvImport: true,
-      csvMeets: meetsSnap.val() ? Object.values(meetsSnap.val()) : []
+      csvMeetSlugs: meets
     };
     
     // Render with CSV section
     renderGridWithCSV('Results', currentColumns, data, currentOptions);
   }
   
+  // ==========================================
+  // Bulk Edit
+  // ==========================================
+  async function renderBulkEdit() {
+    document.getElementById('content').innerHTML = `
+      <div class="grid-container">
+        <div class="grid-header">
+          <h3>Bulk Edit Tools</h3>
+        </div>
+        <div class="grid-scroll" style="padding: 16px;">
+          <div class="csv-form-group">
+            <label class="csv-form-label">Delete all results for a meet</label>
+            <div style="display:flex; gap:8px; flex-wrap: wrap;">
+              <select id="bulk-meet-select" class="form-input" style="min-width: 220px;"></select>
+              <button class="btn btn-danger" onclick="bulkDeleteResultsForMeet()">Delete Results</button>
+            </div>
+            <small class="csv-form-label" style="color: var(--muted);">This action cannot be undone.</small>
+          </div>
+          <div id="bulk-status" class="status-message" style="margin-top: 12px;"></div>
+        </div>
+      </div>
+    `;
+    const meetsSnap = await window.firebaseDatabase.ref('crosscountry/meets').once('value');
+    const slugs = [];
+    meetsSnap.forEach(child => slugs.push(child.val().slug));
+    const sel = document.getElementById('bulk-meet-select');
+    sel.innerHTML = '<option value="">-- Select meet --</option>' + slugs.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+
+  async function bulkDeleteResultsForMeet() {
+    const meet = document.getElementById('bulk-meet-select')?.value || '';
+    const statusEl = document.getElementById('bulk-status');
+    if (!meet) { if (statusEl) { statusEl.className = 'status-message error'; statusEl.textContent = 'Select a meet first.'; } return; }
+    if (!confirm(`Delete all results for meet "${meet}"? This cannot be undone.`)) return;
+    try {
+      const resSnap = await window.firebaseDatabase.ref('crosscountry/results').orderByChild('meet_slug').equalTo(meet).once('value');
+      const updates = {};
+      resSnap.forEach(child => { updates[child.key] = null; });
+      const count = Object.keys(updates).length;
+      if (count === 0) {
+        statusEl.className = 'status-message warning';
+        statusEl.textContent = 'No results found for selected meet.';
+        return;
+      }
+      await window.firebaseDatabase.ref('crosscountry/results').update(updates);
+      statusEl.className = 'status-message success';
+      statusEl.textContent = `Deleted ${count} result(s).`;
+    } catch (e) {
+      statusEl.className = 'status-message error';
+      statusEl.textContent = 'Error: ' + e.message;
+    }
+  }
+
+  // ==========================================
+  // Analytics
+  // ==========================================
+  async function renderAnalytics() {
+    // Navigate to the dedicated analytics page for cross country
+    window.location.href = 'analytics.html';
+  }
+
+  // ==========================================
+  // Settings
+  // ==========================================
+  async function renderSettings() {
+    document.getElementById('content').innerHTML = `
+      <div class="grid-container">
+        <div class="grid-header"><h3>Settings</h3></div>
+        <div class="grid-scroll" style="padding:16px;">
+          <p class="csv-form-label">No configurable settings yet.</p>
+        </div>
+      </div>
+    `;
+  }
+
   // ==========================================
   // Seasons
   // ==========================================
@@ -1284,11 +1364,50 @@
         <h3>📥 CSV Import</h3>
         <div class="csv-dropzone" id="csv-dropzone" ondrop="handleCSVDrop(event)" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" onclick="document.getElementById('csv-file-input').click()">
           <p>📁 Drop CSV file here or click to browse</p>
-          <small>Supported format: athlete_name, school_slug, gender, time, distance, place, race_type, meet_slug</small>
+          <small>Supported columns: athlete_name, school_slug, gender, time, distance, place, race_type, meet_slug</small>
           <input type="file" id="csv-file-input" accept=".csv" onchange="handleCSVFile(event)">
         </div>
-        <div id="csv-status" class="status-message"></div>
-        <div id="csv-preview" style="display: none;"></div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px;">
+          <div>
+            <label class="csv-form-label">Meet</label>
+            <select id="csv-meet-select" class="form-input">
+              <option value="">-- Use meet_slug from CSV --</option>
+            </select>
+          </div>
+          <div>
+            <label class="csv-form-label">Gender</label>
+            <select id="csv-gender-select" class="form-input">
+              <option value="auto">Auto (from CSV)</option>
+              <option value="M">M</option>
+              <option value="F">F</option>
+            </select>
+          </div>
+          <div>
+            <label class="csv-form-label">Default Distance (m)</label>
+            <input id="csv-distance-input" class="form-input" type="number" placeholder="e.g. 5000" value="5000">
+          </div>
+          <div>
+            <label class="csv-form-label">Race Type</label>
+            <div class="race-type-options" id="csv-race-type-options">
+              <button type="button" class="race-type-btn" data-value="">Auto</button>
+              <button type="button" class="race-type-btn" data-value="Varsity">Varsity</button>
+              <button type="button" class="race-type-btn" data-value="JV">JV</button>
+              <button type="button" class="race-type-btn" data-value="Open">Open</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="csv-divider"></div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" id="csv-validate-btn" onclick="validateCSVRows()">🔍 Validate</button>
+          <button class="btn btn-success" id="csv-import-btn" onclick="importCSVRows()">⬆️ Import</button>
+          <button class="btn btn-secondary" id="csv-download-template-btn" onclick="downloadCSVTemplate()">⬇️ Download Template</button>
+        </div>
+
+        <div id="csv-status" class="status-message" style="margin-top: 12px;"></div>
+        <div id="csv-preview" class="csv-preview" style="display: none;"></div>
       </div>
     `;
     
@@ -1328,6 +1447,7 @@
     document.getElementById('content').innerHTML = csvHtml + gridHtml;
     document.getElementById('search-input')?.addEventListener('input', filterTable);
     updateRecordCount(data.length);
+    buildCSVToolsUI();
   }
   
   function renderTableRows(data, columns) {
@@ -1531,38 +1651,198 @@
       processCSVFile(e.target.files[0]);
     }
   }
+
+  // Helper functions for CSV processing and UI
+  function parseCSV(text) {
+    function splitCSVLine(line) {
+      const out = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (line[i + 1] === '"') { cur += '"'; i++; }
+            else { inQuotes = false; }
+          } else {
+            cur += ch;
+          }
+        } else {
+          if (ch === '"') inQuotes = true;
+          else if (ch === ',') { out.push(cur); cur = ''; }
+          else cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map(v => v.trim());
+    }
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    const lines = normalized.split('\n').filter(l => l.trim() !== '');
+    if (lines.length < 1) return { headers: [], rows: [] };
+    const headers = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = splitCSVLine(lines[i]);
+      const row = {};
+      headers.forEach((h, idx) => row[h] = values[idx] ?? '');
+      rows.push(row);
+    }
+    return { headers, rows };
+  }
+
+  function parseTimeToSeconds(str) {
+    if (str == null) return null;
+    const s = String(str).trim();
+    if (!s) return null;
+    if (/^\d+(\.\d+)?$/.test(s)) return parseFloat(s);
+    const parts = s.split(':').map(p => p.trim());
+    if (parts.length === 3) {
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const sec = parseFloat(parts[2]);
+      if ([h,m,sec].some(x => Number.isNaN(x))) return null;
+      return h * 3600 + m * 60 + sec;
+    } else if (parts.length === 2) {
+      const m = parseInt(parts[0], 10);
+      const sec = parseFloat(parts[1]);
+      if ([m,sec].some(x => Number.isNaN(x))) return null;
+      return m * 60 + sec;
+    } else {
+      return null;
+    }
+  }
+
+  function buildCSVToolsUI() {
+    const meetSelect = document.getElementById('csv-meet-select');
+    if (meetSelect) {
+      const slugs = (currentOptions.csvMeetSlugs || []);
+      meetSelect.innerHTML = '<option value="">-- Use meet_slug from CSV --</option>' + slugs.map(slug => `<option value="${slug}">${slug}</option>`).join('');
+    }
+    const raceBtns = document.getElementById('csv-race-type-options');
+    if (raceBtns) {
+      raceBtns.addEventListener('click', (e) => {
+        const btn = e.target.closest('.race-type-btn');
+        if (!btn) return;
+        raceBtns.querySelectorAll('.race-type-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+      const first = raceBtns.querySelector('.race-type-btn');
+      if (first) first.classList.add('selected');
+    }
+  }
+
+  function validateCSVRows() {
+    if (!csvData || csvData.length === 0) {
+      showCSVStatus('warning', 'Load a CSV first.');
+      return;
+    }
+    let valid = 0, invalid = 0;
+    const selectedMeet = document.getElementById('csv-meet-select')?.value || '';
+    const selectedGender = document.getElementById('csv-gender-select')?.value || 'auto';
+    for (const r of csvData) {
+      const athlete = (r.athlete_name || '').trim();
+      const school = (r.school_slug || '').trim();
+      const meet = (r.meet_slug || '').trim() || selectedMeet;
+      const time = parseTimeToSeconds(r.time);
+      const gender = selectedGender === 'auto' ? (r.gender || '').trim() : selectedGender;
+      if (athlete && school && meet && time != null && (gender === '' || gender === 'M' || gender === 'F')) {
+        valid++;
+      } else {
+        invalid++;
+      }
+    }
+    showCSVStatus(invalid > 0 ? 'warning' : 'success', `Validation complete: ${valid} valid, ${invalid} invalid.`);
+    showCSVPreview();
+  }
+
+  function downloadCSVTemplate() {
+    const headers = ['athlete_name','school_slug','gender','time','distance','place','race_type','meet_slug'].join(',');
+    const sample = 'Jane Doe,river-high,F,20:17.3,5000,12,Varsity,autumn-classic';
+    const csv = headers + '\n' + sample;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'results-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importCSVRows() {
+    const meetSelect = document.getElementById('csv-meet-select');
+    const selectedMeet = meetSelect?.value || '';
+    const genderSelect = document.getElementById('csv-gender-select');
+    const selectedGender = genderSelect?.value || 'auto';
+    const distanceInput = document.getElementById('csv-distance-input');
+    const defaultDistance = parseInt(distanceInput?.value || '0', 10) || null;
+    const selectedRaceType = document.querySelector('.race-type-btn.selected')?.dataset.value || '';
+
+    if (!csvData || csvData.length === 0) { showCSVStatus('error', 'Please load a CSV first.'); return; }
+
+    const requiredBaseCols = ['athlete_name', 'school_slug', 'time'];
+    const headers = Object.keys(csvData[0] || {});
+    const missing = requiredBaseCols.filter(k => !headers.includes(k));
+    if (missing.length > 0 && (!selectedMeet && !headers.includes('meet_slug'))) {
+      showCSVStatus('error', 'CSV missing required columns: ' + missing.join(', ') + '. Either include meet_slug in CSV or select a meet.');
+      return;
+    }
+
+    const rowsToInsert = [];
+    const seen = new Set();
+    for (const r of csvData) {
+      const athlete_name = r.athlete_name?.trim();
+      const school_slug = r.school_slug?.trim();
+      const meet_slug = (r.meet_slug?.trim()) || selectedMeet;
+      const gender = (selectedGender.toLowerCase() === 'auto') ? (r.gender?.trim() || '') : selectedGender;
+      const race_type = r.race_type?.trim() || selectedRaceType || '';
+      const distance = (r.distance ? parseInt(r.distance, 10) : defaultDistance) ?? null;
+      const timeSeconds = parseTimeToSeconds(r.time);
+      const place = r.place ? parseInt(r.place, 10) : null;
+
+      if (!athlete_name || !school_slug || !meet_slug || timeSeconds == null) {
+        continue;
+      }
+      const key = `${athlete_name}|${meet_slug}|${gender}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      rowsToInsert.push({
+        athlete_name,
+        school_slug,
+        meet_slug,
+        gender: gender || null,
+        race_type: race_type || null,
+        distance: distance,
+        time: Math.round(timeSeconds * 1000) / 1000,
+        place: Number.isFinite(place) ? place : null
+      });
+    }
+
+    if (rowsToInsert.length === 0) { showCSVStatus('warning', 'No valid rows to import after validation.'); return; }
+
+    showCSVStatus('info', `Importing ${rowsToInsert.length} row(s)...`);
+
+    try {
+      const ref = window.firebaseDatabase.ref('crosscountry/results');
+      const ops = rowsToInsert.map(row => ref.push().set(row));
+      await Promise.all(ops);
+      showCSVStatus('success', `Imported ${rowsToInsert.length} row(s) successfully.`);
+      await loadSection('results');
+    } catch (e) {
+      showCSVStatus('error', 'Failed to import: ' + e.message);
+    }
+  }
   
   async function processCSVFile(file) {
     try {
       const text = await file.text();
-      const lines = text.trim().split('\n');
-      
-      if (lines.length < 2) {
-        showCSVStatus('error', 'CSV must have headers and at least one row');
+      const parsed = parseCSV(text);
+      csvData = parsed.rows;
+      if (!csvData || csvData.length === 0) {
+        showCSVStatus('error', 'No data rows found in CSV.');
         return;
       }
-      
-      // Parse CSV
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      csvData = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        if (values.length !== headers.length) continue;
-        
-        const row = {};
-        headers.forEach((header, idx) => {
-          row[header] = values[idx] || null;
-        });
-        csvData.push(row);
-      }
-      
-      if (csvData.length === 0) {
-        showCSVStatus('error', 'No valid rows in CSV');
-        return;
-      }
-      
-      showCSVStatus('success', `Loaded ${csvData.length} rows`);
+      showCSVStatus('success', `Loaded ${csvData.length} rows. Click Validate to check and Import to save.`);
       showCSVPreview();
     } catch (error) {
       showCSVStatus('error', 'Error reading CSV: ' + error.message);
@@ -1623,6 +1903,118 @@
   
   // Load initial section
   loadSection('dashboard');
+
+  // --- Global variable to hold staged data ---
+let stagedImportData = [];
+
+// --- 1. Fetch & Parse Logic ---
+async function fetchAthleticResults() {
+  const url = document.getElementById('athleticUrl').value;
+  const statusDiv = document.getElementById('importStatus');
+  
+  if (!url) return alert("Please enter a URL");
+  
+  statusDiv.innerHTML = "⏳ Fetching page via proxy (this may take a few seconds)...";
+  
+  try {
+    // We use 'allorigins' as a CORS proxy to read the external HTML
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+    const data = await response.json();
+    
+    if (!data.contents) throw new Error("Could not retrieve page content.");
+    
+    statusDiv.innerHTML = "🔍 Parsing HTML...";
+    
+    // Parse the HTML string into a DOM object
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data.contents, "text/html");
+    
+    // Athletic.net usually puts results in a standard table structure
+    // We look for rows that look like results
+    const rows = doc.querySelectorAll("tr");
+    stagedImportData = [];
+
+    rows.forEach(row => {
+      const cols = row.querySelectorAll("td");
+      if (cols.length < 4) return; // Skip headers or empty rows
+
+      // Extract text from columns
+      const rawText = Array.from(cols).map(c => c.innerText.trim());
+      
+      // Heuristic: Look for a time pattern (e.g., 17:30.5 or 18:00)
+      const timeIndex = rawText.findIndex(txt => /^\d{1,2}:\d{2}(\.\d+)?$/.test(txt));
+      
+      if (timeIndex > -1) {
+        // Assuming Name is usually before Time, and School is near it
+        // This is a heuristic and might need tweaking based on exact table layout
+        let name = rawText[1] || rawText[0]; // Guessing column 1 or 0
+        let school = rawText[2] || ""; 
+        let timeStr = rawText[timeIndex];
+        let place = rawText[0];
+
+        // Basic clean up
+        if (name && timeStr) {
+          stagedImportData.push({
+            athlete_name: name,
+            school: school,
+            time: parseTime(timeStr), // You likely already have a time helper, or use the one below
+            place: parseInt(place) || 0,
+            race_type: "Open", // Default to Open as requested
+            gender: "M" // You might need a dropdown to select default gender for the import
+          });
+        }
+      }
+    });
+
+    if (stagedImportData.length === 0) {
+      statusDiv.innerHTML = "❌ No results found. Ensure you are using the 'All Results' page URL.";
+    } else {
+      statusDiv.innerHTML = `✅ Found <b>${stagedImportData.length}</b> results ready to import.`;
+      document.getElementById('confirmImportBtn').style.display = 'block';
+    }
+
+  } catch (err) {
+    console.error(err);
+    statusDiv.innerHTML = `❌ Error: ${err.message}`;
+  }
+}
+
+// --- Helper: Parse "MM:SS.ms" to seconds ---
+function parseTime(timeStr) {
+  const parts = timeStr.split(':');
+  if (parts.length === 2) {
+    return (parseFloat(parts[0]) * 60 + parseFloat(parts[1])).toFixed(2);
+  }
+  return 0;
+}
+
+// --- 2. Commit to Database ---
+async function processImportedData() {
+  const statusDiv = document.getElementById('importStatus');
+  statusDiv.innerHTML = "💾 Saving to database...";
+  
+  let count = 0;
+  for (const result of stagedImportData) {
+    // Calls your EXISTING createResult function
+    // Ensure you pass the correct field names expected by your DB
+    await createResult({
+        athlete_name: result.athlete_name,
+        school_slug: result.school.toLowerCase().replace(/\s+/g, '-'), // Simple slugify
+        time: result.time,
+        place: result.place,
+        race_type: result.race_type,
+        gender: result.gender,
+        meet_slug: "imported-meet" // You might want to add a dropdown to select the meet
+    });
+    count++;
+  }
+  
+  alert(`Successfully imported ${count} results!`);
+  document.getElementById('importModal').style.display = 'none';
+  // Reload your table here if necessary
+  // renderResults(); 
+}
 </script>
 </body>
 </html>

@@ -3,23 +3,173 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Athlete — Track</title>
-<link rel="stylesheet" href="../style.css">
-<link rel="stylesheet" href="track.css">
-</head>
-<body class="track-body">
-
-<nav class="track-nav">
-  <a href="/home">XC Home</a>
-  <a href="index.html">Track Home</a>
-  <a href="meets.html">Meets</a>
-  <a href="events.html">Events</a>
-  <a href="rankings.html">Rankings</a>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
   
-</nav>
-
-<main class="track-main">
-  <section class="track-section">
-    <h2 id="athlete-name" class="track-section-title">Loading athlete…</h2>
+  :root {
+    --primary: #002855;
+    --secondary: #0056b3;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666;
+    --bg-light: #f8f9fa;
+    --border-light: #e0e0e0;
+    --accent: #ff6b35;
+    --accent-dark: #d9530a;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg-light);
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  
+  header {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .navbar {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .navbar-nav {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 30px;
+  }
+  
+  .navbar-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+  }
+  
+  .navbar-link:hover,
+  .navbar-link.active {
+    color: var(--secondary);
+  }
+  
+  .navbar-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+  }
+  
+  .section-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0 0 40px;
+    color: var(--primary);
+    position: relative;
+    padding-bottom: 15px;
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    border-radius: 2px;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 30px 0 20px;
+  }
+  
+  footer {
+    background: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+    margin-top: 80px;
+  }
+  
+  footer p {
+    margin: 0 0 20px;
+    opacity: 0.9;
+  }
+  
+  .btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 700;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+  }
+</style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">⚡ Track & Field</a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" class="navbar-link">Home</a></li>
+        <li><a href="index.html" class="navbar-link">Track</a></li>
+        <li><a href="meets.html" class="navbar-link">Meets</a></li>
+        <li><a href="events.html" class="navbar-link">Events</a></li>
+        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+        <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <h1 class="section-title" id="athlete-name">Loading athlete…</h1>
     <div id="athlete-meta" style="margin-bottom:18px;"></div>
 
     <h3>Personal Bests</h3>
@@ -27,8 +177,12 @@
 
     <h3 style="margin-top:18px;">Recent Results</h3>
     <div id="history">Loading…</div>
-  </section>
-</main>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="admin-login.html" class="btn">Admin Login</a>
+  </footer>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -38,11 +192,24 @@
 <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
 <script src="firebase-config.js"></script>
 <script>
+async function waitForFirebase() {
+  let attempts = 0;
+  while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  if (typeof window.firebaseDatabase === 'undefined') {
+    throw new Error('Firebase database not initialized');
+  }
+}
+
 const params = new URLSearchParams(window.location.search);
 const athleteId = params.get('id');
 
 async function loadAthlete() {
-  const athSnapshot = await window.firebaseDatabase.ref(`Track/athletes/${athleteId}`).once('value');
+  try {
+    await waitForFirebase();
+    const athSnapshot = await window.firebaseDatabase.ref(`Track/athletes/${athleteId}`).once('value');
   const ath = athSnapshot.exists() ? { id: athleteId, ...athSnapshot.val() } : null;
   if (!ath) { document.getElementById('athlete-name').textContent = 'Athlete not found'; return; }
   document.getElementById('athlete-name').textContent = `${ath.first_name} ${ath.last_name}`;
@@ -64,7 +231,7 @@ async function loadAthlete() {
   const eventIds = [...new Set(pbs.map(r => r.event_id).filter(Boolean))];
   const eventsMap = {};
   if (eventIds.length > 0) {
-    const eventsSnapshot = await window.firebaseDatabase.ref('track_events').once('value');
+    const eventsSnapshot = await window.firebaseDatabase.ref('Track/events').once('value');
     eventsSnapshot.forEach(child => {
       if (eventIds.includes(child.key)) {
         eventsMap[child.key] = { id: child.key, ...child.val() };
@@ -122,7 +289,7 @@ async function loadAthlete() {
   }
   
   if (histEventIds.length > 0) {
-    const eventsSnapshot = await window.firebaseDatabase.ref('track_events').once('value');
+    const eventsSnapshot = await window.firebaseDatabase.ref('Track/events').once('value');
     eventsSnapshot.forEach(child => {
       if (histEventIds.includes(child.key)) {
         histEventsMap[child.key] = { id: child.key, ...child.val() };
@@ -210,9 +377,18 @@ async function loadAthlete() {
       }
     }, 100);
   }
+  } catch (error) {
+    console.error('Error loading athlete:', error);
+    document.getElementById('athlete-name').textContent = 'Error Loading Athlete';
+    document.getElementById('athlete-meta').innerHTML = '<p style="color: #dc3545;">⚠️ Error loading athlete data. Please check your connection and try again.</p>';
+    document.getElementById('pbs').innerHTML = '<p style="color: #dc3545;">Error loading data.</p>';
+    document.getElementById('history').innerHTML = '<p style="color: #dc3545;">Error loading data.</p>';
+  }
 }
 
-loadAthlete();
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadAthlete, 100);
+});
 </script>
 </body>
 </html>

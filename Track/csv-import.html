@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CSV Import — Track Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0e1a;
+      --panel: #0f1626;
+      --card: #151f2e;
+      --accent: #ff7b2d;
+      --accent-hover: #ff8c42;
+      --muted: #9fb4c8;
+      --border: rgba(255,255,255,0.08);
+      --hover: rgba(255,255,255,0.05);
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #007bff;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: #e6f0f7;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .header {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0 0 10px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 60px 20px;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      background: var(--card);
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--accent);
+      background: rgba(255, 123, 45, 0.05);
+    }
+    
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(255, 123, 45, 0.1);
+      transform: scale(1.02);
+    }
+    
+    .upload-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    
+    .upload-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .upload-hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 123, 45, 0.3);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--hover);
+      color: #fff;
+    }
+    
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    
+    .btn-success:hover {
+      background: #218838;
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    
+    .file-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--card);
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    
+    .file-info-name {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .file-info-size {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: var(--card);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .preview-table thead {
+      background: var(--panel);
+    }
+    
+    .preview-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .preview-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .preview-table tbody tr:hover {
+      background: var(--hover);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .stat-item {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0;
+    }
+    
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+    
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .alert-success {
+      background: rgba(40, 167, 69, 0.1);
+      border: 1px solid rgba(40, 167, 69, 0.3);
+      color: #28a745;
+    }
+    
+    .alert-error {
+      background: rgba(220, 53, 69, 0.1);
+      border: 1px solid rgba(220, 53, 69, 0.3);
+      color: #dc3545;
+    }
+    
+    .alert-warning {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      color: #ffc107;
+    }
+    
+    .error-list {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .error-item {
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background: rgba(220, 53, 69, 0.1);
+      border-left: 3px solid var(--danger);
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+      transition: color 0.2s;
+    }
+    
+    .back-link:hover {
+      color: #fff;
+    }
+    
+    .meet-select {
+      width: 100%;
+      padding: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #e6f0f7;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    
+    .meet-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 123, 45, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="admin.html" class="back-link">← Back to Admin</a>
+    
+    <div class="header">
+      <h1>📊 CSV Import</h1>
+      <p>Import track & field results from CSV files</p>
+    </div>
+    
+    <div class="card">
+      <h2 class="card-title">Step 1: Select Meet</h2>
+      <select id="meet-select" class="meet-select">
+        <option value="">Loading meets...</option>
+      </select>
+      <button class="btn btn-secondary" onclick="createNewMeet()">+ Create New Meet</button>
+    </div>
+    
+    <div class="card">
+      <h2 class="card-title">Step 2: Upload CSV File</h2>
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">Drag & drop your CSV file here</div>
+        <div class="upload-hint">or click to browse</div>
+        <input type="file" id="file-input" class="file-input" accept=".csv" />
+      </div>
+      <div id="file-info" style="display: none;"></div>
+    </div>
+    
+    <div class="card" id="preview-card" style="display: none;">
+      <h2 class="card-title">Step 3: Preview Data</h2>
+      <div id="preview-content"></div>
+    </div>
+    
+    <div class="card" id="import-card" style="display: none;">
+      <h2 class="card-title">Step 4: Import</h2>
+      <div id="import-content"></div>
+    </div>
+    
+    <div id="alerts"></div>
+  </div>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <script>
+    let selectedFile = null;
+    let parsedData = null;
+    let selectedMeetId = null;
+    
+    async function waitForFirebase() {
+      let attempts = 0;
+      while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+    }
+    
+    async function loadMeets() {
+      const select = document.getElementById('meet-select');
+      try {
+        await waitForFirebase();
+        const snapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+        const meets = [];
+        snapshot.forEach(child => {
+          meets.push({ id: child.key, ...child.val() });
+        });
+        
+        meets.sort((a, b) => {
+          const dateA = a.date || '';
+          const dateB = b.date || '';
+          return dateB.localeCompare(dateA);
+        });
+        
+        select.innerHTML = '<option value="">-- Select a meet --</option>' + 
+          meets.map(m => `<option value="${m.id}">${m.name || 'Unnamed Meet'} (${m.date || 'No date'})</option>`).join('');
+      } catch (error) {
+        console.error('Error loading meets:', error);
+        select.innerHTML = '<option value="">Error loading meets</option>';
+      }
+    }
+    
+    document.getElementById('meet-select').addEventListener('change', (e) => {
+      selectedMeetId = e.target.value;
+      if (selectedMeetId && selectedFile) {
+        parseAndPreview();
+      }
+    });
+    
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    
+    uploadZone.addEventListener('click', () => fileInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.csv')) {
+        handleFile(file);
+      } else {
+        showAlert('Please upload a CSV file', 'error');
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    });
+    
+    function handleFile(file) {
+      selectedFile = file;
+      const fileInfo = document.getElementById('file-info');
+      fileInfo.style.display = 'block';
+      fileInfo.innerHTML = `
+        <div class="file-info">
+          <div class="file-info-name">
+            <span>📄</span>
+            <span>${file.name}</span>
+          </div>
+          <div class="file-info-size">${(file.size / 1024).toFixed(2)} KB</div>
+        </div>
+      `;
+      
+      if (selectedMeetId) {
+        parseAndPreview();
+      } else {
+        showAlert('Please select a meet first', 'warning');
+      }
+    }
+    
+    async function parseAndPreview() {
+      if (!selectedFile || !selectedMeetId) return;
+      
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const csvText = e.target.result;
+          const headers = ['athlete_name', 'school', 'gender', 'mark', 'event', 'placement', 'heat'];
+          parsedData = parseCSV(csvText, headers);
+          
+          if (parsedData.length === 0) {
+            showAlert('No data found in CSV file', 'error');
+            return;
+          }
+          
+          displayPreview(parsedData);
+        } catch (error) {
+          console.error('Error parsing CSV:', error);
+          showAlert('Error parsing CSV: ' + error.message, 'error');
+        }
+      };
+      reader.readAsText(selectedFile);
+    }
+    
+    function displayPreview(data) {
+      const previewCard = document.getElementById('preview-card');
+      const previewContent = document.getElementById('preview-content');
+      const importCard = document.getElementById('import-card');
+      
+      const stats = {
+        total: data.length,
+        valid: data.filter(r => r.athlete_name).length,
+        errors: data.filter(r => !r.athlete_name).length
+      };
+      
+      previewContent.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number">${stats.total}</div>
+            <div class="stat-label">Total Rows</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" style="color: var(--success);">${stats.valid}</div>
+            <div class="stat-label">Valid Rows</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" style="color: ${stats.errors > 0 ? 'var(--danger)' : 'var(--success)'};">${stats.errors}</div>
+            <div class="stat-label">Errors</div>
+          </div>
+        </div>
+        
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>Athlete</th>
+              <th>School</th>
+              <th>Gender</th>
+              <th>Event</th>
+              <th>Mark</th>
+              <th>Place</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.slice(0, 10).map((row, idx) => `
+              <tr style="${!row.athlete_name ? 'opacity: 0.5;' : ''}">
+                <td>${idx + 1}</td>
+                <td>${row.athlete_name || '<span style="color: var(--danger);">Missing</span>'}</td>
+                <td>${row.school || '—'}</td>
+                <td>${row.gender || '—'}</td>
+                <td>${row.event || '—'}</td>
+                <td>${row.mark || '—'}</td>
+                <td>${row.placement || '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        ${data.length > 10 ? `<p style="text-align: center; color: var(--muted); margin-top: 16px;">Showing first 10 of ${data.length} rows</p>` : ''}
+      `;
+      
+      previewCard.style.display = 'block';
+      
+      importContent.innerHTML = `
+        <p style="margin-bottom: 20px; color: var(--muted);">
+          Ready to import ${stats.valid} valid results. ${stats.errors > 0 ? `${stats.errors} rows will be skipped due to errors.` : ''}
+        </p>
+        <button class="btn btn-primary" onclick="importData()" style="width: 100%; justify-content: center; padding: 16px;">
+          📥 Import ${stats.valid} Results
+        </button>
+      `;
+      
+      importCard.style.display = 'block';
+    }
+    
+    async function importData() {
+      if (!parsedData || !selectedMeetId) return;
+      
+      const importContent = document.getElementById('import-content');
+      importContent.innerHTML = '<div class="loading"></div> <span>Importing data...</span>';
+      
+      try {
+        await waitForFirebase();
+        
+        // Get meet info
+        const meetSnapshot = await window.firebaseDatabase.ref(`Track/meets/${selectedMeetId}`).once('value');
+        const meet = meetSnapshot.val();
+        if (!meet) {
+          throw new Error('Meet not found');
+        }
+        
+        // Process and import data
+        const resultsRef = window.firebaseDatabase.ref('Track/results');
+        let imported = 0;
+        let errors = [];
+        
+        for (const row of parsedData) {
+          if (!row.athlete_name) {
+            errors.push(`Row ${parsedData.indexOf(row) + 1}: Missing athlete name`);
+            continue;
+          }
+          
+          // Find or create athlete
+          let athleteId = await findOrCreateAthlete(row);
+          if (!athleteId) {
+            errors.push(`Row ${parsedData.indexOf(row) + 1}: Could not create athlete`);
+            continue;
+          }
+          
+          // Find event
+          let eventId = await findOrCreateEvent(row.event);
+          if (!eventId) {
+            errors.push(`Row ${parsedData.indexOf(row) + 1}: Could not find/create event`);
+            continue;
+          }
+          
+          // Create result
+          const resultData = {
+            athlete_id: athleteId,
+            meet_id: selectedMeetId,
+            event_id: eventId,
+            mark: row.mark || '',
+            placement: row.placement || null,
+            heat: row.heat || null
+          };
+          
+          await resultsRef.push(resultData);
+          imported++;
+        }
+        
+        showAlert(`✅ Successfully imported ${imported} results!`, 'success');
+        
+        if (errors.length > 0) {
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'error-list';
+          errorDiv.innerHTML = '<h3 style="margin-top: 0;">Errors:</h3>' + 
+            errors.map(e => `<div class="error-item">${e}</div>`).join('');
+          document.getElementById('import-content').appendChild(errorDiv);
+        }
+        
+        importContent.innerHTML = `
+          <div class="alert alert-success">
+            <span>✅</span>
+            <div>
+              <strong>Import Complete!</strong><br>
+              ${imported} results imported successfully.
+              ${errors.length > 0 ? `${errors.length} rows had errors.` : ''}
+            </div>
+          </div>
+          <button class="btn btn-secondary" onclick="location.reload()" style="width: 100%; margin-top: 20px;">
+            Import Another File
+          </button>
+        `;
+      } catch (error) {
+        console.error('Import error:', error);
+        showAlert('Error importing data: ' + error.message, 'error');
+        importContent.innerHTML = '<button class="btn btn-secondary" onclick="location.reload()">Try Again</button>';
+      }
+    }
+    
+    async function findOrCreateAthlete(row) {
+      const athletesRef = window.firebaseDatabase.ref('Track/athletes');
+      const snapshot = await athletesRef.orderByChild('first_name').equalTo(row.athlete_name.split(' ')[0]).once('value');
+      
+      let athleteId = null;
+      snapshot.forEach(child => {
+        const athlete = child.val();
+        if (athlete.last_name === row.athlete_name.split(' ').slice(1).join(' ')) {
+          athleteId = child.key;
+        }
+      });
+      
+      if (!athleteId) {
+        const nameParts = row.athlete_name.split(' ');
+        const newAthlete = {
+          first_name: nameParts[0] || '',
+          last_name: nameParts.slice(1).join(' ') || '',
+          school: row.school || '',
+          grade: row.grade || ''
+        };
+        const newRef = await athletesRef.push(newAthlete);
+        athleteId = newRef.key;
+      }
+      
+      return athleteId;
+    }
+    
+    async function findOrCreateEvent(eventName) {
+      if (!eventName) return null;
+      
+      const eventsRef = window.firebaseDatabase.ref('Track/events');
+      const snapshot = await eventsRef.orderByChild('name').equalTo(eventName).once('value');
+      
+      let eventId = null;
+      snapshot.forEach(child => {
+        eventId = child.key;
+      });
+      
+      if (!eventId) {
+        const newEvent = {
+          name: eventName,
+          slug: eventName.toLowerCase().replace(/\s+/g, '-'),
+          category: 'other',
+          gender: 'Mixed',
+          season: 'outdoor'
+        };
+        const newRef = await eventsRef.push(newEvent);
+        eventId = newRef.key;
+      }
+      
+      return eventId;
+    }
+    
+    function showAlert(message, type) {
+      const alerts = document.getElementById('alerts');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'}</span><span>${message}</span>`;
+      alerts.appendChild(alert);
+      
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+    
+    function createNewMeet() {
+      const name = prompt('Enter meet name:');
+      if (!name) return;
+      
+      const date = prompt('Enter meet date (YYYY-MM-DD):');
+      if (!date) return;
+      
+      const location = prompt('Enter location (optional):') || '';
+      const season = prompt('Enter season (indoor/outdoor):', 'outdoor') || 'outdoor';
+      
+      const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      waitForFirebase().then(() => {
+        const meetRef = window.firebaseDatabase.ref('Track/meets').push();
+        meetRef.set({
+          name: name,
+          slug: slug,
+          date: date,
+          location: location,
+          season: season
+        }).then(() => {
+          showAlert('Meet created successfully!', 'success');
+          loadMeets();
+          document.getElementById('meet-select').value = meetRef.key;
+          selectedMeetId = meetRef.key;
+        });
+      });
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('trackAdmin') !== 'true') {
+        window.location.replace('admin-login.html');
+      }
+      loadMeets();
+    });
+  </script>
+</body>
+</html>

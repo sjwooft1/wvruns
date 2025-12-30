@@ -4,49 +4,207 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Rankings — Track</title>
-<link rel="stylesheet" href="../style.css">
-<link rel="stylesheet" href="track.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
 <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
-</head>
-<body class="track-body">
-
-<nav class="track-nav">
-  <a href="/home">XC Home</a>
-  <a href="index.html">Track Home</a>
-  <a href="meets.html">Meets</a>
-  <a href="events.html">Events</a>
-  <a class="active" href="rankings.html">Rankings</a>
+<style>
+  * { box-sizing: border-box; }
   
-</nav>
+  :root {
+    --primary: #002855;
+    --secondary: #0056b3;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666;
+    --bg-light: #f8f9fa;
+    --border-light: #e0e0e0;
+    --accent: #ff6b35;
+    --accent-dark: #d9530a;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg-light);
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  
+  header {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .navbar {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .navbar-nav {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 30px;
+  }
+  
+  .navbar-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+  }
+  
+  .navbar-link:hover,
+  .navbar-link.active {
+    color: var(--secondary);
+  }
+  
+  .navbar-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+  }
+  
+  .section-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0 0 40px;
+    color: var(--primary);
+    position: relative;
+    padding-bottom: 15px;
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    border-radius: 2px;
+  }
+  
+  .filter-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .btn, .season-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--border-light);
+    background: white;
+    color: var(--text-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+  }
+  
+  .btn:hover,
+  .season-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+  }
+  
+  select.season-btn {
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+  
+  footer {
+    background: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+    margin-top: 80px;
+  }
+  
+  footer p {
+    margin: 0 0 20px;
+    opacity: 0.9;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">⚡ Track & Field</a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" class="navbar-link">Home</a></li>
+        <li><a href="index.html" class="navbar-link">Track</a></li>
+        <li><a href="meets.html" class="navbar-link">Meets</a></li>
+        <li><a href="events.html" class="navbar-link">Events</a></li>
+        <li><a href="rankings.html" class="navbar-link active">Rankings</a></li>
+        <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <h1 class="section-title">Rankings</h1>
 
-<main class="track-main">
-<section class="track-section">
-  <h2 class="track-section-title">Rankings</h2>
+    <div class="filter-controls">
+      <select id="select-event" class="season-btn"><option>Loading events…</option></select>
+      <select id="select-season" class="season-btn">
+        <option value="">All seasons</option>
+        <option value="indoor">Indoor</option>
+        <option value="outdoor">Outdoor</option>
+      </select>
+      <select id="select-gender" class="season-btn">
+        <option value="">All genders</option>
+        <option value="M">Boys / M</option>
+        <option value="F">Girls / F</option>
+      </select>
+      <button id="btn-load" class="btn">Load</button>
+    </div>
 
-  <div style="display:flex;gap:12px;align-items:center;margin-bottom:18px;">
-    <select id="select-event" class="season-btn"><option>Loading events…</option></select>
-    <select id="select-season" class="season-btn">
-      <option value="">All seasons</option>
-      <option value="indoor">Indoor</option>
-      <option value="outdoor">Outdoor</option>
-    </select>
-    <select id="select-gender" class="season-btn">
-      <option value="">All genders</option>
-      <option value="M">Boys / M</option>
-      <option value="F">Girls / F</option>
-    </select>
-    <button id="btn-load" class="season-btn">Load</button>
-  </div>
-
-  <div id="rankings-container">Select filters and click Load.</div>
-  <div id="rankings-grid" style="height: 500px; width: 100%; display: none;"></div>
-</section>
-</main>
-<footer>
-  <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-  <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
-</footer>
+    <div id="rankings-container">Select filters and click Load.</div>
+    <div id="rankings-grid" style="height: 500px; width: 100%; display: none;"></div>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="admin-login.html" class="btn">Admin Login</a>
+  </footer>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -54,6 +212,17 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script>
+async function waitForFirebase() {
+  let attempts = 0;
+  while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  if (typeof window.firebaseDatabase === 'undefined') {
+    throw new Error('Firebase database not initialized');
+  }
+}
+
 const selectEvent = document.getElementById('select-event');
 const selectSeason = document.getElementById('select-season');
 const selectGender = document.getElementById('select-gender');
@@ -61,13 +230,29 @@ const btnLoad = document.getElementById('btn-load');
 const rankingsContainer = document.getElementById('rankings-container');
 
 async function initEvents() {
-  const snapshot = await window.firebaseDatabase.ref('Track/events').orderByChild('name').once('value');
-  const events = [];
-  snapshot.forEach(child => {
-    events.push({ id: child.key, ...child.val() });
-  });
-  events.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  selectEvent.innerHTML = `<option value="">-- choose event --</option>` + events.map(e => `<option value="${e.id}" data-slug="${e.slug}">${e.name} (${e.category})</option>`).join('');
+  try {
+    await waitForFirebase();
+    console.log('Loading events for rankings...');
+    const snapshot = await window.firebaseDatabase.ref('Track/events').once('value');
+    
+    console.log('Events snapshot exists:', snapshot.exists());
+    console.log('Events snapshot val:', snapshot.val());
+    
+    const events = [];
+    snapshot.forEach(child => {
+      const eventData = child.val();
+      console.log('Event found:', child.key, eventData);
+      events.push({ id: child.key, ...eventData });
+    });
+    
+    console.log('Total events found:', events.length);
+    
+    events.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    selectEvent.innerHTML = `<option value="">-- choose event --</option>` + events.map(e => `<option value="${e.id}" data-slug="${e.slug || e.id}">${e.name || 'Unnamed Event'} (${e.category || 'N/A'})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading events:', error);
+    selectEvent.innerHTML = '<option value="">Error loading events</option>';
+  }
 }
 btnLoad.addEventListener('click', loadRankings);
 
@@ -79,6 +264,7 @@ async function loadRankings() {
   if (!eventId) { rankingsContainer.innerHTML = '<p>Please pick an event.</p>'; return; }
 
   try {
+    await waitForFirebase();
     // Fetch results for this event
     const resultsSnapshot = await window.firebaseDatabase.ref('Track/results')
       .orderByChild('event_id')
@@ -145,6 +331,13 @@ async function loadRankings() {
   if (gender) {
     // If event record has gender, we might filter by event; otherwise skip — this is a best-effort filter.
     rows = rows.filter(r => (r.event?.gender ?? '') === '' || true);
+  }
+
+  } catch (error) {
+    console.error('Error loading rankings:', error);
+    rankingsContainer.innerHTML = '<p style="color: #dc3545;">⚠️ Error loading rankings. Please try again.</p>';
+    document.getElementById('rankings-grid').style.display = 'none';
+    return;
   }
 
   if (!rows.length) { 
@@ -214,7 +407,9 @@ async function loadRankings() {
   }, 100);
 }
 
-initEvents();
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initEvents, 100);
+});
 </script>
 </body>
 </html>

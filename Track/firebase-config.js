@@ -15,11 +15,56 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase (using compat version for script tags)
-const app = firebase.initializeApp(firebaseConfig);
-const analytics = firebase.analytics();
-const database = firebase.database();
+try {
+  // Check if Firebase is already initialized
+  let app;
+  if (firebase.apps.length === 0) {
+    app = firebase.initializeApp(firebaseConfig);
+  } else {
+    app = firebase.app();
+  }
+  
+  // Analytics is optional and may not be available in compat version
+  try {
+    if (firebase.analytics) {
+      firebase.analytics();
+    }
+  } catch (analyticsError) {
+    console.warn('Analytics not available:', analyticsError);
+  }
+  
+  const database = firebase.database();
 
-// Make database available globally
-window.firebaseDatabase = database;
-window.firebaseApp = app;
+  // Make database available globally
+  window.firebaseDatabase = database;
+  window.firebaseApp = app;
+  
+  console.log('Firebase initialized successfully');
+  console.log('Database reference:', database);
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  // Create a mock database object to prevent errors
+  window.firebaseDatabase = {
+    ref: function(path) {
+      return {
+        once: function() {
+          return Promise.resolve({
+            val: function() { return null; },
+            forEach: function() {},
+            exists: function() { return false; },
+            numChildren: function() { return 0; }
+          });
+        },
+        orderByChild: function() { return this; },
+        equalTo: function() { return this; },
+        limitToFirst: function() { return this; },
+        limitToLast: function() { return this; },
+        push: function() { return this; },
+        set: function() { return Promise.resolve(); },
+        update: function() { return Promise.resolve(); },
+        remove: function() { return Promise.resolve(); }
+      };
+    }
+  };
+}
 

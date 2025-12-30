@@ -208,7 +208,7 @@
       font-size: 2.2rem;
       font-weight: 800;
       margin: 0 0 40px;
-      color: var (--xc-primary);
+      color: var(--xc-primary);
       position: relative;
       padding-bottom: 15px;
     }
@@ -382,7 +382,7 @@
         <li><a href="index.html" class="navbar-link active">Track</a></li>
         <li><a href="meets.html" class="navbar-link">Meets</a></li>
         <li><a href="events.html" class="navbar-link">Events</a></li>
-        <li><a href="rankings.html" class="navbar-link">Rankings</a></li><li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
         <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
       </ul>
     </nav>
@@ -411,7 +411,7 @@
   
   <footer>
     <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="login.html" class="btn btn-secondary">Admin Login</a>
+    <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
   </footer>
   
   <!-- Firebase SDK -->
@@ -419,18 +419,56 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
+    async function waitForFirebase() {
+      let attempts = 0;
+      while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      if (typeof window.firebaseDatabase === 'undefined') {
+        throw new Error('Firebase database not initialized');
+      }
+    }
+    
     async function loadRecentMeets() {
       const container = document.getElementById('meet-list');
       try {
-        const snapshot = await window.firebaseDatabase.ref('Track/meets')
-          .orderByChild('date')
-          .limitToLast(10)
-          .once('value');
+        await waitForFirebase();
+        console.log('Loading meets from Track/meets...');
+        console.log('Firebase database:', window.firebaseDatabase);
+        
+        // Check root structure first
+        const rootSnapshot = await window.firebaseDatabase.ref().once('value');
+        console.log('Root snapshot:', rootSnapshot.val());
+        console.log('Root keys:', rootSnapshot.exists() ? Object.keys(rootSnapshot.val() || {}) : 'no data');
+        
+        // Try without orderBy first to see if data exists
+        const snapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+        
+        console.log('Track/meets snapshot exists:', snapshot.exists());
+        console.log('Track/meets snapshot val:', snapshot.val());
+        
+        // Also try just 'meets' in case structure is different
+        const meetsSnapshotAlt = await window.firebaseDatabase.ref('meets').once('value');
+        console.log('meets (no Track/) snapshot exists:', meetsSnapshotAlt.exists());
+        console.log('meets (no Track/) snapshot val:', meetsSnapshotAlt.val());
         
         const meets = [];
-        snapshot.forEach(child => {
-          meets.push({ id: child.key, ...child.val() });
-        });
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            const meetData = child.val();
+            console.log('Meet found:', child.key, meetData);
+            meets.push({ id: child.key, ...meetData });
+          });
+        } else if (meetsSnapshotAlt.exists()) {
+          meetsSnapshotAlt.forEach(child => {
+            const meetData = child.val();
+            console.log('Meet found (alt path):', child.key, meetData);
+            meets.push({ id: child.key, ...meetData });
+          });
+        }
+        
+        console.log('Total meets found:', meets.length);
         
         // Sort by date descending
         meets.sort((a, b) => {
@@ -439,7 +477,10 @@
           return dateB.localeCompare(dateA);
         });
         
-        if (!meets.length) {
+        // Take last 10
+        const recentMeets = meets.slice(0, 10);
+        
+        if (!recentMeets.length) {
           container.innerHTML = '<p>No recent track meets found.</p>';
           return;
         }
@@ -450,20 +491,22 @@
           return new Date(y, m - 1, d).toLocaleDateString();
         }
         
-        container.innerHTML = meets.map(meet => `
-          <a href="meet.html?slug=${encodeURIComponent(meet.slug)}" class="meet-card">
-            <h3 class="meet-card-title">${meet.name}</h3>
+        container.innerHTML = recentMeets.map(meet => `
+          <a href="meet.html?slug=${encodeURIComponent(meet.slug || meet.id)}" class="meet-card">
+            <h3 class="meet-card-title">${meet.name || 'Unnamed Meet'}</h3>
             <p class="meet-card-date">📅 ${formatDate(meet.date)}</p>
             ${meet.location ? `<p class="meet-card-location">📍 ${meet.location}</p>` : ''}
           </a>
         `).join('');
       } catch (error) {
         console.error('Error loading meets:', error);
-        container.innerHTML = '<p>Error loading recent meets.</p>';
+        container.innerHTML = '<p style="color: #dc3545; padding: 20px; text-align: center;">⚠️ Error loading recent meets. Please check your connection and try again.</p>';
       }
     }
     
-    document.addEventListener('DOMContentLoaded', loadRecentMeets);
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(loadRecentMeets, 100);
+    });
   </script>
 </body>
 </html>

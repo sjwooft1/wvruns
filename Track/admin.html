@@ -597,6 +597,7 @@
       
       <div class="nav-section-title">Tools</div>
       <div class="nav-section" id="tools-nav">
+        <a href="csv-import.html" class="nav-btn" style="text-decoration: none; display: block;">📊 CSV Import</a>
         <button class="nav-btn" data-section="bulk-edit">⚙️ Bulk Edit</button>
         <button class="nav-btn" data-section="analytics">📈 Analytics</button>
         <button class="nav-btn" data-section="settings">⚙️ Settings</button>
@@ -698,8 +699,18 @@
   // ==========================================
   async function loadSection(section) {
     currentSection = section;
-    document.getElementById('page-title').textContent = 
-      section.charAt(0).toUpperCase() + section.slice(1);
+    const titles = {
+      'dashboard': 'Dashboard',
+      'meets': 'Meets',
+      'events': 'Events',
+      'athletes': 'Athletes',
+      'results': 'Results',
+      'teams': 'Teams',
+      'bulk-edit': 'Bulk Edit',
+      'analytics': 'Analytics',
+      'settings': 'Settings'
+    };
+    document.getElementById('page-title').textContent = titles[section] || section.charAt(0).toUpperCase() + section.slice(1);
     document.getElementById('content').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted);"><span>Loading...</span></div>';
     
     try {
@@ -1290,6 +1301,19 @@
     a.click();
     URL.revokeObjectURL(url);
   }
+  
+  // Make functions globally accessible for onclick handlers
+  window.closeModal = closeModal;
+  window.handleModalSubmit = handleModalSubmit;
+  window.openAddModal = openAddModal;
+  window.openEditModal = openEditModal;
+  window.confirmDelete = confirmDelete;
+  window.sortTable = sortTable;
+  window.filterTable = filterTable;
+  window.exportToCSV = exportToCSV;
+  window.loadSection = loadSection;
+  window.exportAllTrackData = exportAllTrackData;
+  window.downloadTrackDatabase = downloadTrackDatabase;
   
   // Load initial section
   loadSection('dashboard');
