@@ -113,7 +113,30 @@
     background: linear-gradient(90deg, var(--accent), var(--accent-dark));
     border-radius: 2px;
   }
-  
+
+    .meet-desc {
+    font-size: 1.2rem;
+    color: #000000bd;
+    font-weight: 500;
+    margin-bottom: 25px;
+  }
+  .meet-desc::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    border-radius: 2px;
+  }
+  .meet-meta {
+  font-size: 1.2rem;
+  color: var(secondary);
+  font-weight: 600;
+  margin-bottom: 15px;
+  margin-top: -30px; /* Pulls it closer to the title */
+}
   .event-block {
     margin-bottom: 40px;
   }
@@ -125,18 +148,41 @@
     margin-bottom: 20px;
   }
   
-  footer {
-    background: var(--primary);
-    color: white;
-    text-align: center;
-    padding: 40px 20px;
-    margin-top: 80px;
-  }
-  
-  footer p {
-    margin: 0 0 20px;
-    opacity: 0.9;
-  }
+   /* Footer */
+    footer {
+  /* Remove the solid background color */
+  background: rgba(0, 40, 85, 0.85); /* Semi-transparent version of your primary blue */
+  backdrop-filter: blur(8px); /* Optional: Adds a glass effect */
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+  margin-top: 80px;
+  position: relative;
+  z-index: 1; /* Ensures footer content stays above the image */
+}
+.footer-with-bg {
+  position: relative;
+  overflow: hidden; /* Clips the image to footer boundaries */
+  padding: 60px 20px;
+  color: white;
+  text-align: center;
+}
+
+.footer-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the mountain image fills the area */
+  z-index: -1; /* Puts it behind the text */
+  filter: brightness(0.5); /* Darkens the image so text is readable */
+}
+
+.footer-content {
+  position: relative;
+  z-index: 2;
+}
   
   .btn {
     display: inline-block;
@@ -175,12 +221,17 @@
   
   <main>
     <h1 class="section-title" id="meet-title">Loading...</h1>
+    <p class="meet-meta" id="meet-meta">Loading details...</p> 
+    <p class="meet-desc" id="meet-description">Loading description...</p> 
     <div id="event-results">Loading results...</div>
   </main>
   
-  <footer>
-    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="admin-login.html" class="btn">Admin Login</a>
+  <footer class="footer-with-bg">
+    <img src="footer image.jpeg" alt="" class="footer-bg-img" />
+    <div class="footer-content">
+      <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+      <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
+    </div>
   </footer>
 
 <!-- Firebase SDK -->
@@ -225,8 +276,20 @@ async function loadMeet() {
       }
     });
 
-  document.getElementById("meet-title").textContent =
-    meet?.name ?? "Meet Not Found";
+  // Load Title
+document.getElementById("meet-title").textContent =
+  meet?.name ?? "Meet Not Found";
+
+// Load Description
+document.getElementById("meet-description").textContent =
+  meet?.description ?? "No description available";
+
+// Load Location and Date combined
+const location = meet?.location ?? "No location";
+const date = meet?.date ?? "No date";
+
+// This combines them into "Location • Date"
+document.getElementById("meet-meta").textContent = `${location} • ${date}`;
 
   if (!meet) {
     console.log('Meet not found with slug:', slug);

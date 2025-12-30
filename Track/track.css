@@ -106,12 +106,6 @@
     backdrop-filter: blur(12px);
   }
   
-  .track-section-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 25px;
-  }
-  
   /* EVENT CARDS */
   
   .event-grid {

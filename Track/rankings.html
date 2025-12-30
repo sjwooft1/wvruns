@@ -150,18 +150,41 @@
     cursor: pointer;
   }
   
-  footer {
-    background: var(--primary);
-    color: white;
-    text-align: center;
-    padding: 40px 20px;
-    margin-top: 80px;
-  }
-  
-  footer p {
-    margin: 0 0 20px;
-    opacity: 0.9;
-  }
+ /* Footer */
+ footer {
+  /* Remove the solid background color */
+  background: rgba(0, 40, 85, 0.85); /* Semi-transparent version of your primary blue */
+  backdrop-filter: blur(8px); /* Optional: Adds a glass effect */
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+  margin-top: 80px;
+  position: relative;
+  z-index: 1; /* Ensures footer content stays above the image */
+}
+.footer-with-bg {
+  position: relative;
+  overflow: hidden; /* Clips the image to footer boundaries */
+  padding: 60px 20px;
+  color: white;
+  text-align: center;
+}
+
+.footer-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the mountain image fills the area */
+  z-index: -1; /* Puts it behind the text */
+  filter: brightness(0.5); /* Darkens the image so text is readable */
+}
+
+.footer-content {
+  position: relative;
+  z-index: 2;
+}
 </style>
 </head>
 <body>
@@ -201,9 +224,12 @@
     <div id="rankings-grid" style="height: 500px; width: 100%; display: none;"></div>
   </main>
   
-  <footer>
-    <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="admin-login.html" class="btn">Admin Login</a>
+  <footer class="footer-with-bg">
+    <img src="footer image.jpeg" alt="" class="footer-bg-img" />
+    <div class="footer-content">
+      <p>&copy; 2025 Mountain State Miles — Built by runners, for runners.</p>
+      <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
+    </div>
   </footer>
 
 <!-- Firebase SDK -->
