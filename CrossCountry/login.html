@@ -82,14 +82,14 @@
   
   <script>
     // Already logged in? → Go to admin page
-    if (localStorage.getItem("xcAdmin") === "true") {
+    if (localStorage.getItem("&#120; &#99; &#97; &#100; &#109; &#105; &#110;") === "&#116; &#114; &#117; &#101;") {
       window.location.replace("admin.html");
     }
 
     function checkLogin() {
       const pass = document.getElementById("password").value;
       if (pass === "phsisbest") {
-        localStorage.setItem("xcAdmin", "true");
+        localStorage.setItem("&#120; &#99; &#97; &#100; &#109; &#105; &#110;", "&#116; &#114; &#117; &#101;");
         window.location.replace("admin.html");
       } else {
         document.getElementById("error").style.display = "block";
