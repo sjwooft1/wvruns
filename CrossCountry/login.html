@@ -95,6 +95,16 @@
         document.getElementById("error").style.display = "block";
       }
     }
+    const passwordInput = document.getElementById("password");
+
+// Listen for keydown event on the input field
+passwordInput.addEventListener("keydown", function(event) {
+  // Use event.key === "Enter" for modern standards (2025)
+  if (event.key === "Enter") {
+    event.preventDefault(); // Prevents default browser actions
+    document.querySelector(".btn").click(); // Programmatically clicks the button
+  }
+});
   </script>
 
 </body>
