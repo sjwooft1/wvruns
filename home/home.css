@@ -60,7 +60,7 @@
   /* FOOTER */
   
   footer {
-    background: linear-gradient(90deg, #030351 0%, #730404 100%);
+    background: color-mix(in srgb, var(--primary) 90%, transparent);
     color: #dde6ff;
     font-size: 1.09rem;
     box-shadow: 0 -1.5px 20px rgba(2,30,70,0.10);

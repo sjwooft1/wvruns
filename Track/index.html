@@ -10,12 +10,13 @@
   <link rel="apple-touch-icon" sizes="180x180" href="../assets/Favicon Generator/apple-touch-icon.png" />
   <link rel="manifest" href="../assets/Favicon Generator/site.webmanifest" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
   <style>
     * { box-sizing: border-box; }
     
     :root {
       --xc-primary: #002855;
-      --xc-secondary: #0056b3;
+      --xc-secondary: #004080;
       --text-primary: #1a1a1a;
       --text-secondary: #666;
       --bg-light: #f8f9fa;
@@ -56,7 +57,7 @@
     
     /* Hero Section */
     .hero-section {
-      background: linear-gradient(135deg, var(--xc-primary) 0%, #1a3a52 100%);
+      background: linear-gradient(135deg, var(--xc-primary) 0%, var(--xc-secondary) 100%);
       padding: 60px 20px;
       text-align: center;
       color: white;
@@ -131,66 +132,7 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
     
-    /* Navigation Bar */
-    header {
-      background: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    
-    .navbar {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 70px;
-    }
-    
-    .navbar-brand {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--xc-primary);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .navbar-nav {
-      display: flex;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      gap: 30px;
-    }
-    
-    .navbar-link {
-      color: var(--text-primary);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s;
-      position: relative;
-    }
-    
-    .navbar-link:hover,
-    .navbar-link.active {
-      color: var(--xc-secondary);
-    }
-    
-    .navbar-link.active::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--accent);
-      border-radius: 2px;
-    }
+    /* Navigation Bar - Using unified header from style.css */
     
     /* Main Content */
     main {
@@ -364,24 +306,7 @@
         font-size: 1rem;
       }
       
-      .navbar-nav {
-        gap: 15px;
-        font-size: 0.5rem;
-        display: grid;
-      }
-      .navbar-content {
-    flex-direction: column;
-    align-content: center;
-    gap: 10px;
-  }
-
-  .navbar-brand {
-    margin-bottom: 10px;
-  }
-  
-  .navbar-nav li {
-      margin: 0 10px;
-  }
+      /* Mobile menu handled by unified header styles */
       
       .section-title {
         font-size: 1.8rem;
@@ -412,15 +337,19 @@
   
   <header>
     <nav class="navbar">
-      <a href="index.html" class="navbar-brand">⚡ Track & Field</a>
-      <ul class="navbar-nav">
-        <li><a href="/home/" class="navbar-link">Home</a></li>
-        <li><a href="index.html" class="navbar-link active">Track</a></li>
-        <li><a href="meets.html" class="navbar-link">Meets</a></li>
-        <li><a href="events.html" class="navbar-link">Events</a></li>
-        <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
-        <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
-      </ul>
+      <div class="navbar-content">
+        <a href="index.html" class="navbar-brand">⚡ Track & Field</a>
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+        <ul class="navbar-nav" id="main-nav">
+          <li><a href="/home/" class="navbar-link">Home</a></li>
+          <li><a href="index.html" class="navbar-link active">Track</a></li>
+          <li><a href="teams.html" class="navbar-link">Teams</a></li>
+          <li><a href="meets.html" class="navbar-link">Meets</a></li>
+          <li><a href="events.html" class="navbar-link">Events</a></li>
+          <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+          <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+        </ul>
+      </div>
     </nav>
   </header>
   
@@ -545,6 +474,23 @@
     
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(loadRecentMeets, 100);
+      
+      // Mobile menu toggle
+      const menuToggle = document.querySelector('.mobile-menu-toggle');
+      const navMenu = document.getElementById('main-nav');
+      
+      if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', () => {
+          navMenu.classList.toggle('mobile-open');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+            navMenu.classList.remove('mobile-open');
+          }
+        });
+      }
     });
   </script>
 </body>

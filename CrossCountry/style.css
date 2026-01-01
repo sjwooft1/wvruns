@@ -507,6 +507,9 @@ header {
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 
+/* Navbar styles now handled by unified header in ../style.css */
+/* Keeping these commented for reference - unified header takes precedence */
+/*
 .navbar {
   background-color: #002855; 
   padding: 10px 0;
@@ -546,6 +549,7 @@ header {
   text-shadow:  1px 6px 10px rgba(63, 118, 201, 0.5);
   transition: transform 0.5s ease;
 }
+*/
 
 /* Added style for the new back link */
 .back-link {
@@ -706,18 +710,7 @@ footer {
     padding: 0 12px;
   }
   
-  .navbar-content {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .navbar-brand {
-    margin-bottom: 10px;
-  }
-  
-  .navbar-nav li {
-      margin: 0 10px;
-  }
+  /* Mobile navbar styles now handled by unified header in ../style.css */
 
   main h1 {
     font-size: 1.7rem;

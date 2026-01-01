@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>School – Mountain State Miles</title>
-  <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
-  <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
-  <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Team – Mountain State Miles</title>
+  <link rel="icon" type="image/png" href="../assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="../assets/Favicon Generator/favicon.svg" />
+  <link rel="shortcut icon" href="../assets/Favicon Generator/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/Favicon Generator/apple-touch-icon.png" />
+  <link rel="manifest" href="../assets/Favicon Generator/site.webmanifest" />
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="track.css">
   
   <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   
   <!-- Your Configuration and Helper Scripts -->
   <script src="firebase-config.js"></script>
@@ -27,13 +28,14 @@
   <header>
     <nav class="navbar">
       <div class="navbar-content">
-        <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+        <a href="index.html" class="navbar-brand">⚡ Track & Field</a>
         <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
         <ul class="navbar-nav" id="main-nav">
           <li><a href="/home/" class="navbar-link">Home</a></li>
-          <li><a href="xc.html" class="navbar-link">Cross Country</a></li>
-          <li><a href="schools.html" class="navbar-link active">Schools</a></li>
+          <li><a href="index.html" class="navbar-link">Track</a></li>
+          <li><a href="teams.html" class="navbar-link active">Teams</a></li>
           <li><a href="meets.html" class="navbar-link">Meets</a></li>
+          <li><a href="events.html" class="navbar-link">Events</a></li>
           <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
           <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
         </ul>
@@ -44,12 +46,11 @@
   <main class="page-container">
     <header class="hero-section hero-profile">
       <div class="hero-content">
-        <!-- School Logo Display -->
-        <!-- Logo path based on assets/team_logos/school_slug.png -->
-        <img id="school-logo" class="hero-logo" src="" alt="School Logo" style="display: none;" 
+        <!-- Team Logo Display -->
+        <img id="team-logo" class="hero-logo" src="" alt="Team Logo" style="display: none;" 
              onerror="this.onerror=null; this.src='../assets/Wvruns Logo.png'; this.style.display='block';"> 
-        <h1 id="school-name" class="text-4xl font-extrabold mb-2">School Profile</h1>
-        <p id="school-info" class="text-xl font-medium text-gray-200">Loading school information...</p>
+        <h1 id="team-name" class="text-4xl font-extrabold mb-2">Team Profile</h1>
+        <p id="team-info" class="text-xl font-medium text-gray-200">Loading team information...</p>
       </div>
     </header>
 
@@ -62,7 +63,7 @@
             Loading roster...
         </div>
         <div id="no-athletes" class="loading-message" style="display: none;">
-            No athletes found for this school.
+            No athletes found for this team.
         </div>
         <div id="roster-grid" class="table-container" style="display: none;">
           <!-- Custom HTML Roster Table will render here -->
@@ -76,49 +77,19 @@
         <div id="meets-list">
             <!-- Meet list will be injected here -->
         </div>
-
-        <!-- Team Statistics Section -->
-        <h2 class="section-title mt-10 mb-4">Team Statistics</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Average Team Time</div>
-            <div class="stat-value" id="avg-time">--:--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Athletes</div>
-            <div class="stat-value" id="total-athletes">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Personal Records Set</div>
-            <div class="stat-value" id="pr-count">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Meet Appearances</div>
-            <div class="stat-value" id="meet-count">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Best Team Performance</div>
-            <div class="stat-value" id="best-time">--:--</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Fastest Athlete</div>
-            <div class="stat-value" id="fastest-athlete">--</div>
-          </div>
-        </div>
-
-        <!-- Season Trends Section -->
-        <h2 class="section-title mt-10 mb-4">Season Performance</h2>
-        <div id="trends-container" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
-          <canvas id="trendsChart" style="max-height: 400px;"></canvas>
-        </div>
         
       </div>
     </section>
   </main>
   
-  <!-- Custom Styles for visual integration (kept from previous version) -->
+  <footer>
+    <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
+    <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
+  </footer>
+  
+  <!-- Custom Styles for visual integration -->
   <style>
-    /* School Logo Style */
+    /* Team Logo Style */
     .hero-logo { 
         width: 120px;
         height: 120px;
@@ -194,7 +165,7 @@
         background-color: #f1f5f9;
     }
     
-    /* Responsive styles for table on small screens, mirroring style.css */
+    /* Responsive styles for table on small screens */
     @media screen and (max-width: 768px) {
         .results-table table, 
         .results-table thead, 
@@ -245,83 +216,99 @@
       if (isNaN(timeSec) || timeSec <= 0) return 'N/A';
       
       const totalMinutes = Math.floor(timeSec / 60);
-      // Ensure the seconds part is padded and has two decimal places
       const remainingSeconds = (timeSec % 60).toFixed(2).padStart(5, '0'); 
       return `${totalMinutes}:${remainingSeconds}`;
     }
     
     // Element references
-    const schoolLogoEl = document.getElementById('school-logo');
-    const schoolNameEl = document.getElementById('school-name');
-    const schoolInfoEl = document.getElementById('school-info');
+    const teamLogoEl = document.getElementById('team-logo');
+    const teamNameEl = document.getElementById('team-name');
+    const teamInfoEl = document.getElementById('team-info');
     const rosterGrid = document.getElementById('roster-grid');
     const rosterLoading = document.getElementById('roster-loading');
     const noAthletes = document.getElementById('no-athletes');
     const meetsList = document.getElementById('meets-list');
     const meetsLoading = document.getElementById('meets-loading');
 
+    /**
+     * Converts school name to slug
+     * @param {string} schoolName - The school name
+     * @returns {string} The slug
+     */
+    function schoolNameToSlug(schoolName) {
+      return schoolName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
 
     /**
-     * Loads school name, info, and logo from URL parameter.
-     * @returns {Promise<string|null>} The school slug or null if not found.
+     * Loads team name and logo from URL parameter.
+     * @returns {Promise<string|null>} The school name or null if not found.
      */
-    async function loadSchoolInfo() {
+    async function loadTeamInfo() {
       const params = new URLSearchParams(window.location.search);
-      const schoolSlug = params.get('slug');
+      const schoolName = params.get('school');
 
-      if (!schoolSlug) {
-        schoolNameEl.textContent = 'School Not Found';
-        schoolInfoEl.textContent = 'Please provide a valid school slug in the URL.';
+      if (!schoolName) {
+        teamNameEl.textContent = 'Team Not Found';
+        teamInfoEl.textContent = 'Please provide a valid school name in the URL.';
         return null;
       }
 
       try {
-        const school = await getSchoolBySlug(schoolSlug);
-        if (school && school.name) {
-          schoolNameEl.textContent = school.name;
-          schoolInfoEl.textContent = `School in ${school.city || 'West Virginia'}`;
-          document.title = `${school.name} Profile – Mountain State Miles`;
-          
-          // Set Logo path as requested: assets/team_logos/school_slug.png
-          const logoPath = `assets/team_logos/${schoolSlug}.png`;
-          const fallbackLogo = `../assets/Wvruns Logo.png`;
-          schoolLogoEl.onerror = function() {
-            this.onerror = null;
-            this.src = fallbackLogo;
-            this.style.display = 'block';
-          };
-          schoolLogoEl.src = logoPath;
-          schoolLogoEl.style.display = 'block'; 
-          
-          return schoolSlug;
-        } else {
-          schoolNameEl.textContent = 'School Not Found';
-          schoolInfoEl.textContent = `No data found for slug: ${schoolSlug}`;
-          return null;
-        }
+        teamNameEl.textContent = schoolName;
+        teamInfoEl.textContent = `Track & Field Team in West Virginia`;
+        document.title = `${schoolName} Track Team – Mountain State Miles`;
+        
+        // Set Logo path using slug
+        const slug = schoolNameToSlug(schoolName);
+        const logoPath = `../CrossCountry/assets/team logos/${slug}.png`;
+        const fallbackLogo = `../assets/Wvruns Logo.png`;
+        teamLogoEl.onerror = function() {
+          this.onerror = null;
+          this.src = fallbackLogo;
+          this.style.display = 'block';
+        };
+        teamLogoEl.src = logoPath;
+        teamLogoEl.style.display = 'block'; 
+        
+        return schoolName;
       } catch (error) {
-        console.error('Error fetching school info:', error);
-        schoolNameEl.textContent = 'Error Loading Data';
-        schoolInfoEl.textContent = 'Could not connect to database.';
+        console.error('Error loading team info:', error);
+        teamNameEl.textContent = 'Error Loading Data';
+        teamInfoEl.textContent = 'Could not load team information.';
         return null;
       }
     }
 
     /**
-     * Loads the roster by querying the /athletes folder for school_slug matches.
-     * @param {string} schoolSlug The school identifier.
+     * Loads the roster by querying Track/athletes for school name matches.
+     * @param {string} schoolName The school name.
      */
-    async function loadRoster(schoolSlug) {
+    async function loadRoster(schoolName) {
       rosterLoading.style.display = 'block';
       rosterGrid.style.display = 'none';
       noAthletes.style.display = 'none';
       rosterGrid.innerHTML = ''; 
 
       try {
-        // Fetch athletes using the helper which should query /athletes filtered by school_slug
-        const roster = await getAthletesBySchool(schoolSlug);
+        await waitForFirebase();
+        
+        // Query athletes by school name
+        const snapshot = await window.firebaseDatabase.ref('Track/athletes').once('value');
+        const allAthletes = [];
+        snapshot.forEach(child => {
+          const athlete = child.val();
+          if (athlete && athlete.school === schoolName) {
+            allAthletes.push(athlete);
+          }
+        });
 
-        if (roster && roster.length > 0) {
+        if (allAthletes.length > 0) {
+          // Sort by name
+          allAthletes.sort((a, b) => {
+            const nameA = (a.name || a.athlete_name || '').toLowerCase();
+            const nameB = (b.name || b.athlete_name || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+          });
           
           const tableHTML = `
             <table class="results-table">
@@ -333,19 +320,13 @@
                 </tr>
               </thead>
               <tbody>
-                ${roster.map(athlete => {
-                  // Resilient name fetching
+                ${allAthletes.map(athlete => {
                   const name = athlete.athlete_name || athlete.name || 'Name Unknown'; 
-                  
-                  // === FIX: Resilient graduation year fetching ===
                   let gradYear = athlete.grad_year || athlete.graduation_year || athlete.class;
                   gradYear = gradYear ? `C/o ${gradYear}` : 'N/A';
-                  // ===============================================
-
                   const gender = athlete.gender === 'M' ? 'Male' : (athlete.gender === 'F' ? 'Female' : 'N/A');
-                  const slug = athlete.athlete_slug;
+                  const slug = athlete.athlete_slug || athlete.slug;
                   
-                  // Link to athlete page
                   const link = slug 
                       ? `<a href="athlete.html?slug=${slug}" style="color: var(--xc-primary); font-weight: 600;">${name}</a>`
                       : name;
@@ -380,36 +361,41 @@
     }
     
     /**
-     * Loads the list of meets a school has participated in by querying the /results 
-     * folder for results matching the school's slug.
-     * @param {string} schoolSlug The school identifier.
+     * Loads the list of meets a team has participated in.
+     * @param {string} schoolName The school name.
      */
-    async function loadMeets(schoolSlug) {
+    async function loadMeets(schoolName) {
       meetsLoading.style.display = 'block';
       meetsList.innerHTML = '';
       try {
-        // Fetch results using the helper which should query /results filtered by school_slug
-        const results = await getResultsBySchool(schoolSlug);
+        await waitForFirebase();
         
-        if (results && results.length > 0) {
+        // Get all results for this school
+        const resultsSnapshot = await window.firebaseDatabase.ref('Track/results').once('value');
+        const allResults = [];
+        resultsSnapshot.forEach(child => {
+          const result = child.val();
+          if (result && result.school === schoolName) {
+            allResults.push(result);
+          }
+        });
+        
+        if (allResults.length > 0) {
             // Group results by unique meet slug
-            const meetsMap = results.reduce((acc, result) => {
+            const meetsMap = allResults.reduce((acc, result) => {
                 const meetSlug = result.meet_slug;
                 
-                if (!meetSlug) return acc; // Skip results missing a meet slug
+                if (!meetSlug) return acc;
 
-                // === FIX: Prioritize clean name over 'Unknown Meet' + slug ===
                 let meetName = result.meet_name || result.meet; 
                 if (!meetName) {
-                    // Fallback: If no proper name, use the slug directly.
                     meetName = meetSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '); 
                 }
-                // =============================================================
                 
                 if (!acc[meetSlug]) {
                     acc[meetSlug] = {
                         meet_slug: meetSlug,
-                        meet_name: meetName, // Use the determined name
+                        meet_name: meetName,
                         date: result.date || null,
                         results: []
                     };
@@ -430,7 +416,7 @@
             });
 
             const html = meetsArray.map(meet => {
-                // Find the best overall time from this school at this meet
+                // Find the best overall time from this team at this meet
                 const bestTimeResult = meet.results.reduce((best, current) => {
                     const currentTime = parseFloat(current.time);
                     if (isNaN(currentTime) || currentTime <= 0) return best; 
@@ -440,8 +426,6 @@
                 }, null);
                 
                 const bestTimeDisplay = bestTimeResult ? formatTime(bestTimeResult.time) : 'No Valid Time Recorded';
-                
-                // Resilient name fetching for fastest athlete: athlete_name, then name, then fallback
                 const bestTimeAthlete = bestTimeResult 
                     ? bestTimeResult.athlete_name || bestTimeResult.name || 'Unknown Athlete' 
                     : '';
@@ -458,14 +442,14 @@
                     <div class="meet-card">
                         <a href="meet.html?slug=${meet.meet_slug}">${meet.meet_name}</a>
                         <p>Date: ${displayDate}</p>
-                        <p>Fastest Time: ${bestTimeDisplay} ${bestTimeAthlete ? `(by ${bestTimeAthlete})` : ''}</p>
+                        <p>Best Time: ${bestTimeDisplay} ${bestTimeAthlete ? `(by ${bestTimeAthlete})` : ''}</p>
                     </div>
                 `;
             }).join('');
 
             meetsList.innerHTML = html;
         } else {
-            meetsList.innerHTML = '<p class="loading-message">No meet results found for this school in the database.</p>';
+            meetsList.innerHTML = '<p class="loading-message">No meet results found for this team in the database.</p>';
         }
 
       } catch (error) {
@@ -476,19 +460,23 @@
       }
     }
 
+    async function waitForFirebase() {
+      let attempts = 0;
+      while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      if (typeof window.firebaseDatabase === 'undefined') {
+        throw new Error('Firebase database not initialized');
+      }
+    }
 
     // Initialize page
     async function init() {
-      if (typeof getSchoolBySlug === 'undefined') {
-          document.getElementById('roster-loading').textContent = 'Error: Firebase helpers not loaded. Check script tags.';
-          document.getElementById('meets-loading').textContent = '';
-          return;
-      }
-
-      const schoolSlug = await loadSchoolInfo();
-      if (schoolSlug) {
-        loadRoster(schoolSlug);
-        loadMeets(schoolSlug);
+      const schoolName = await loadTeamInfo();
+      if (schoolName) {
+        loadRoster(schoolName);
+        loadMeets(schoolName);
       } else {
         document.getElementById('roster-loading').style.display = 'none';
         document.getElementById('meets-loading').style.display = 'none';
@@ -519,3 +507,4 @@
   </script>
 </body>
 </html>
+

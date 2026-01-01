@@ -11,10 +11,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon Generator/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-title" content="MSM" />
 <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="home.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="fonts.googleapis.com" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* CSS to make the background image work */
         .page-background-image {
@@ -39,25 +40,39 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem;
-            /* Ensure body content is above the background image */
+            padding: 0;
+    
             position: relative;
             z-index: 1;
+            min-width: 100vh;
+        }
+        
+        .content-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
         }
         .hero {
             text-align: center;
             color: white;
             max-width: 800px;
-            margin-bottom: 3rem;
+            margin: 2rem auto 3rem;
+            position: relative;
+            z-index: 2;
         }
         .hero-logo {
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             margin: 0 auto 2rem;
             border-radius: 50%;
             background: white;
             padding: 1rem;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            object-fit: contain;
         }
         .hero h1 {
             font-size: 3.5rem;
@@ -71,13 +86,18 @@
             opacity: 0.95;
             margin-bottom: 0;
             color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 1.);
         }
         .sport-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            padding: 0 2rem;
         }
         .sport-card {
             background: white;
@@ -214,16 +234,18 @@
             font-size: 1.25rem;
         }
         footer {
-            margin-top: 4rem;
             text-align: center;
             color: rgba(255, 255, 255, 0.9);
-            position: relative; /* Needed to be above the background image */
+            position: fixed; /* Needed to be above the background image */
             z-index: 1;
+            width: 100vw;
+            bottom: 0;
+            padding: 1.75rem 1.5rem;
         }
         footer a {
             display: inline-block;
             margin-top: 1rem;
-            padding: 0.75rem 1.5rem;
+            padding: 1.75rem 1.5rem;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border-radius: 0.5rem;
@@ -236,13 +258,11 @@
             transform: translateY(-2px);
             text-decoration: none;
         }
+        .navbar{
+            width: 100vw;
+        }
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            .sport-cards {
-                grid-template-columns: 1fr;
-            }
+            
             .meets-grid {
                 grid-template-columns: 1fr;
             }
@@ -256,24 +276,28 @@
     <!-- This image tag is now used for the background -->
     <img src="assets/home.png" alt="Background Image" class="page-background-image" />
     
+    <header>
+      <nav class="navbar">
+        <div class="navbar-content">
+          <a href="index.html" class="navbar-brand">🏔️ Mountain State Miles</a>
+          <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+          <ul class="navbar-nav" id="main-nav">
+            <li><a href="index.html" class="navbar-link active">Home</a></li>
+            <li><a href="/Track/index.html" class="navbar-link">Track & Field</a></li>
+            <li><a href="/CrossCountry/xc.html" class="navbar-link">Cross Country</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    
+    <div class="content-wrapper">
     <div class="hero">
+        <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
         <h1>Mountain State Miles</h1>
         <p>Your source for West Virginia track & cross country results, rankings, and records</p>
     </div>
-    <div class="sport-cards">
-        <a href="/Track/index.html" class="sport-card track-card">
-            <div class="sport-icon">🏃</div>
-            <h3>Track & Field</h3>
-            <p>View rankings, meet results, and athlete profiles for track & field events</p>
-        </a>
-        <a href="/CrossCountry/xc.html" class="sport-card xc-card">
-            <div class="sport-icon">⛰️</div>
-            <h3>Cross Country</h3>
-            <p>Explore cross country rankings, meet results, and team standings</p>
-        </a>
+   
     </div>
-
-    
 
     <footer>
         <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
@@ -352,7 +376,26 @@
         }
 
         // Load meets when page is ready
-        document.addEventListener('DOMContentLoaded', loadRecentMeets);
+        document.addEventListener('DOMContentLoaded', () => {
+          loadRecentMeets();
+          
+          // Mobile menu toggle
+          const menuToggle = document.querySelector('.mobile-menu-toggle');
+          const navMenu = document.getElementById('main-nav');
+          
+          if (menuToggle && navMenu) {
+            menuToggle.addEventListener('click', () => {
+              navMenu.classList.toggle('mobile-open');
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+              if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+                navMenu.classList.remove('mobile-open');
+              }
+            });
+          }
+        });
     </script>
 </body>
 </html>

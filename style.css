@@ -1,15 +1,22 @@
 /* Modern Global Stylesheet for Mountain State Miles */
 
 :root {
-  /* Color Palette */
-  --primary: #2563eb;
-  --primary-dark: #1e40af;
-  --primary-light: #3b82f6;
+  /* Unified Color Palette - Mountain State Miles */
+  --primary: #002855;
+  --primary-dark: #001a3d;
+  --primary-light: #004080;
   --secondary: #10b981;
-  --accent: #f59e0b;
+  --accent: #ff6b35;
+  --accent-dark: #d9530a;
   --danger: #ef4444;
   --warning: #f59e0b;
   --success: #10b981;
+  
+  /* Cross Country & Track specific */
+  --xc-primary: #002855;
+  --xc-secondary: #004080;
+  --track-primary: #002855;
+  --track-secondary: #004080;
   
   /* Neutrals */
   --gray-50: #f9fafb;
@@ -278,59 +285,100 @@ a:hover {
   }
 }
 
-/* Navigation */
+/* Navigation - Unified Header */
 .navbar {
-  background-color: var(--bg-card);
-  border-bottom: 1px solid var(--border-light);
-  padding: var(--spacing-md) 0;
+  background: linear-gradient(135deg, #002855 0%, #004080 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0;
   position: sticky;
   top: 0;
-  z-index: 100;
-  box-shadow: var(--shadow-sm);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 70px;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  font-size: 1.25rem;
+  gap: var(--spacing-sm);
+  font-size: 1.3rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: white;
   text-decoration: none;
+  transition: opacity var(--transition-fast);
 }
 
 .navbar-brand:hover {
   text-decoration: none;
+  opacity: 0.9;
+}
+
+.navbar-brand img {
+  height: 40px;
+  width: auto;
 }
 
 .navbar-nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .navbar-link {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   text-decoration: none;
-  transition: color var(--transition-fast);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: 0.95rem;
 }
 
 .navbar-link:hover {
-  color: var(--primary);
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
   text-decoration: none;
 }
 
 .navbar-link.active {
-  color: var(--primary);
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
   font-weight: 600;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: white;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 1.5rem;
+  transition: all var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.mobile-menu-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 /* Forms */
@@ -467,9 +515,58 @@ a:hover {
     padding: 0 var(--spacing-md);
   }
   
+  .navbar-content {
+    padding: 0 var(--spacing-md);
+    height: 65px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
   .navbar-nav {
+    position: fixed;
+    top: 65px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #002855 0%, #004080 100%);
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 0;
+    padding: var(--spacing-md) 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    align-items: stretch;
+  }
+  
+  .navbar-nav.mobile-open {
+    max-height: 500px;
+    transition: max-height 0.3s ease-in;
+  }
+  
+  .navbar-nav li {
+    margin: 0;
+  }
+  
+  .navbar-link {
+    display: block;
+    padding: 14px var(--spacing-lg);
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar-link:last-child {
+    border-bottom: none;
+  }
+  
+  .navbar-link:hover,
+  .navbar-link.active {
+    background: rgba(255, 255, 255, 0.15);
   }
 }
 

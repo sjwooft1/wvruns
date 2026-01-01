@@ -115,23 +115,18 @@
 </head>
 <body>
   <header>
-    <!-- Logo image for desktop/large view -->
-    <img src="/assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="logo" />
-    
-    <!-- Navigation Bar -->
     <nav class="navbar">
-      <div class="container">
-        <div class="navbar-content">
-          <!-- Text/Emoji logo for the navbar -->
-          <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
-          <ul class="navbar-nav">
-            <li><a href="xc.html" class="navbar-link">Home</a></li>
-            <li><a href="schools.html" class="navbar-link active">Schools</a></li>
-            <li><a href="meets.html" class="navbar-link">Meets</a></li>
-            <li><a href="rankings.html" class="navbar-link">Rankings</a>
-            </li><li><a href="analytics.html" class="navbar-link">Analytics</a></li>
-          </ul>
-        </div>
+      <div class="navbar-content">
+        <a href="xc.html" class="navbar-brand">🏔️ Cross Country</a>
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+        <ul class="navbar-nav" id="main-nav">
+          <li><a href="/home/" class="navbar-link">Home</a></li>
+          <li><a href="xc.html" class="navbar-link">Cross Country</a></li>
+          <li><a href="schools.html" class="navbar-link active">Schools</a></li>
+          <li><a href="meets.html" class="navbar-link">Meets</a></li>
+          <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
+          <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+        </ul>
       </div>
     </nav>
   </header>
@@ -234,8 +229,9 @@
           const card = document.createElement("div");
           card.className = "school-card";
           const logoUrl = `assets/team logos/${s.slug}.png`;
+          const fallbackLogo = `../assets/Wvruns Logo.png`;
           card.innerHTML = `
-            <img src="${logoUrl}" alt="${s.name} Logo">
+            <img src="${logoUrl}" alt="${s.name} Logo" onerror="this.onerror=null; this.src='${fallbackLogo}';">
             <h3>${s.name}</h3>
           `;
           // apply coloring after logo is loaded
@@ -267,6 +263,23 @@
     }
 
     loadSchools();
+    
+    // Mobile menu toggle
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    const navMenu = document.getElementById('main-nav');
+    
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('mobile-open');
+      });
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+          navMenu.classList.remove('mobile-open');
+        }
+      });
+    }
   </script>
   </div>
 </body>
