@@ -13,6 +13,7 @@
 <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -41,10 +42,17 @@
             flex-direction: column;
             align-items: center;
             padding: 0;
+            padding-bottom: 60px; /* Space for collapsed footer on mobile */
     
             position: relative;
             z-index: 1;
             min-width: 100vh;
+        }
+        
+        @media (min-width: 769px) {
+            body {
+                padding-bottom: 0;
+            }
         }
         
         .content-wrapper {
@@ -233,31 +241,7 @@
             text-align: center;
             font-size: 1.25rem;
         }
-        footer {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.9);
-            position: fixed; /* Needed to be above the background image */
-            z-index: 1;
-            width: 100vw;
-            bottom: 0;
-            padding: 1.75rem 1.5rem;
-        }
-        footer a {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 1.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        footer a:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            text-decoration: none;
-        }
+        /* Footer styles now handled by global style.css */
         .navbar{
             width: 100vw;
         }
@@ -299,15 +283,56 @@
    
     </div>
 
-    <footer>
-        <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
-        <a href="admin.html" class="btn btn-secondary">Admin Login</a>
+    <footer class="mobile-footer">
+        <div class="footer-pull-tab" id="footerTab"></div>
+        <button class="footer-toggle-button" id="footerToggleButton" aria-label="Toggle footer">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Track</h3>
+                <div class="quick-links">
+                    <a href="/Track/index.html" class="quick-link"><span>Track Home</span></a>
+                    <a href="/Track/meets.html" class="quick-link"><span>Meets</span></a>
+                    <a href="/Track/events.html" class="quick-link"><span>Events</span></a>
+                    <a href="/Track/rankings.html" class="quick-link"><span>Rankings</span></a>
+                    <a href="/Track/teams.html" class="quick-link"><span>Teams</span></a>
+                    <a href="/Track/analytics.html" class="quick-link"><span>Analytics</span></a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Cross Country</h3>
+                <div class="quick-links">
+                    <a href="/CrossCountry/xc.html" class="quick-link"><span>XC Home</span></a>
+                    <a href="/CrossCountry/meets.html" class="quick-link"><span>Meets</span></a>
+                    <a href="/CrossCountry/rankings.html" class="quick-link"><span>Rankings</span></a>
+                    <a href="/CrossCountry/schools.html" class="quick-link"><span>Schools</span></a>
+                    <a href="/CrossCountry/analytics.html" class="quick-link"><span>Analytics</span></a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>General</h3>
+                <div class="quick-links">
+                    <a href="/home/index.html" class="quick-link"><span>Home</span></a>
+                    <a href="admin.html" class="quick-link"><span>Admin</span></a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
+            </div>
+        </div>
     </footer>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Footer Toggle Script -->
+    <script src="../footer-toggle.js"></script>
     
     <script>
         // Initialize Firebase

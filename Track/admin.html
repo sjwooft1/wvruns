@@ -604,6 +604,7 @@
         <a href="csv-import.html" class="nav-btn" style="text-decoration: none; display: block;">📊 CSV Import</a>
         <button class="nav-btn" data-section="bulk-edit">⚙️ Bulk Edit</button>
         <button class="nav-btn" data-section="analytics">📈 Analytics</button>
+        <button class="nav-btn" data-section="console">📋 Activity Console</button>
         <button class="nav-btn" data-section="settings">⚙️ Settings</button>
       </div>
     </nav>
@@ -653,6 +654,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="../admin-logger.js"></script>
 <script>
   // ==========================================
   // App State
@@ -713,6 +715,7 @@
       'teams': 'Teams',
       'bulk-edit': 'Bulk Edit',
       'analytics': 'Analytics',
+      'console': 'Activity Console',
       'settings': 'Settings'
     };
     document.getElementById('page-title').textContent = titles[section] || section.charAt(0).toUpperCase() + section.slice(1);
@@ -728,6 +731,7 @@
         case 'teams': await renderTeams(); break;
         case 'bulk-edit': await renderBulkEdit(); break;
         case 'analytics': await renderAnalytics(); break;
+        case 'console': await renderConsole(); break;
         case 'settings': await renderSettings(); break;
       }
     } catch (error) {
@@ -1023,20 +1027,72 @@
   }
   
   // ==========================================
+  // Initialize Logger
+  // ==========================================
+  let adminLogger = null;
+  if (window.AdminLogger && window.firebaseDatabase) {
+    adminLogger = new window.AdminLogger(window.firebaseDatabase, 'Track');
+  }
+
+  // ==========================================
   // Firebase Operations
   // ==========================================
   async function createRecord(path, data) {
     const ref = window.firebaseDatabase.ref(path).push();
     await ref.set(data);
-    return ref.key;
+    const entityId = ref.key;
+    
+    // Extract entity type from path (e.g., 'Track/meets' -> 'meets')
+    const entityType = path.split('/').pop();
+    
+    // Log the activity
+    if (adminLogger) {
+      await adminLogger.logCreate(entityType, entityId, data);
+    }
+    
+    return entityId;
   }
   
   async function updateRecord(path, updates) {
+    // Get old data for logging
+    let oldData = {};
+    if (adminLogger) {
+      const snapshot = await window.firebaseDatabase.ref(path).once('value');
+      oldData = snapshot.val() || {};
+    }
+    
     await window.firebaseDatabase.ref(path).update(updates);
+    
+    // Extract entity type and ID from path
+    const pathParts = path.split('/');
+    const entityType = pathParts[pathParts.length - 2];
+    const entityId = pathParts[pathParts.length - 1];
+    
+    // Log the activity
+    if (adminLogger) {
+      await adminLogger.logUpdate(entityType, entityId, oldData, updates);
+    }
   }
   
   async function deleteRecord(path) {
+    // Get data before deletion for logging
+    let deletedData = {};
+    if (adminLogger) {
+      const snapshot = await window.firebaseDatabase.ref(path).once('value');
+      deletedData = snapshot.val() || {};
+    }
+    
     await window.firebaseDatabase.ref(path).remove();
+    
+    // Extract entity type and ID from path
+    const pathParts = path.split('/');
+    const entityType = pathParts[pathParts.length - 2];
+    const entityId = pathParts[pathParts.length - 1];
+    
+    // Log the activity
+    if (adminLogger) {
+      await adminLogger.logDelete(entityType, entityId, deletedData);
+    }
   }
   
   // ==========================================
@@ -1204,6 +1260,415 @@
     updateRecordCount(Object.values(stats).reduce((a, b) => a + b, 0));
   }
   
+  // ==========================================
+  // Activity Console
+  // ==========================================
+  async function renderConsole() {
+    if (!adminLogger) {
+      document.getElementById('content').innerHTML = `
+        <div class="empty-state" style="color: var(--danger);">
+          Logger not initialized. Please refresh the page.
+        </div>
+      `;
+      return;
+    }
+
+    // Get recent logs
+    const logs = await adminLogger.getRecentLogs(200);
+    
+    // Group logs by date
+    const logsByDate = {};
+    logs.forEach(log => {
+      const date = new Date(log.timestamp).toLocaleDateString();
+      if (!logsByDate[date]) {
+        logsByDate[date] = [];
+      }
+      logsByDate[date].push(log);
+    });
+
+    const actionIcons = {
+      'create': '➕',
+      'update': '✏️',
+      'delete': '🗑️'
+    };
+
+    const actionColors = {
+      'create': 'var(--success)',
+      'update': 'var(--info)',
+      'delete': 'var(--danger)'
+    };
+
+    let logsHTML = '';
+    
+    if (logs.length === 0) {
+      logsHTML = '<div class="empty-state">No activity logs yet.</div>';
+    } else {
+      Object.keys(logsByDate).reverse().forEach(date => {
+        logsHTML += `
+          <div class="console-date-group">
+            <div class="console-date-header">${date}</div>
+            <div class="console-logs-list">
+              ${logsByDate[date].map(log => `
+                <div class="console-log-item" data-action="${log.action}">
+                  <div class="console-log-icon" style="color: ${actionColors[log.action] || 'var(--muted)'}">
+                    ${actionIcons[log.action] || '📋'}
+                  </div>
+                  <div class="console-log-content">
+                    <div class="console-log-header">
+                      <span class="console-log-action" style="color: ${actionColors[log.action] || 'var(--muted)'}">
+                        ${log.action.toUpperCase()}
+                      </span>
+                      <span class="console-log-entity">${log.entityType}</span>
+                      <span class="console-log-time">${new Date(log.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="console-log-details">
+                      <div class="console-log-user">👤 ${log.user}</div>
+                      <div class="console-log-summary">${log.details.summary || 'No details'}</div>
+                      ${log.details.changes ? `
+                        <div class="console-log-changes">
+                          ${Object.keys(log.details.changes).map(key => `
+                            <div class="console-change-item">
+                              <strong>${key}:</strong>
+                              <span class="change-from">${log.details.changes[key].from || '(empty)'}</span>
+                              <span class="change-arrow">→</span>
+                              <span class="change-to">${log.details.changes[key].to || '(empty)'}</span>
+                            </div>
+                          `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    const html = `
+      <div class="console-container">
+        <div class="console-header">
+          <div class="console-header-left">
+            <h3 style="margin: 0;">Activity Console</h3>
+            <p style="margin: 8px 0 0 0; color: var(--muted); font-size: 0.875rem;">
+              View all data changes and updates across the system
+            </p>
+          </div>
+          <div class="console-header-right">
+            <button class="btn btn-secondary" onclick="refreshConsole()" id="refresh-console-btn">
+              🔄 Refresh
+            </button>
+            <button class="btn btn-secondary" onclick="filterConsole()" id="filter-console-btn">
+              🔍 Filter
+            </button>
+            <button class="btn btn-secondary" onclick="clearOldLogs()" id="clear-logs-btn">
+              🗑️ Clear Old
+            </button>
+          </div>
+        </div>
+        
+        <div class="console-stats">
+          <div class="console-stat">
+            <span class="console-stat-number">${logs.length}</span>
+            <span class="console-stat-label">Total Logs</span>
+          </div>
+          <div class="console-stat">
+            <span class="console-stat-number">${logs.filter(l => l.action === 'create').length}</span>
+            <span class="console-stat-label">Created</span>
+          </div>
+          <div class="console-stat">
+            <span class="console-stat-number">${logs.filter(l => l.action === 'update').length}</span>
+            <span class="console-stat-label">Updated</span>
+          </div>
+          <div class="console-stat">
+            <span class="console-stat-number">${logs.filter(l => l.action === 'delete').length}</span>
+            <span class="console-stat-label">Deleted</span>
+          </div>
+        </div>
+        
+        <div class="console-logs-container">
+          ${logsHTML}
+        </div>
+      </div>
+      
+      <style>
+        .console-container {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          height: 100%;
+        }
+        
+        .console-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+        
+        .console-header-right {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        
+        .console-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 12px;
+        }
+        
+        .console-stat {
+          background: var(--panel);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 16px;
+          text-align: center;
+        }
+        
+        .console-stat-number {
+          display: block;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--accent);
+          margin-bottom: 4px;
+        }
+        
+        .console-stat-label {
+          display: block;
+          font-size: 0.75rem;
+          color: var(--muted);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        .console-logs-container {
+          flex: 1;
+          overflow-y: auto;
+          background: var(--panel);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 20px;
+        }
+        
+        .console-date-group {
+          margin-bottom: 32px;
+        }
+        
+        .console-date-group:last-child {
+          margin-bottom: 0;
+        }
+        
+        .console-date-header {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--muted);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--border);
+        }
+        
+        .console-logs-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        
+        .console-log-item {
+          display: flex;
+          gap: 12px;
+          padding: 12px;
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
+        
+        .console-log-item:hover {
+          background: var(--hover);
+          border-color: var(--accent);
+        }
+        
+        .console-log-icon {
+          font-size: 1.5rem;
+          flex-shrink: 0;
+        }
+        
+        .console-log-content {
+          flex: 1;
+          min-width: 0;
+        }
+        
+        .console-log-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+        }
+        
+        .console-log-action {
+          font-weight: 700;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        .console-log-entity {
+          font-weight: 600;
+          color: var(--accent);
+        }
+        
+        .console-log-time {
+          font-size: 0.75rem;
+          color: var(--muted);
+          margin-left: auto;
+        }
+        
+        .console-log-details {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 0.875rem;
+        }
+        
+        .console-log-user {
+          color: var(--muted);
+          font-size: 0.8125rem;
+        }
+        
+        .console-log-summary {
+          color: #e6f0f7;
+        }
+        
+        .console-log-changes {
+          margin-top: 8px;
+          padding: 8px;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        
+        .console-change-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.8125rem;
+          flex-wrap: wrap;
+        }
+        
+        .console-change-item strong {
+          color: var(--accent);
+          min-width: 80px;
+        }
+        
+        .change-from {
+          color: var(--danger);
+          text-decoration: line-through;
+        }
+        
+        .change-arrow {
+          color: var(--muted);
+        }
+        
+        .change-to {
+          color: var(--success);
+        }
+        
+        @media (max-width: 768px) {
+          .console-header {
+            flex-direction: column;
+          }
+          
+          .console-header-right {
+            width: 100%;
+          }
+          
+          .console-header-right .btn {
+            flex: 1;
+          }
+          
+          .console-stats {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          
+          .console-log-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          
+          .console-log-time {
+            margin-left: 0;
+          }
+        }
+      </style>
+    `;
+
+    document.getElementById('content').innerHTML = html;
+  }
+
+  async function refreshConsole() {
+    const btn = document.getElementById('refresh-console-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading...';
+    }
+    await renderConsole();
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🔄 Refresh';
+    }
+  }
+
+  async function filterConsole() {
+    // Simple filter - can be enhanced with a modal
+    const action = prompt('Filter by action (create/update/delete) or leave empty for all:');
+    if (action === null) return;
+    
+    if (!adminLogger) return;
+    
+    const filters = {};
+    if (action && ['create', 'update', 'delete'].includes(action.toLowerCase())) {
+      filters.action = action.toLowerCase();
+    }
+    
+    const logs = await adminLogger.getFilteredLogs(filters);
+    // Re-render with filtered logs (simplified version)
+    alert(`Found ${logs.length} matching logs. Full filter UI coming soon!`);
+  }
+
+  async function clearOldLogs() {
+    if (!confirm('Clear logs older than 30 days? This cannot be undone.')) return;
+    
+    if (!adminLogger) return;
+    
+    const btn = document.getElementById('clear-logs-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Clearing...';
+    }
+    
+    const cleared = await adminLogger.clearOldLogs(30);
+    alert(`Cleared ${cleared} old log entries.`);
+    
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🗑️ Clear Old';
+    }
+    
+    await renderConsole();
+  }
+
+  window.refreshConsole = refreshConsole;
+  window.filterConsole = filterConsole;
+  window.clearOldLogs = clearOldLogs;
+
   async function renderSettings() {
     const [meetsSnap, eventsSnap, athletesSnap, resultsSnap] = await Promise.all([
       window.firebaseDatabase.ref('Track/meets').once('value'),
