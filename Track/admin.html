@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Track Admin Dashboard</title>
@@ -1105,19 +1106,138 @@
     snapshot.forEach(child => {
       data.push({ id: child.key, ...child.val() });
     });
+
+    // CRITICAL FIX: Update the global variables that openEditModal uses
+    currentData = data; 
     
-    renderGrid('Meets', [
+    // Set Columns for the Modal (Standard Add/Edit)
+    currentColumns = [
       { key: 'name', label: 'Name', type: 'text' },
-      { key: 'slug', label: 'Slug', type: 'text' },
+      { key: 'slug', label: 'Slug (URL)', type: 'text' },
       { key: 'date', label: 'Date', type: 'date' },
       { key: 'description', label: 'Description', type: 'text' },
       { key: 'location', label: 'Location', type: 'text' },
       { key: 'season', label: 'Season', type: 'select', options: ['indoor', 'outdoor'] }
-    ], data, {
+    ];
+    
+    // Setup CRUD options
+    currentOptions = {
       onCreate: (row) => createRecord('Track/meets', row),
       onUpdate: (id, updates) => updateRecord(`Track/meets/${id}`, updates),
       onDelete: (id) => deleteRecord(`Track/meets/${id}`)
-    });
+    };
+
+    // --- MEETS VIEW HTML ---
+    document.getElementById('content').innerHTML = `
+      <div class="grid-container" style="height: 100%; display: flex; flex-direction: column;">
+        <div class="grid-header">
+          <h3 style="display:flex; align-items:center; gap:10px;">
+            Meets Management 
+            <span style="font-size:0.8em; color:var(--muted); font-weight:normal;">(${data.length})</span>
+          </h3>
+          <div class="grid-actions">
+            <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; margin-right:10px; padding:2px;">
+              <button onclick="toggleMeetView('list')" id="btn-list" class="btn btn-primary btn-small">List</button>
+              <button onclick="toggleMeetView('calendar')" id="btn-cal" class="btn btn-secondary btn-small">Calendar</button>
+            </div>
+            
+            <button class="btn btn-primary" onclick="openAddModal()">+ Add Meet</button>
+          </div>
+        </div>
+
+        <div id="meet-list-view" class="grid-scroll" style="flex:1;">
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Season</th>
+                <th>Location</th>
+                <th style="width:120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(row => `
+                <tr>
+                  <td><strong>${row.name}</strong><br><span style="font-size:0.8em; color:var(--muted)">${row.slug}</span></td>
+                  <td>${row.date}</td>
+                  <td><span style="padding:2px 6px; border-radius:4px; font-size:0.8em; background:${row.season === 'indoor' ? '#0f3460' : '#4a2511'}">${row.season}</span></td>
+                  <td>${row.location || '—'}</td>
+                  <td>
+                    <button class="btn btn-secondary btn-small" onclick="openEditModal('${row.id}')">Edit</button>
+                    <button class="btn btn-danger btn-small" onclick="confirmDelete('${row.id}')">Del</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div id="meet-calendar-view" style="flex:1; padding:20px; background:white; color:black; display:none; overflow-y:auto;">
+          <div id="admin-calendar"></div>
+        </div>
+      </div>
+    `;
+
+    // Initialize Calendar immediately but hidden
+    setTimeout(() => {
+        const calEl = document.getElementById('admin-calendar');
+        if(calEl) {
+            window.adminCalendar = new FullCalendar.Calendar(calEl, {
+                initialView: 'dayGridMonth',
+                height: '100%',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                events: data.map(meet => ({
+                    id: meet.id,
+                    title: meet.name,
+                    start: meet.date,
+                    color: meet.season === 'indoor' ? '#002855' : '#ff6b35'
+                })),
+                dateClick: function(info) {
+                    // Pre-fill date when clicking on calendar
+                    openAddModal();
+                    // Wait for modal to open then fill date
+                    setTimeout(() => {
+                        const dateInput = document.querySelector('input[name="date"]');
+                        if(dateInput) dateInput.value = info.dateStr;
+                    }, 100);
+                },
+                eventClick: function(info) {
+                    openEditModal(info.event.id);
+                }
+            });
+            window.adminCalendar.render();
+        }
+    }, 100);
+  }
+
+  // --- HELPER FUNCTION FOR TOGGLING ---
+  window.toggleMeetView = function(view) {
+    const listView = document.getElementById('meet-list-view');
+    const calView = document.getElementById('meet-calendar-view');
+    const btnList = document.getElementById('btn-list');
+    const btnCal = document.getElementById('btn-cal');
+
+    if (view === 'list') {
+      listView.style.display = 'block';
+      calView.style.display = 'none';
+      btnList.classList.add('btn-primary');
+      btnList.classList.remove('btn-secondary');
+      btnCal.classList.add('btn-secondary');
+      btnCal.classList.remove('btn-primary');
+    } else {
+      listView.style.display = 'none';
+      calView.style.display = 'block';
+      btnList.classList.add('btn-secondary');
+      btnList.classList.remove('btn-primary');
+      btnCal.classList.add('btn-primary');
+      btnCal.classList.remove('btn-secondary');
+      if(window.adminCalendar) window.adminCalendar.render(); // Re-render to fix size issues
+    }
   }
   
   async function renderEvents() {

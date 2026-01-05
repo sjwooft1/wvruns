@@ -122,5 +122,90 @@
     transform:scale(2);
     transition: transform 2s ease-in-out 
   }
+  /* =========================================
+   MOBILE OPTIMIZATIONS (Add to bottom of home.css)
+   ========================================= */
+
+@media (max-width: 768px) {
+    
+  /* 1. Fix Layout Container */
+  body.msm-home {
+      display: block; /* Disable grid centering on mobile to allow scrolling */
+      height: auto;
+      min-height: 100vh;
+      overflow-x: hidden; /* Prevent side-scrolling */
+  }
+
+  .content-wrapper {
+      display: flex;
+      flex-direction: column; /* Stack sections vertically */
+      padding: 15px;
+      gap: 40px; /* Space between Links and Meets */
+      width: 100%;
+      max-width: 100%;
+  }
+
+  /* 2. Shrink Hero Section */
+  .home-hero {
+      padding: 30px 15px 10px; /* Reduce massive padding */
+  }
+
+  .home-logo {
+      width: 140px; /* Smaller logo */
+      margin-bottom: 10px;
+  }
+
+  .home-title {
+      font-size: 2.2rem; /* Shrink from 3.2rem to fit screen */
+      line-height: 1.1;
+      margin-top: 10px;
+  }
+
+  .home-subtitle {
+      font-size: 1.1rem;
+      padding: 0 10px;
+      line-height: 1.4;
+  }
+
+  /* 3. Make Link Buttons Finger-Friendly */
+  .links-section {
+      width: 100%;
+  }
+
+  .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px; /* Space between buttons */
+  }
+
+  .links-pages {
+      width: 100%; /* Full width buttons */
+      padding: 18px; /* Larger tap area */
+      font-size: 1.2rem; /* Easier to read */
+      margin: 0;
+  }
+
+  /* 4. Fix Recent Meets Grid */
+  .recent-meets-section {
+      width: 100%;
+      padding: 0 5px;
+  }
+
+  .recent-meets-grid {
+      display: flex;
+      flex-direction: column; /* Stack cards vertically */
+      gap: 15px;
+  }
+
+  .meet-card {
+      width: 100%;
+      padding: 20px;
+  }
   
+  /* 5. Footer Fix */
+  footer {
+      padding: 20px 10px 40px 10px;
+      font-size: 0.9rem;
+  }
+}
   

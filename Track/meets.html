@@ -6,89 +6,119 @@
   <title>Track Meets — Mountain State Miles</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
+  
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
   <style>
     * { box-sizing: border-box; }
     
     :root {
       --primary: #002855;
       --secondary: #0056b3;
-      --text-primary: #1a1a1a;
-      --text-secondary: #666;
-      --bg-light: #f8f9fa;
-      --border-light: #e0e0e0;
       --accent: #ff6b35;
       --accent-dark: #d9530a;
+      --bg-light: #f8f9fa;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
     }
     
     html, body {
       margin: 0;
       padding: 0;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg-light);
       color: var(--text-primary);
-      line-height: 1.6;
     }
-    
-    /* Header styles now handled by unified header in ../style.css */
-    
+
+    /* Navbar styling matches your existing style.css */
+    .navbar {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .navbar-content {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-weight: 800; font-size: 1.25rem; color: var(--primary); text-decoration: none; }
+    .navbar-nav { display: flex; list-style: none; gap: 20px; padding: 0; }
+    .navbar-link { text-decoration: none; color: var(--text-secondary); font-weight: 600; }
+    .navbar-link.active { color: var(--accent); }
+
     main {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 60px 20px;
+      padding: 40px 20px;
     }
     
-    .section {
-      margin-bottom: 80px;
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
     }
-    
+
     .section-title {
       font-size: 2.2rem;
       font-weight: 800;
-      margin: 0 0 40px;
       color: var(--primary);
+      margin: 0;
       position: relative;
-      padding-bottom: 15px;
     }
     
-    .section-title::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 80px;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
-      border-radius: 2px;
-    }
-    
-    .filter-buttons {
+    /* View Toggles */
+    .view-toggles {
       display: flex;
-      gap: 12px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 4px;
     }
     
-    .filter-btn {
-      padding: 10px 20px;
-      border: 2px solid var(--border-light);
-      background: white;
-      color: var(--text-primary);
-      border-radius: 8px;
+    .view-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      transition: all 0.3s;
-      font-size: 0.95rem;
+      color: var(--text-secondary);
+      transition: 0.2s;
     }
     
-    .filter-btn:hover,
-    .filter-btn.active {
-      border-color: var(--accent);
-      background: var(--accent);
+    .view-btn.active {
+      background: var(--primary);
       color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+    }
+
+    /* Calendar Styling */
+    #calendar {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      min-height: 600px;
+      display: none; /* Hidden by default */
+    }
+
+    .fc-event {
+      cursor: pointer;
+      border: none;
+      padding: 2px 4px;
     }
     
+    .fc-event-title {
+      font-weight: 600;
+    }
+
+    /* List Grid Styling */
     .meets-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -101,11 +131,11 @@
       padding: 24px;
       text-decoration: none;
       color: inherit;
-      border: 1px solid var(--border-light);
+      border: 1px solid #e0e0e0;
       transition: all 0.3s;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
     
     .meet-card:hover {
@@ -113,249 +143,174 @@
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
       border-color: var(--accent);
     }
-    
-    .meet-card-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin: 0;
-      color: var(--primary);
-    }
-    
-    .meet-card-date {
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-      margin: 0;
-    }
-    
-    .meet-card-location {
-      font-size: 0.9rem;
-      color: var(--accent);
-      margin: 0;
-      font-weight: 600;
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-secondary);
-    }
-    
-     /* Footer */
-    footer {
-  /* Remove the solid background color */
-  background: rgba(0, 40, 85, 0.85); /* Semi-transparent version of your primary blue */
-  backdrop-filter: blur(8px); /* Optional: Adds a glass effect */
-  color: white;
-  text-align: center;
-  padding: 40px 20px;
-  margin-top: 80px;
-  position: relative;
-  z-index: 1; /* Ensures footer content stays above the image */
-}
-.footer-with-bg {
-  position: relative;
-  overflow: hidden; /* Clips the image to footer boundaries */
-  padding: 60px 20px;
-  color: white;
-  text-align: center;
-}
 
-.footer-bg-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensures the mountain image fills the area */
-  z-index: -1; /* Puts it behind the text */
-  filter: brightness(0.5); /* Darkens the image so text is readable */
-}
-
-.footer-content {
-  position: relative;
-  z-index: 2;
-}
+    .meet-card-title { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin: 0; }
+    .meet-card-date { color: var(--accent); font-weight: 600; margin: 0; }
+    .meet-card-location { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
     
-    .btn {
-      display: inline-block;
-      padding: 12px 28px;
-      background: var(--accent);
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 700;
-      transition: all 0.3s;
-      border: none;
+    .filter-bar { margin-bottom: 20px; display: flex; gap: 10px; }
+    .filter-chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background: white;
       cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .filter-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* Footer */
+    footer {
+      background: rgba(0, 40, 85, 0.9);
+      padding: 60px 20px;
+      color: white;
+      text-align: center;
+      margin-top: 60px;
+      position: relative;
     }
     
-    .btn:hover {
-      background: var(--accent-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
-    }
-    
-    @media (max-width: 768px) {
-      .navbar-nav {
-        gap: 15px;
-        font-size: 0.9rem;
-      }
-      
-      .section-title {
-        font-size: 1.8rem;
-      }
-      
-      main {
-        padding: 40px 15px;
-      }
-      
-      .meets-grid {
-        grid-template-columns: 1fr;
-      }
+    .footer-bg-img {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: -1; filter: brightness(0.4);
     }
   </style>
 </head>
 <body>
+
   <header>
     <nav class="navbar">
       <div class="navbar-content">
         <a href="index.html" class="navbar-brand">⚡ Track & Field</a>
-        <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
-        <ul class="navbar-nav" id="main-nav">
-          <li><a href="/home/" class="navbar-link">Home</a></li>
-          <li><a href="index.html" class="navbar-link">Track</a></li>
+        <ul class="navbar-nav">
+          <li><a href="index.html" class="navbar-link">Home</a></li>
           <li><a href="meets.html" class="navbar-link active">Meets</a></li>
           <li><a href="events.html" class="navbar-link">Events</a></li>
-          <li><a href="rankings.html" class="navbar-link">Rankings</a></li>
-          <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
         </ul>
       </div>
     </nav>
   </header>
   
   <main>
-    <section class="section">
+    <div class="section-header">
       <h2 class="section-title">Track Meets</h2>
-      
-      <div class="filter-buttons">
-        <button class="filter-btn active" onclick="loadMeets('all')">All Seasons</button>
-        <button class="filter-btn" onclick="loadMeets('indoor')">🏛️ Indoor</button>
-        <button class="filter-btn" onclick="loadMeets('outdoor')">☀️ Outdoor</button>
+      <div class="view-toggles">
+        <button class="view-btn active" onclick="switchView('list')">List View</button>
+        <button class="view-btn" onclick="switchView('calendar')">Calendar View</button>
       </div>
-      
-      <div class="meets-grid" id="meets-list">
-        <div class="empty-state">Loading meets...</div>
-      </div>
-    </section>
+    </div>
+
+    <div id="list-controls" class="filter-bar">
+      <button class="filter-chip active" onclick="filterList('all', this)">All Seasons</button>
+      <button class="filter-chip" onclick="filterList('indoor', this)">Indoor</button>
+      <button class="filter-chip" onclick="filterList('outdoor', this)">Outdoor</button>
+    </div>
+
+    <div id="meets-list" class="meets-grid">
+      <div style="grid-column: 1/-1; text-align: center;">Loading meets...</div>
+    </div>
+
+    <div id="calendar"></div>
+
   </main>
   
-  <footer class="footer-with-bg">
+  <footer>
     <img src="footer image.jpeg" alt="" class="footer-bg-img" />
-    <div class="footer-content">
-      <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
-      <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
-    </div>
+    <p>&copy; 2026 Mountain State Miles</p>
   </footer>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+  
   <script>
-    async function waitForFirebase() {
-      let attempts = 0;
-      while (typeof window.firebaseDatabase === 'undefined' && attempts < 50) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-      if (typeof window.firebaseDatabase === 'undefined') {
-        throw new Error('Firebase database not initialized');
-      }
-    }
-    
+    let calendar = null;
     let allMeets = [];
-    
-    async function loadMeets(season = 'all') {
-      const container = document.getElementById('meets-list');
+
+    // 1. Initialize Firebase
+    async function init() {
+      if (typeof window.firebaseDatabase === 'undefined') {
+        console.warn("Waiting for Firebase...");
+        setTimeout(init, 500);
+        return;
+      }
       
-      try {
-        await waitForFirebase();
-        if (!allMeets.length) {
-          console.log('Loading meets from Track/meets...');
-          const snapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
-          
-          console.log('Meets snapshot exists:', snapshot.exists());
-          console.log('Meets snapshot val:', snapshot.val());
-          
-          allMeets = [];
-          snapshot.forEach(child => {
-            const meetData = child.val();
-            console.log('Meet found:', child.key, meetData);
-            allMeets.push({ id: child.key, ...meetData });
-          });
-          
-          console.log('Total meets loaded:', allMeets.length);
-        }
-        
-        let meets = allMeets;
-        if (season !== 'all') {
-          meets = allMeets.filter(m => m.season === season);
-        }
-        
-        meets.sort((a, b) => {
-          const dateA = a.date || '';
-          const dateB = b.date || '';
-          return dateB.localeCompare(dateA);
-        });
-        
-        // Update active button
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-          btn.classList.toggle('active', btn.textContent.toLowerCase().includes(season) || (season === 'all' && btn.textContent.includes('All')));
-        });
-        
-        if (!meets.length) {
-          container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">No meets found for this season.</div>';
-          return;
-        }
-        
-        function formatDate(str) {
-          if (!str) return 'Date TBD';
-          const [y, m, d] = str.split('-');
-          return new Date(y, m - 1, d).toLocaleDateString();
-        }
-        
-        container.innerHTML = meets.map(meet => `
-          <a href="meet.html?slug=${encodeURIComponent(meet.slug)}" class="meet-card">
-            <h3 class="meet-card-title">${meet.name}</h3>
-            <p class="meet-card-date">📅 ${formatDate(meet.date)}</p>
-            ${meet.location ? `<p class="meet-card-location">📍 ${meet.location}</p>` : ''}
-          </a>
-        `).join('');
-      } catch (error) {
-        console.error('Error loading meets:', error);
-        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; color: #dc3545;">⚠️ Error loading meets. Please check your connection and try again.</div>';
+      const snapshot = await window.firebaseDatabase.ref('Track/meets').once('value');
+      allMeets = [];
+      snapshot.forEach(child => {
+        allMeets.push({ id: child.key, ...child.val() });
+      });
+
+      renderList('all');
+      initCalendar();
+    }
+
+    // 2. View Switcher
+    function switchView(view) {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (view === 'list') {
+        document.getElementById('meets-list').style.display = 'grid';
+        document.getElementById('list-controls').style.display = 'flex';
+        document.getElementById('calendar').style.display = 'none';
+      } else {
+        document.getElementById('meets-list').style.display = 'none';
+        document.getElementById('list-controls').style.display = 'none';
+        document.getElementById('calendar').style.display = 'block';
+        if (calendar) calendar.render(); // Refresh calendar layout
       }
     }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => loadMeets('all'), 100);
+
+    // 3. Render List
+    function renderList(filter) {
+      const container = document.getElementById('meets-list');
+      const filtered = filter === 'all' ? allMeets : allMeets.filter(m => m.season === filter);
       
-      // Mobile menu toggle
-      const menuToggle = document.querySelector('.mobile-menu-toggle');
-      const navMenu = document.getElementById('main-nav');
-      
-      if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', () => {
-          navMenu.classList.toggle('mobile-open');
-        });
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-          if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
-            navMenu.classList.remove('mobile-open');
+      // Sort by date descending
+      filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      container.innerHTML = filtered.map(meet => `
+        <a href="meet.html?slug=${meet.slug}" class="meet-card">
+          <h3 class="meet-card-title">${meet.name}</h3>
+          <p class="meet-card-date">📅 ${new Date(meet.date).toLocaleDateString()}</p>
+          <p class="meet-card-location">📍 ${meet.location || 'TBD'}</p>
+        </a>
+      `).join('');
+    }
+
+    function filterList(season, btn) {
+      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderList(season);
+    }
+
+    // 4. Initialize Calendar
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,listMonth'
+        },
+        events: allMeets.map(meet => ({
+          title: meet.name,
+          start: meet.date,
+          url: `meet.html?slug=${meet.slug}`,
+          backgroundColor: meet.season === 'indoor' ? '#002855' : '#ff6b35',
+          borderColor: 'transparent'
+        })),
+        eventClick: function(info) {
+          info.jsEvent.preventDefault(); // don't let browser nav
+          if (info.event.url) {
+            window.location.href = info.event.url;
           }
-        });
-      }
-    });
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
