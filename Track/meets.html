@@ -173,6 +173,68 @@
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       object-fit: cover; z-index: -1; filter: brightness(0.4);
     }
+    .export-container { position: relative; display: inline-block; }
+.export-main-btn { background: var(--secondary); color: white; border: none; }
+.export-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: white;
+  min-width: 200px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 1000;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+.export-dropdown button {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.export-dropdown button:hover { background: var(--bg-light); color: var(--accent); }
+.show { display: block; }
+  /* Labels inside dropdown */
+.dropdown-label {
+  padding: 8px 16px 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 800;
+  background: #eee;
+  margin: 0;
+}
+
+/* Popup / Modal Styles */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 450px;
+  width: 90%;
+  color: var(--text-primary);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.modal-content h3 { margin-top: 0; color: var(--primary); }
+.modal-content ol { padding-left: 20px; margin: 20px 0; }
+.modal-content li { margin-bottom: 10px; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-download { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; flex: 2; font-weight: bold; }
+.btn-close { background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; flex: 1; }
   </style>
 </head>
 <body>
@@ -196,6 +258,40 @@
       <div class="view-toggles">
         <button class="view-btn active" onclick="switchView('list')">List View</button>
         <button class="view-btn" onclick="switchView('calendar')">Calendar View</button>
+      </div>
+    </div>
+    <div class="section-header">
+      <h2 class="section-title">Track Meets</h2>
+      <div class="export-container">
+        <button class="view-btn export-main-btn" onclick="toggleExportMenu()">
+          📥 Export / Print
+        </button>
+        <div id="export-menu" class="export-dropdown">
+          <p class="dropdown-label">Digital Calendars</p>
+          <button onclick="showCalendarPopup()">Apple / Outlook / Google (.ics)</button>
+          
+          <p class="dropdown-label">Documents for Printing</p>
+          <button onclick="exportTable('pdf')">Download as PDF</button>
+          <button onclick="exportTable('png')">Save as Image (PNG)</button>
+          <button onclick="exportTable('csv')">Excel / Spreadsheet (CSV)</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="calendarModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Add Schedule to Calendar</h3>
+        <p>Follow these steps to sync the full season to your device:</p>
+        <ol>
+          <li>Click <strong>"Download .ics File"</strong> below.</li>
+          <li><strong>iPhone/Mac:</strong> Open the file and tap "Add All".</li>
+          <li><strong>Google Calendar:</strong> Go to <em>Settings > Import</em> and upload this file.</li>
+          <li><strong>Outlook:</strong> Drag the file into your Outlook calendar window.</li>
+        </ol>
+        <div class="modal-actions">
+          <button class="btn-download" onclick="generateICSFile()">Download .ics File</button>
+          <button class="btn-close" onclick="closeCalendarPopup()">Close</button>
+        </div>
       </div>
     </div>
 
@@ -311,6 +407,119 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
+    function toggleExportMenu() {
+    document.getElementById("export-menu").classList.toggle("show");
+}
+
+// Close dropdown if user clicks elsewhere
+window.onclick = function(event) {
+    if (!event.target.matches('.export-main-btn')) {
+        const dropdowns = document.getElementsByClassName("export-dropdown");
+        for (let i = 0; i < dropdowns.length; i++) {
+            dropdowns[i].classList.remove('show');
+        }
+    }
+}
+
+function exportFullSeason(format) {
+    if (format === 'ics') {
+        generateICSFile();
+    } else {
+        // For Google/Outlook Web, we typically export the NEXT upcoming meet 
+        // because web URLs don't support bulk importing 50+ events at once easily.
+        const nextMeet = allMeets.sort((a,b) => new Date(a.date) - new Date(b.date))
+                                 .find(m => new Date(m.date) >= new Date());
+        
+        if (!nextMeet) return alert("No upcoming meets found to export.");
+        
+        const startTime = new Date(nextMeet.date).toISOString().replace(/-|:|\.\d+/g, "");
+        const endTime = new Date(new Date(nextMeet.date).getTime() + 3600000).toISOString().replace(/-|:|\.\d+/g, "");
+        const details = `Results at: https://mountainstatemiles.com/meet.html?slug=${nextMeet.slug}`;
+
+        if (format === 'google') {
+            const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(nextMeet.name)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(nextMeet.location || 'TBD')}`;
+            window.open(url, '_blank');
+        } else if (format === 'outlook') {
+            const url = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(nextMeet.name)}&startdt=${startTime}&enddt=${endTime}&body=${encodeURIComponent(details)}&location=${encodeURIComponent(nextMeet.location || 'TBD')}`;
+            window.open(url, '_blank');
+        }
+    }
+}
+
+function generateICSFile() {
+    let icsContent = ["BEGIN:VCALENDAR", "VERSION:2.0", "PROID:-//MSM//Meets//EN"];
+    
+    allMeets.forEach(meet => {
+        const start = new Date(meet.date).toISOString().replace(/-|:|\.\d+/g, "");
+        icsContent.push("BEGIN:VEVENT");
+        icsContent.push(`SUMMARY:${meet.name}`);
+        icsContent.push(`DTSTART:${start}`);
+        icsContent.push(`LOCATION:${meet.location || 'TBD'}`);
+        icsContent.push(`DESCRIPTION:View details at mountainstatemiles.com/meet.html?slug=${meet.slug}`);
+        icsContent.push("END:VEVENT");
+    });
+
+    icsContent.push("END:VCALENDAR");
+    const blob = new Blob([icsContent.join("\r\n")], { type: "text/calendar" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "WV_Track_Schedule.ics";
+    a.click();
+}
+// --- POPUP CONTROLS ---
+function showCalendarPopup() {
+    document.getElementById('calendarModal').style.display = 'flex';
+    toggleExportMenu(); // close dropdown
+}
+function closeCalendarPopup() {
+    document.getElementById('calendarModal').style.display = 'none';
+}
+
+// --- PRINT & DOCUMENT EXPORTS ---
+function exportTable(type) {
+    if (type === 'csv') {
+        let csv = "Meet Name,Date,Location\n";
+        allMeets.forEach(m => {
+            csv += `"${m.name}","${m.date}","${m.location || 'TBD'}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Meet_Schedule.csv";
+        a.click();
+    } 
+    else if (type === 'pdf' || type === 'png') {
+        // The most reliable way for mobile/desktop to "Save as PDF" 
+        // without heavy libraries is to trigger the Print View.
+        // Modern Print dialogs allow "Save as PDF" or "Save as Image"
+        window.print();
+    }
+    toggleExportMenu();
+}
+
+// Ensure the generateICSFile function is updated to close the modal
+function generateICSFile() {
+    let icsContent = ["BEGIN:VCALENDAR", "VERSION:2.0", "PROID:-//MSM//Meets//EN"];
+    allMeets.forEach(meet => {
+        const start = new Date(meet.date).toISOString().replace(/-|:|\.\d+/g, "");
+        icsContent.push("BEGIN:VEVENT");
+        icsContent.push(`SUMMARY:${meet.name}`);
+        icsContent.push(`DTSTART:${start}`);
+        icsContent.push(`LOCATION:${meet.location || 'TBD'}`);
+        icsContent.push("END:VEVENT");
+    });
+    icsContent.push("END:VCALENDAR");
+    
+    const blob = new Blob([icsContent.join("\r\n")], { type: "text/calendar" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Track_Schedule.ics";
+    a.click();
+    closeCalendarPopup();
+}
   </script>
 </body>
 </html>
