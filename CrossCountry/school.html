@@ -476,6 +476,95 @@
       }
     }
 
+    /**
+     * Loads and calculates team statistics for a school
+     * @param {string} schoolSlug The school identifier.
+     */
+    async function loadTeamStatistics(schoolSlug) {
+      try {
+        // Fetch all results for this school
+        const results = await getResultsBySchool(schoolSlug);
+        
+        if (!results || results.length === 0) {
+          // No data, show 0s or N/A
+          document.getElementById('total-athletes').textContent = '0';
+          document.getElementById('avg-time').textContent = '--:--';
+          document.getElementById('pr-count').textContent = '0';
+          document.getElementById('meet-count').textContent = '0';
+          document.getElementById('best-time').textContent = '--:--';
+          document.getElementById('fastest-athlete').textContent = '--';
+          return;
+        }
+
+        // Calculate statistics
+        const uniqueAthletes = new Set(results.map(r => r.athlete_slug || r.athlete_name).filter(Boolean));
+        const uniqueMeets = new Set(results.map(r => r.meet_slug).filter(Boolean));
+        
+        // Get valid times (numbers > 0)
+        const validTimes = results
+          .map(r => parseFloat(r.time))
+          .filter(t => !isNaN(t) && t > 0);
+        
+        // Calculate average time
+        let avgTimeDisplay = '--:--';
+        if (validTimes.length > 0) {
+          const avgSeconds = validTimes.reduce((a, b) => a + b, 0) / validTimes.length;
+          avgTimeDisplay = formatTime(avgSeconds);
+        }
+        
+        // Find best (fastest) time
+        let bestTimeDisplay = '--:--';
+        let fastestAthleteName = '--';
+        if (validTimes.length > 0) {
+          const bestTimeValue = Math.min(...validTimes);
+          const bestResult = results.find(r => parseFloat(r.time) === bestTimeValue);
+          bestTimeDisplay = formatTime(bestTimeValue);
+          fastestAthleteName = bestResult ? (bestResult.athlete_name || bestResult.name || '--') : '--';
+        }
+        
+        // Count PRs (simplified: check if result has pr flag or if it's the best time for that athlete)
+        let prCount = 0;
+        const athletePersonalBests = {};
+        results.forEach(r => {
+          const athleteId = r.athlete_slug || r.athlete_name;
+          const time = parseFloat(r.time);
+          if (isNaN(time) || time <= 0) return;
+          
+          if (!athletePersonalBests[athleteId] || time < athletePersonalBests[athleteId]) {
+            athletePersonalBests[athleteId] = time;
+          }
+        });
+        
+        // Count how many results are personal records
+        results.forEach(r => {
+          const athleteId = r.athlete_slug || r.athlete_name;
+          const time = parseFloat(r.time);
+          if (isNaN(time) || time <= 0) return;
+          
+          if (time === athletePersonalBests[athleteId]) {
+            prCount++;
+          }
+        });
+        
+        // Update the DOM with calculated statistics
+        document.getElementById('total-athletes').textContent = uniqueAthletes.size;
+        document.getElementById('avg-time').textContent = avgTimeDisplay;
+        document.getElementById('pr-count').textContent = prCount;
+        document.getElementById('meet-count').textContent = uniqueMeets.size;
+        document.getElementById('best-time').textContent = bestTimeDisplay;
+        document.getElementById('fastest-athlete').textContent = fastestAthleteName;
+        
+      } catch (error) {
+        console.error('Error loading team statistics:', error);
+        // On error, display N/A values
+        document.getElementById('total-athletes').textContent = '0';
+        document.getElementById('avg-time').textContent = '--:--';
+        document.getElementById('pr-count').textContent = '0';
+        document.getElementById('meet-count').textContent = '0';
+        document.getElementById('best-time').textContent = '--:--';
+        document.getElementById('fastest-athlete').textContent = '--';
+      }
+    }
 
     // Initialize page
     async function init() {
@@ -489,6 +578,7 @@
       if (schoolSlug) {
         loadRoster(schoolSlug);
         loadMeets(schoolSlug);
+        loadTeamStatistics(schoolSlug);
       } else {
         document.getElementById('roster-loading').style.display = 'none';
         document.getElementById('meets-loading').style.display = 'none';

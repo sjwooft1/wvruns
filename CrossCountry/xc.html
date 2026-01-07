@@ -3,72 +3,206 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mountain State Miles</title>
+  <title>Cross Country – Mountain State Miles</title>
   <meta property="og:image" content="assets/Wvruns Logo.png" />
   <link rel="icon" type="image/png" href="assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
-<link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-title" content="MSM" />
-<link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon Generator/favicon.svg" />
+  <link rel="shortcut icon" href="assets/Favicon Generator/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon Generator/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="MSM" />
+  <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-  <!-- Primary SEO -->
-<meta name="description" content="Mountain State Miles — West Virginia's home for XC & Track results, rankings, rosters, records, schedules, and meet coverage." />
-<meta name="keywords" content="West Virginia running, WVHSXC, WVXC, WV Track, WV high school running, WV cross country, WV track and field, WV runs, Mountain State Miles" />
-<meta name="author" content="Mountain State Miles" />
-
-<!-- Mobile -->
-<meta name="theme-color" content="#002855" />
-
-<!-- Canonical URL -->
-<link rel="canonical" href="https://mountainstatemiles.com/" />
-
-<!-- Open Graph (Social Media Sharing) -->
-<meta property="og:title" content="Mountain State Miles — WV Cross Country & Track" />
-<meta property="og:description" content="Official West Virginia running hub: results, rankings, rosters, athlete profiles, meet schedules, and team stats." />
-<meta property="og:image" content="https://mountainstatemiles.com/assets/og-image.jpg" />
-<meta property="og:url" content="https://mountainstatemiles.com/" />
-<meta property="og:type" content="website" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Mountain State Miles" />
-<meta name="twitter:description" content="West Virginia's XC & Track results, rankings, and athlete profiles." />
-<meta name="twitter:image" content="https://mountainstatemiles.com/assets/og-image.jpg" />
-
-<!-- Robots Instructions -->
-<meta name="robots" content="index, follow" />
-
-<style>
-  @font-face {
-font-family: 'MsM'; /* Choose a name for your font family */
-src: url('Running.ttf') format('truetype'); /* Specify the path to your .ttf file */
-/* You can also add other font properties like font-weight and font-style here if needed */
-}
-h1 {
-font-family: 'MsM', sans-serif; /* Apply your custom font, with a fallback */
-}
-h5{
-  text-align: center;
-
-}
-h6 {
-  color:black ;
-  text-align:center
-}
-
-</style>
-
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="description" content="Mountain State Miles — West Virginia's home for XC & Track results, rankings, rosters, records, schedules, and meet coverage." />
+  <meta name="keywords" content="West Virginia running, WVHSXC, WVXC, WV Track, WV high school running, WV cross country, WV track and field, WV runs, Mountain State Miles" />
+  <meta name="author" content="Mountain State Miles" />
+  <meta name="theme-color" content="#002855" />
+  <link rel="canonical" href="https://mountainstatemiles.com/" />
+  <meta property="og:title" content="Mountain State Miles — WV Cross Country & Track" />
+  <meta property="og:description" content="Official West Virginia running hub: results, rankings, rosters, athlete profiles, meet schedules, and team stats." />
+  <meta property="og:url" content="https://mountainstatemiles.com/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mountain State Miles" />
+  <meta name="twitter:description" content="West Virginia's XC & Track results, rankings, and athlete profiles." />
+  <meta name="robots" content="index, follow" />
+  <style>
+    @font-face {
+      font-family: 'MsM';
+      src: url('Running.ttf') format('truetype');
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      padding-bottom: 60px;
+    }
+    
+    @media (min-width: 769px) {
+      body {
+        padding-bottom: 0;
+      }
+    }
+    
+    .hero-section {
+      background: linear-gradient(135deg, #002855 0%, #004080 100%);
+      padding: 80px 20px;
+      text-align: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.05)"/><circle cx="80" cy="80" r="30" fill="rgba(255,255,255,0.05)"/></svg>');
+      opacity: 0.5;
+    }
+    
+    .hero-content {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+    
+    .hero-title {
+      font-family: 'MsM', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin: 20px 0 10px;
+      letter-spacing: -1px;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      margin: 0;
+      font-weight: 500;
+    }
+    
+    .content-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 20px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0 0 40px;
+      color: #002855;
+      position: relative;
+      padding-bottom: 15px;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, #ff6b35, #d9530a);
+      border-radius: 2px;
+    }
+    
+    .meet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    
+    .meet-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid #e5e7eb;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .meet-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+      border-color: #ff6b35;
+    }
+    
+    .meet-card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+      color: #002855;
+    }
+    
+    .meet-card-date {
+      font-size: 0.95rem;
+      color: #666;
+      margin: 0;
+      font-weight: 500;
+    }
+    
+    .meet-card-location {
+      font-size: 0.9rem;
+      color: #ff6b35;
+      margin: 0;
+      font-weight: 600;
+    }
+    
+    h5 {
+      text-align: center;
+    }
+    
+    h6 {
+      color: black;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      
+      .hero-subtitle {
+        font-size: 1rem;
+      }
+      
+      .content-section {
+        padding: 40px 15px;
+      }
+      
+      .meet-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
 <body>
   <div class="hero-section">
     <div class="hero-content">
-        <img href="home/index.html" src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
-    
+      <img src="assets/Wvruns Logo.png" alt="Mountain State Miles Logo" class="hero-logo" />
       <h1 class="hero-title">Mountain State Miles</h1>
       <p class="hero-subtitle">The home for West Virginia cross country and track results — school by school, meet by meet.</p>
     </div>
@@ -96,17 +230,57 @@ h6 {
     <div id="meet-list" class="meet-grid">Loading recent meets...</div>
   </main>
 
-  <footer style="text-align: center; padding: 3rem 2rem; background: white; margin-top: 4rem; border-top: 1px solid var(--border-light);">
-    <p style="color: var(--text-secondary); margin-bottom: 1rem;">&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
-    <a href="login.html" class="btn btn-secondary">Admin Login</a>
+  <footer class="mobile-footer">
+    <div class="footer-pull-tab" id="footerTab"></div>
+    <button class="footer-toggle-button" id="footerToggleButton" aria-label="Toggle footer">
+      <i class="fas fa-chevron-up"></i>
+    </button>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>Cross Country</h3>
+        <div class="quick-links">
+          <a href="xc.html" class="quick-link"><span>XC Home</span></a>
+          <a href="meets.html" class="quick-link"><span>Meets</span></a>
+          <a href="rankings.html" class="quick-link"><span>Rankings</span></a>
+          <a href="schools.html" class="quick-link"><span>Schools</span></a>
+          <a href="analytics.html" class="quick-link"><span>Analytics</span></a>
+        </div>
+      </div>
+
+      <div class="footer-section">
+        <h3>Track & Field</h3>
+        <div class="quick-links">
+          <a href="/Track/index.html" class="quick-link"><span>Track Home</span></a>
+          <a href="/Track/meets.html" class="quick-link"><span>Meets</span></a>
+          <a href="/Track/events.html" class="quick-link"><span>Events</span></a>
+          <a href="/Track/rankings.html" class="quick-link"><span>Rankings</span></a>
+          <a href="/Track/teams.html" class="quick-link"><span>Teams</span></a>
+          <a href="/Track/analytics.html" class="quick-link"><span>Analytics</span></a>
+        </div>
+      </div>
+
+      <div class="footer-section">
+        <h3>General</h3>
+        <div class="quick-links">
+          <a href="/home/index.html" class="quick-link"><span>Home</span></a>
+          <a href="login.html" class="quick-link"><span>Admin</span></a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
+      </div>
+    </div>
   </footer>
   
-
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-  <!-- Firebase Configuration -->
+  
+  <!-- Footer Toggle Script -->
+  <script src="../footer-toggle.js"></script>
+  
   <script src="firebase-config.js"></script>
   <script src="firebase-helpers.js"></script>
   <script>
@@ -120,16 +294,14 @@ h6 {
         }
         function formatDate(dateString) {
           if (!dateString) return 'Date TBD';
-          // Parse date string in local time to avoid timezone shift
           const parts = dateString.split('-');
           if (parts.length === 3) {
             const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+            const month = parseInt(parts[1], 10) - 1;
             const day = parseInt(parts[2], 10);
             const date = new Date(year, month, day);
             return date.toLocaleDateString();
           }
-          // Fallback to original method if format is unexpected
           return new Date(dateString).toLocaleDateString();
         }
         container.innerHTML = meets.map(meet => {
@@ -160,7 +332,6 @@ h6 {
           navMenu.classList.toggle('mobile-open');
         });
         
-        // Close menu when clicking outside
         document.addEventListener('click', (e) => {
           if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
             navMenu.classList.remove('mobile-open');

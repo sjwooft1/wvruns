@@ -792,6 +792,243 @@
       background: var(--border);
       margin: 12px 0;
     }
+
+    /* Mobile Navigation */
+    .mobile-menu-button {
+      display: none;
+      width: 48px;
+      height: 48px;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      color: #e6f0f7;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 999;
+    }
+    
+    .mobile-menu-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+    }
+    
+    .mobile-menu-overlay.active {
+      display: block;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .app-wrapper {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 999;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+      }
+      
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      
+      .mobile-menu-button {
+        display: block;
+      }
+      
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        gap: 8px;
+      }
+      
+      .topbar h2 {
+        font-size: 1.2rem;
+        margin: 0;
+      }
+      
+      .topbar-info {
+        display: none;
+      }
+      
+      .main {
+        width: 100%;
+      }
+      
+      .content {
+        padding: 12px;
+        padding-bottom: 80px;
+      }
+      
+      .grid-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .grid-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .grid-actions input,
+      .grid-actions button {
+        width: 100%;
+      }
+      
+      .btn {
+        padding: 12px 16px;
+        font-size: 1rem;
+        min-height: 48px;
+      }
+      
+      .btn-small {
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        min-height: 40px;
+      }
+      
+      /* Mobile table - switch to card view */
+      .grid-table {
+        font-size: 0.85rem;
+      }
+      
+      .grid-table th {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+      }
+      
+      .grid-table td {
+        padding: 8px 12px;
+      }
+      
+      /* Modal responsive */
+      .modal {
+        width: 95%;
+        max-height: 95vh;
+        max-width: 100%;
+      }
+      
+      .modal-body {
+        padding: 16px;
+      }
+      
+      .form-input {
+        padding: 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+      
+      .form-group {
+        margin-bottom: 12px;
+      }
+      
+      /* CSV section responsive */
+      .csv-dropzone {
+        padding: 20px;
+      }
+      
+      .csv-dropzone p {
+        font-size: 0.95rem;
+      }
+      
+      .race-type-options {
+        flex-direction: column;
+      }
+      
+      .race-type-btn {
+        width: 100%;
+      }
+      
+      /* Search input */
+      #search-input {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+      
+      /* Empty state */
+      .empty-state {
+        padding: 40px 20px;
+      }
+      
+      /* Stats grid */
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .topbar h2 {
+        font-size: 1rem;
+      }
+      
+      .sidebar {
+        width: 100%;
+      }
+      
+      .grid-table {
+        font-size: 0.75rem;
+      }
+      
+      .grid-table th,
+      .grid-table td {
+        padding: 6px 8px;
+      }
+      
+      .btn {
+        padding: 10px 12px;
+        font-size: 0.875rem;
+        min-height: 44px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .modal {
+        width: 98%;
+      }
+      
+      .grid-header h3 {
+        font-size: 1rem;
+      }
+    }
+    
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+      .btn {
+        min-height: 48px;
+        min-width: 48px;
+      }
+      
+      .form-input {
+        font-size: 16px;
+        padding: 12px;
+      }
+      
+      .grid-table td {
+        padding: 12px 8px;
+      }
+      
+      .nav-btn {
+        padding: 14px 16px;
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
