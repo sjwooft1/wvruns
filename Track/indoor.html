@@ -170,42 +170,6 @@
       grid-column: 1 / -1;
     }
     
-     /* Footer */
-    footer {
-  /* Remove the solid background color */
-  background: rgba(0, 40, 85, 0.85); /* Semi-transparent version of your primary blue */
-  backdrop-filter: blur(8px); /* Optional: Adds a glass effect */
-  color: white;
-  text-align: center;
-  padding: 40px 20px;
-  margin-top: 80px;
-  position: relative;
-  z-index: 1; /* Ensures footer content stays above the image */
-}
-.footer-with-bg {
-  position: relative;
-  overflow: hidden; /* Clips the image to footer boundaries */
-  padding: 60px 20px;
-  color: white;
-  text-align: center;
-}
-
-.footer-bg-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensures the mountain image fills the area */
-  z-index: -1; /* Puts it behind the text */
-  filter: brightness(0.5); /* Darkens the image so text is readable */
-}
-
-.footer-content {
-  position: relative;
-  z-index: 2;
-}
-    
     .btn {
       display: inline-block;
       padding: 12px 28px;
@@ -267,13 +231,55 @@
       </div>
     </section>
   </main>
-  
-  <footer class="footer-with-bg">
-    <img src="footer image.jpeg" alt="" class="footer-bg-img" />
-    <div class="footer-content">
-      <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
-      <a href="admin-login.html" class="btn btn-secondary">Admin Login</a>
-    </div>
+
+  <footer>
+      <div class="row">
+          <!-- 1st Column -->
+          <div class="footer-col">
+              <h4>General</h4>
+              <ul>
+                  <li><a href="/home/index.html">Home</a></li>
+                  <li><a href="/home/about.html">About</a></li>
+                  <li><a href="/home/admin.html">Admin</a></li>
+              </ul>
+          </div>
+
+          <!-- 2nd Column -->
+          <div class="footer-col">
+              <h4>Cross Country</h4>
+              <ul>
+                  <li><a href="/CrossCountry/xc.html">Home</a></li>
+                  <li><a href="/CrossCountry/meets.html">Meets</a></li>
+                  <li><a href="/CrossCountry/schools.html">Schools</a></li>
+                  <li><a href="/CrossCountry/rankings.html">Rankings</a></li>
+                  <li><a href="/CrossCountry/analytics.html">Analytics</a></li>
+              </ul>
+          </div>
+
+          <!-- 3rd Column -->
+          <div class="footer-col">
+              <h4>Track</h4>
+              <ul>
+                  <li><a href="/Track/index.html">Home</a></li>
+                  <li><a href="/Track/meets.html">Meets</a></li>
+                  <li><a href="/Track/teams.html">Teams</a></li>
+                  <li><a href="/Track/rankings.html">Rankings</a></li>
+                  <li><a href="/Track/analytics.html">Analytics</a></li>
+              </ul>
+          </div>
+      </div>
+      <hr>
+      <div class="row">
+          <div class="footer-bottom">
+              <div style="margin-bottom: 1rem;">
+                  <a href="https://github.com/sjwooft1/mountainstatemiles" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-github" style="font-size: 1.5rem;"></i>
+                      <span>GitHub Repository</span>
+                  </a>
+              </div>
+              <p>&#169; 2026 Mountain State Miles — Built by runners, for runners.</p>
+          </div>
+      </div>
   </footer>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>

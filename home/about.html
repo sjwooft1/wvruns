@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — Mountain State Miles</title>
+    <meta property="og:image" content="/assets/Wvruns Logo.png" />
+    <link rel="icon" type="image/png" href="/assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon Generator/favicon.svg" />
+    <link rel="shortcut icon" href="/assets/Favicon Generator/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon Generator/apple-touch-icon.png" />
+    <link rel="manifest" href="assets/Favicon Generator/site.webmanifest" />
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.5);
+        }
+
+        body {
+            background-color: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            padding-bottom: 60px;
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            width: 100%;
+        }
+
+        @media (min-width: 769px) {
+            body {
+                padding-bottom: 0;
+            }
+        }
+
+        main {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: white;
+            font-size: 1.75rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+        }
+
+        p, li {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            margin-left: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #10b981;
+            padding: 1.5rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card h3 {
+            color: #10b981;
+            margin-top: 0;
+        }
+
+        .cta-section {
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid #10b981;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .cta-section a {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .cta-section a:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <img src="bg.jpeg" alt="Background Image" class="page-background-image" />
+
+    <header>
+        <nav class="navbar">
+            <div class="navbar-content">
+                <a href="index.html" class="navbar-brand">🏔️ Mountain State Miles</a>
+                <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+                <ul class="navbar-nav" id="main-nav">
+                    <li><a href="index.html" class="navbar-link">Home</a></li>
+                    <li><a href="about.html" class="navbar-link active">About</a></li>
+                    <li><a href="/Track/index.html" class="navbar-link">Track & Field</a></li>
+                    <li><a href="/CrossCountry/xc.html" class="navbar-link">Cross Country</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <h1>About Mountain State Miles</h1>
+
+        <p>
+            Mountain State Miles is West Virginia's premier source for high school track and cross country results, rankings, and analytics. 
+            We're dedicated to providing the running community with accurate, comprehensive data of athletes and teams across the state and providing the running community with 
+            accurate, comprehensive data.
+        </p>
+
+        <h2>Our Mission</h2>
+        <p>
+            To provide West Virginia high school runners and coaches with:
+        </p>
+        <ul>
+            <li><strong>Accurate Results:</strong> Complete meet results from across the state</li>
+            <li><strong>Rankings:</strong> Current rankings for athletes and teams</li>
+            <li><strong>Analytics:</strong> Performance trends and insights</li>
+            <li><strong>Community:</strong> A hub for the West Virginia running community</li>
+        </ul>
+
+        <h2>What We Offer</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>📊 Cross Country</h3>
+                <p>Track school rosters, meet results, rankings, and performance analytics for cross country runners statewide.</p>
+            </div>
+            <div class="feature-card">
+                <h3>⚡ Track & Field</h3>
+                <p>Complete indoor and outdoor track season data including rankings, records, and athlete profiles.</p>
+            </div>
+            <div class="feature-card">
+                <h3>📈 Analytics</h3>
+                <p>Advanced performance analysis, trends, and predictions to help coaches and athletes track progress.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🏆 Rankings</h3>
+                <p>Real-time rankings updated throughout the season to showcase top performers across the state.</p>
+            </div>
+        </div>
+
+        <h2>For Coaches & Athletes</h2>
+        <p>
+            Whether you're a coach looking to benchmark your team's performance or an athlete tracking your personal records, 
+            Mountain State Miles provides the tools and data you need. Our platform makes it easy to:
+        </p>
+        <ul>
+            <li>View detailed meet results and split times</li>
+            <li>Compare performance across the entire season</li>
+            <li>Track progress toward goals</li>
+            <li>See how you stack up against other athletes and teams statewide</li>
+        </ul>
+
+        <h2>Built by Runners, for Runners</h2>
+        <p>
+            Mountain State Miles was created by members of the West Virginia running community who understand the sport and 
+            wanted to make it easier for everyone to access and share results. We're committed to continuously improving 
+            our platform based on feedback from coaches, athletes, and running enthusiasts.
+        </p>
+
+        <h2>Data Sources</h2>
+        <p>
+            Our data comes from mostly athletic.net for the time being. If you'd like to submit results 
+            or have a suggestion for improvement, reach out to us through our GitHub repository (https://github.com/sjwooft1/mountainstatemiles).
+        </p>
+
+        <div class="cta-section">
+            <h3>Ready to Explore?</h3>
+            <p>Check out our track and cross country sections to see the latest results and rankings.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/Track/index.html">Track & Field</a>
+                <a href="/CrossCountry/xc.html">Cross Country</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="row">
+            <div class="footer-col">
+                <h4>General</h4>
+                <ul>
+                    <li><a href="/home/index.html">Home</a></li>
+                    <li><a href="/home/about.html">About</a></li>
+                    <li><a href="/home/admin.html">Admin</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Cross Country</h4>
+                <ul>
+                    <li><a href="/CrossCountry/xc.html">Home</a></li>
+                    <li><a href="/CrossCountry/meets.html">Meets</a></li>
+                    <li><a href="/CrossCountry/schools.html">Schools</a></li>
+                    <li><a href="/CrossCountry/rankings.html">Rankings</a></li>
+                    <li><a href="/CrossCountry/analytics.html">Analytics</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Track</h4>
+                <ul>
+                    <li><a href="/Track/index.html">Home</a></li>
+                    <li><a href="/Track/meets.html">Meets</a></li>
+                    <li><a href="/Track/teams.html">Teams</a></li>
+                    <li><a href="/Track/rankings.html">Rankings</a></li>
+                    <li><a href="/Track/analytics.html">Analytics</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="footer-bottom">
+                <div style="margin-bottom: 1rem;">
+                    <a href="https://github.com/sjwooft1/mountainstatemiles" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.5rem; color: rgba(255, 255, 255, 0.9); text-decoration: none; transition: color 0.3s ease;">
+                        <i class="fab fa-github" style="font-size: 1.5rem;"></i>
+                        <span>GitHub Repository</span>
+                    </a>
+                </div>
+                <p>&#169; 2026 Mountain State Miles — Built by runners, for runners.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const navMenu = document.getElementById('main-nav');
+
+            if (menuToggle && navMenu) {
+                menuToggle.addEventListener('click', () => {
+                    navMenu.classList.toggle('mobile-open');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+                        navMenu.classList.remove('mobile-open');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

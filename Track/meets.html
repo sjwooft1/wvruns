@@ -229,6 +229,27 @@
   color: var(--text-primary);
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
+.search-bar {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .search-bar input {
+      width: 300px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid #e5e7eb;
+      font-size: 1em;
+      transition: all 0.3s ease;
+      box-shadow: 0px 0px 50px rgba(36, 36, 148, 0.696);
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: #134987;
+      box-shadow: 0 10px 20px rgba(11, 56, 154, 0.861);
+    }
 .modal-content h3 { margin-top: 0; color: var(--primary); }
 .modal-content ol { padding-left: 20px; margin: 20px 0; }
 .modal-content li { margin-bottom: 10px; }
@@ -261,7 +282,9 @@
       </div>
     </div>
     <div class="section-header">
-      <h2 class="section-title">Track Meets</h2>
+      <div class="search-bar">
+        <input type="text" id="search" placeholder="Search for a meet...">
+      </div>
       <div class="export-container">
         <button class="view-btn export-main-btn" onclick="toggleExportMenu()">
           📥 Export / Print
@@ -310,8 +333,53 @@
   </main>
   
   <footer>
-    <img src="footer image.jpeg" alt="" class="footer-bg-img" />
-    <p>&copy; 2026 Mountain State Miles</p>
+      <div class="row">
+          <!-- 1st Column -->
+          <div class="footer-col">
+              <h4>General</h4>
+              <ul>
+                  <li><a href="/home/index.html">Home</a></li>
+                  <li><a href="/home/about.html">About</a></li>
+                  <li><a href="/home/admin.html">Admin</a></li>
+              </ul>
+          </div>
+
+          <!-- 2nd Column -->
+          <div class="footer-col">
+              <h4>Cross Country</h4>
+              <ul>
+                  <li><a href="/CrossCountry/xc.html">Home</a></li>
+                  <li><a href="/CrossCountry/meets.html">Meets</a></li>
+                  <li><a href="/CrossCountry/schools.html">Schools</a></li>
+                  <li><a href="/CrossCountry/rankings.html">Rankings</a></li>
+                  <li><a href="/CrossCountry/analytics.html">Analytics</a></li>
+              </ul>
+          </div>
+
+          <!-- 3rd Column -->
+          <div class="footer-col">
+              <h4>Track</h4>
+              <ul>
+                  <li><a href="/Track/index.html">Home</a></li>
+                  <li><a href="/Track/meets.html">Meets</a></li>
+                  <li><a href="/Track/teams.html">Teams</a></li>
+                  <li><a href="/Track/rankings.html">Rankings</a></li>
+                  <li><a href="/Track/analytics.html">Analytics</a></li>
+              </ul>
+          </div>
+      </div>
+      <hr>
+      <div class="row">
+          <div class="footer-bottom">
+              <div style="margin-bottom: 1rem;">
+                  <a href="https://github.com/sjwooft1/mountainstatemiles" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-github" style="font-size: 1.5rem;"></i>
+                      <span>GitHub Repository</span>
+                  </a>
+              </div>
+              <p>&#169; 2026 Mountain State Miles — Built by runners, for runners.</p>
+          </div>
+      </div>
   </footer>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -361,11 +429,14 @@
     function renderList(filter) {
       const container = document.getElementById('meets-list');
       const filtered = filter === 'all' ? allMeets : allMeets.filter(m => m.season === filter);
+      const search = document.getElementById("search");
+      const searchValue = search.value.toLowerCase();
+      const filtered2 = filtered.filter(m => m.name.toLowerCase().includes(searchValue));
       
       // Sort by date descending
-      filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+      filtered2.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-      container.innerHTML = filtered.map(meet => `
+      container.innerHTML = filtered2.map(meet => `
         <a href="meet.html?slug=${meet.slug}" class="meet-card">
           <h3 class="meet-card-title">${meet.name}</h3>
           <p class="meet-card-date">📅 ${new Date(meet.date).toLocaleDateString()}</p>
@@ -407,6 +478,20 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
+    
+    // Add search input listener
+    document.getElementById('search').addEventListener('input', () => {
+      const activeFilterChip = document.querySelector('.filter-chip.active');
+      const activeSeason = activeFilterChip ? activeFilterChip.textContent : 'all';
+      
+      // Map button text to filter value
+      let filterValue = 'all';
+      if (activeSeason.includes('Indoor')) filterValue = 'indoor';
+      else if (activeSeason.includes('Outdoor')) filterValue = 'outdoor';
+      
+      renderList(filterValue);
+    });
+    
     function toggleExportMenu() {
     document.getElementById("export-menu").classList.toggle("show");
 }

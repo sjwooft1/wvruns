@@ -1,0 +1,15 @@
+# ----------------------------------------------------------------------
+# 1. REMOVE .html FROM THE BROWSER URL (External Redirect)
+# Forces users/Google from page.html to /page
+# ----------------------------------------------------------------------
+RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
+RewriteRule ^ /%1 [NC,L,R=301]
+
+# ----------------------------------------------------------------------
+# 2. INTERNALLY MAP CLEAN URL TO THE ACTUAL FILE (Internal Rewrite)
+# Allows the server to load page.html when a user visits /page
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [NC,L]

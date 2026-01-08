@@ -288,6 +288,7 @@
           <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
           <ul class="navbar-nav" id="main-nav">
             <li><a href="index.html" class="navbar-link active">Home</a></li>
+            <li><a href="about.html" class="navbar-link">About</a></li>
             <li><a href="/Track/index.html" class="navbar-link">Track & Field</a></li>
             <li><a href="/CrossCountry/xc.html" class="navbar-link">Cross Country</a></li>
           </ul>
@@ -315,55 +316,64 @@
             </a>
         </div>
         
-        <div class="meets-section">
+        <!-- News/Recap Section -->
+        <div class="meets-section" id="news-section">
             <div class="meets-header">
-                <h2>Recent Meets</h2>
+                <h2>📰 Latest Recaps</h2>
+                <a href="/news.html" class="view-all-link">View All →</a>
             </div>
-            <div class="meets-grid" id="meets-grid">
-                <div class="loading-state">Loading recent meets...</div>
+            <div class="meets-grid" id="news-grid">
+                <div class="loading-state">Loading recaps...</div>
             </div>
         </div>
     </div>
 
-    <footer class="mobile-footer">
-        <div class="footer-pull-tab" id="footerTab"></div>
-        <button class="footer-toggle-button" id="footerToggleButton" aria-label="Toggle footer">
-            <i class="fas fa-chevron-up"></i>
-        </button>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Track</h3>
-                <div class="quick-links">
-                    <a href="/Track/index.html" class="quick-link"><span>Track Home</span></a>
-                    <a href="/Track/meets.html" class="quick-link"><span>Meets</span></a>
-                    <a href="/Track/events.html" class="quick-link"><span>Events</span></a>
-                    <a href="/Track/rankings.html" class="quick-link"><span>Rankings</span></a>
-                    <a href="/Track/teams.html" class="quick-link"><span>Teams</span></a>
-                    <a href="/Track/analytics.html" class="quick-link"><span>Analytics</span></a>
-                </div>
+    <footer>
+        <div class="row">
+            <!-- 1st Column -->
+            <div class="footer-col">
+                <h4>General</h4>
+                <ul>
+                    <li><a href="/home/index.html">Home</a></li>
+                    <li><a href="/home/admin.html">Admin</a></li>
+                    <li><a href="news.html">News</a></li>
+                </ul>
             </div>
 
-            <div class="footer-section">
-                <h3>Cross Country</h3>
-                <div class="quick-links">
-                    <a href="/CrossCountry/xc.html" class="quick-link"><span>XC Home</span></a>
-                    <a href="/CrossCountry/meets.html" class="quick-link"><span>Meets</span></a>
-                    <a href="/CrossCountry/rankings.html" class="quick-link"><span>Rankings</span></a>
-                    <a href="/CrossCountry/schools.html" class="quick-link"><span>Schools</span></a>
-                    <a href="/CrossCountry/analytics.html" class="quick-link"><span>Analytics</span></a>
-                </div>
+            <!-- 2nd Column -->
+            <div class="footer-col">
+                <h4>Cross Country</h4>
+                <ul>
+                    <li><a href="/CrossCountry/xc.html">Home</a></li>
+                    <li><a href="/CrossCountry/meets.html">Meets</a></li>
+                    <li><a href="/CrossCountry/schools.html">Schools</a></li>
+                    <li><a href="/CrossCountry/rankings.html">Rankings</a></li>
+                    <li><a href="/CrossCountry/analytics.html">Analytics</a></li>
+                </ul>
             </div>
 
-            <div class="footer-section">
-                <h3>General</h3>
-                <div class="quick-links">
-                    <a href="/home/index.html" class="quick-link"><span>Home</span></a>
-                    <a href="admin.html" class="quick-link"><span>Admin</span></a>
-                </div>
+            <!-- 3rd Column -->
+            <div class="footer-col">
+                <h4>Track</h4>
+                <ul>
+                    <li><a href="/Track/index.html">Home</a></li>
+                    <li><a href="/Track/meets.html">Meets</a></li>
+                    <li><a href="/Track/teams.html">Teams</a></li>
+                    <li><a href="/Track/rankings.html">Rankings</a></li>
+                    <li><a href="/Track/analytics.html">Analytics</a></li>
+                </ul>
             </div>
-
+        </div>
+        <hr>
+        <div class="row">
             <div class="footer-bottom">
-                <p>&copy; 2026 Mountain State Miles — Built by runners, for runners.</p>
+                <div style="margin-bottom: 1rem;">
+                    <a href="https://github.com/sjwooft1/mountainstatemiles" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.5rem; color: rgba(255, 255, 255, 0.9); text-decoration: none; transition: color 0.3s ease;">
+                        <i class="fab fa-github" style="font-size: 1.5rem;"></i>
+                        <span>GitHub Repository</span>
+                    </a>
+                </div>
+                <p>&#169; 2026 Mountain State Miles — Built by runners, for runners.</p>
             </div>
         </div>
     </footer>

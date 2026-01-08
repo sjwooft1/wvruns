@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Admin — Mountain State Miles</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    * { box-sizing: border-box; }
+    
+    :root {
+      --primary: #002855;
+      --secondary: #0056b3;
+      --accent: #ff6b35;
+      --accent-dark: #d9530a;
+      --bg-light: #f8f9fa;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-primary);
+    }
+
+    .navbar {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .navbar-content {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-weight: 800; font-size: 1.25rem; color: var(--primary); text-decoration: none; }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .admin-header {
+      margin-bottom: 40px;
+    }
+
+    .admin-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0 0 10px;
+    }
+    
+    .admin-subtitle {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      transition: 0.3s;
+      font-size: 1rem;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+
+    .news-list {
+      display: grid;
+      gap: 20px;
+    }
+
+    .news-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 5px solid var(--accent);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .news-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+
+    .news-card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .news-card-date {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .news-card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+
+    .auto-gen-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .auto-gen-header {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    .athlete-input-group {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .athlete-input-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .athlete-item {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer {
+      background: rgba(0, 40, 85, 0.9);
+      padding: 40px 20px;
+      color: white;
+      text-align: center;
+      margin-top: 60px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .news-card-header {
+        flex-direction: column;
+      }
+
+      .admin-title {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="navbar-content">
+        <a href="/home/index.html" class="navbar-brand">🏔️ MSM Admin</a>
+      </div>
+    </nav>
+  </header>
+  
+  <main>
+    <div class="admin-header">
+      <h1 class="admin-title">📰 News Management</h1>
+      <p class="admin-subtitle">Create, edit, and auto-generate meet recaps</p>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="create" onclick="switchTab(event, 'create')">Create Article</button>
+      <button class="tab-btn" data-tab="auto-gen" onclick="switchTab(event, 'auto-gen')">Auto-Generate Summary</button>
+      <button class="tab-btn" data-tab="manage" onclick="switchTab(event, 'manage')">Manage Articles</button>
+    </div>
+
+    <!-- CREATE ARTICLE TAB -->
+    <div id="create" class="tab-content active">
+      <form id="article-form">
+        <div class="form-group">
+          <label for="title">Article Title *</label>
+          <input type="text" id="title" placeholder="e.g., Morgantown XC Invitational — Meet Recap" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sport">Sport *</label>
+            <select id="sport" required>
+              <option value="">Select Sport</option>
+              <option value="Track">Track & Field</option>
+              <option value="Cross Country">Cross Country</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="article-date">Date *</label>
+            <input type="date" id="article-date" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="meet-name">Meet Name (optional)</label>
+            <input type="text" id="meet-name" placeholder="e.g., Morgantown XC Invitational">
+          </div>
+          <div class="form-group">
+            <label for="article-type">Article Type</label>
+            <select id="article-type">
+              <option value="Manual">Manual</option>
+              <option value="Auto-Generated">Auto-Generated</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="summary">Summary / Main Content *</label>
+          <textarea id="summary" placeholder="Main article text..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="highlights">Key Highlights (separate with line breaks)</label>
+          <textarea id="highlights" placeholder="🏆 First highlight&#10;🥈 Second highlight&#10;🏫 Third highlight"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Standout Athletes</label>
+          <div class="athlete-input-group" id="athletes-list"></div>
+          <button type="button" class="btn btn-secondary btn-small" onclick="addAthleteInput()">+ Add Athlete</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+          <button type="submit" class="btn btn-primary">📝 Publish Article</button>
+          <button type="reset" class="btn btn-secondary">Clear Form</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- AUTO-GENERATE TAB -->
+    <div id="auto-gen" class="tab-content">
+      <div class="auto-gen-section">
+        <div class="auto-gen-header">Generate Summary from Meet Results</div>
+        
+        <div class="form-group">
+          <label for="auto-sport">Sport *</label>
+          <select id="auto-sport" onchange="loadMeets()">
+            <option value="">Select Sport</option>
+            <option value="Track">Track & Field</option>
+            <option value="CrossCountry">Cross Country</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="auto-meet">Meet *</label>
+          <select id="auto-meet">
+            <option value="">Loading meets...</option>
+          </select>
+          <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+            <div id="meets-info" style="color: var(--text-secondary); font-size: 0.9rem;">Select a sport to load meets.</div>
+            <button type="button" id="meets-debug-btn" class="btn btn-secondary btn-small" onclick="diagnoseMeetsDb()">Debug DB</button>
+            <button type="button" id="meets-reload-btn" class="btn btn-secondary btn-small" onclick="loadMeets()">Reload</button>
+          </div>
+          <pre id="meets-diagnostics" style="display:none; margin-top:8px; background: #fff; padding:10px; border-radius:6px; border:1px solid #eee; white-space:pre-wrap; font-size:0.85rem; color:#333;"></pre>
+        </div>
+
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 15px;">
+          💡 This will analyze all results from the selected meet and automatically generate a summary highlighting:
+        </p>
+        <ul style="color: var(--text-secondary); font-size: 0.9rem; margin: 10px 0;">
+          <li>Top performers and personal records</li>
+          <li>Team performance and predictions</li>
+          <li>Unexpected results</li>
+          <li>Key statistics and trends</li>
+        </ul>
+
+        <button onclick="generateSummary()" class="btn btn-primary" style="margin-top: 20px;">
+          ⚡ Generate Summary
+        </button>
+      </div>
+
+      <div id="preview-section" style="display: none; margin-top: 30px;">
+        <h3 style="color: var(--primary); margin-bottom: 15px;">Preview</h3>
+        <div id="preview-content" style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid var(--accent);"></div>
+        <button onclick="publishPreview()" class="btn btn-primary" style="margin-top: 15px;">✅ Publish this Summary</button>
+        <button onclick="closePreview()" class="btn btn-secondary" style="margin-top: 15px;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- MANAGE ARTICLES TAB -->
+    <div id="manage" class="tab-content">
+      <div style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary); margin-top: 0;">All Articles</h3>
+      </div>
+      <div id="articles-list" class="news-list">
+        <div style="text-align: center; color: var(--text-secondary);">Loading articles...</div>
+      </div>
+    </div>
+
+  </main>
+  
+  <footer>
+    <p>&#169; 2026 Mountain State Miles — Admin Panel</p>
+  </footer>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="news-analytics.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3u6WU8dKLdvNqT6RQbKGqPvv3i45NdcI",
+      authDomain: "wvruns-8a73f.firebaseapp.com",
+      databaseURL: "https://wvruns-8a73f-default-rtdb.firebaseio.com",
+      projectId: "wvruns-8a73f",
+      storageBucket: "wvruns-8a73f.appspot.com",
+      messagingSenderId: "833073282866",
+      appId: "1:833073282866:web:a99c01f3e6c2b8a54c5e3b"
+    };
+
+    const ALT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCBQt9I_OSoUuTM61F-JXNBkD98f7PCJcA",
+      authDomain: "mountainstatemiles-1326f.firebaseapp.com",
+      databaseURL: "https://mountainstatemiles-1326f-default-rtdb.firebaseio.com",
+      projectId: "mountainstatemiles-1326f",
+      storageBucket: "mountainstatemiles-1326f.firebasestorage.app",
+      messagingSenderId: "605911511756",
+      appId: "1:605911511756:web:0e99071a816f0a39210869",
+      measurementId: "G-N3DNFRQNF9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
+
+    let currentPreview = null;
+
+    // Helper to try to load meets from a given db reference and set of candidate prefixes
+    async function _tryLoadFromDb(db, candidates) {
+      const diagnostics = [];
+      const meets = [];
+
+      for (const prefix of candidates) {
+        const refPath = `${prefix}/meets`;
+        try {
+          const snapshot = await db.ref(refPath).once('value');
+          const exists = snapshot && snapshot.exists();
+          let count = 0;
+          if (exists) {
+            // snapshot.numChildren may not exist on some mock objects
+            count = typeof snapshot.numChildren === 'function' ? snapshot.numChildren() : (snapshot.val() ? Object.keys(snapshot.val()).length : 0);
+            snapshot.forEach(child => {
+              const data = child.val() || {};
+              meets.push({ id: child.key, name: data.name || data.slug || 'Unnamed Meet', date: data.date || '' });
+            });
+          }
+          diagnostics.push({ path: refPath, exists, count });
+          if (meets.length > 0) return { usedPath: refPath, meets, diagnostics };
+        } catch (err) {
+          diagnostics.push({ path: refPath, exists: false, count: 0, error: err && err.message ? err.message : String(err) });
+        }
+      }
+
+      // As a last resort, try a flat 'meets' root path
+      try {
+        const snapshot = await db.ref('meets').once('value');
+        const exists = snapshot && snapshot.exists();
+        let count = 0;
+        if (exists) {
+          count = typeof snapshot.numChildren === 'function' ? snapshot.numChildren() : (snapshot.val() ? Object.keys(snapshot.val()).length : 0);
+          snapshot.forEach(child => {
+            const data = child.val() || {};
+            meets.push({ id: child.key, name: data.name || data.slug || 'Unnamed Meet', date: data.date || '' });
+          });
+        }
+        diagnostics.push({ path: 'meets', exists, count });
+        if (meets.length > 0) return { usedPath: 'meets', meets, diagnostics };
+      } catch (err) {
+        diagnostics.push({ path: 'meets', exists: false, count: 0, error: err && err.message ? err.message : String(err) });
+      }
+
+      return { usedPath: null, meets, diagnostics };
+    }
+
+    // Try to fetch meets directly via REST if SDK attempts fail
+    async function _tryFetchFromRest(dbUrl, candidates) {
+      const diagnostics = [];
+      const meets = [];
+
+      // Ensure the URL doesn't end with a slash
+      const base = dbUrl.replace(/\/$/, '');
+
+      for (const prefix of candidates) {
+        const url = `${base}/${prefix}/meets.json`;
+        try {
+          const res = await fetch(url);
+          if (!res.ok) {
+            diagnostics.push({ path: `${prefix}/meets`, fetched: false, status: res.status });
+            continue;
+          }
+          const data = await res.json();
+          if (data && typeof data === 'object') {
+            const keys = Object.keys(data);
+            keys.forEach(k => {
+              const entry = data[k] || {};
+              meets.push({ id: k, name: entry.name || entry.slug || 'Unnamed Meet', date: entry.date || '' });
+            });
+            diagnostics.push({ path: `${prefix}/meets`, fetched: true, count: keys.length, url });
+            if (meets.length > 0) return { usedPath: `${prefix}/meets`, meets, diagnostics };
+          } else {
+            diagnostics.push({ path: `${prefix}/meets`, fetched: true, count: 0, url });
+          }
+        } catch (err) {
+          diagnostics.push({ path: `${prefix}/meets`, fetched: false, error: err && err.message ? err.message : String(err), url });
+        }
+      }
+
+      // Try a flat 'meets' root
+      try {
+        const url = `${base}/meets.json`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data === 'object') {
+            const keys = Object.keys(data);
+            keys.forEach(k => {
+              const entry = data[k] || {};
+              meets.push({ id: k, name: entry.name || entry.slug || 'Unnamed Meet', date: entry.date || '' });
+            });
+            diagnostics.push({ path: `meets`, fetched: true, count: keys.length, url });
+            if (meets.length > 0) return { usedPath: `meets`, meets, diagnostics };
+          } else {
+            diagnostics.push({ path: `meets`, fetched: true, count: 0, url });
+          }
+        } else {
+          diagnostics.push({ path: `meets`, fetched: false, status: res.status, url });
+        }
+      } catch (err) {
+        diagnostics.push({ path: 'meets', fetched: false, error: err && err.message ? err.message : String(err) });
+      }
+
+      return { usedPath: null, meets, diagnostics };
+    }
+
+    // Ensure the alternate Firebase app (mountainstatemiles) is initialized and return its DB
+    async function ensureAltDb() {
+      const ALT_NAME = 'altMSM_app';
+      try {
+        if (firebase.apps.some(a => a.name === ALT_NAME)) {
+          return firebase.app(ALT_NAME).database();
+        }
+        const altApp = firebase.initializeApp(ALT_FIREBASE_CONFIG, ALT_NAME);
+        return altApp.database();
+      } catch (err) {
+        console.warn('Could not initialize alt firebase app:', err && err.message ? err.message : err);
+        return null;
+      }
+    }
+
+    // Update loadMeets to use REST fallback when both SDK attempts fail
+    async function loadMeets() {
+      const select = document.getElementById('auto-meet');
+      const info = document.getElementById('meets-info');
+      const diagEl = document.getElementById('meets-diagnostics');
+      if (diagEl) { diagEl.style.display = 'none'; diagEl.textContent = ''; }
+      let sport = document.getElementById('auto-sport').value;
+
+      // If no sport selected, default to Cross Country so meets are visible
+      if (!sport) {
+        document.getElementById('auto-sport').value = 'CrossCountry';
+        sport = 'CrossCountry';
+      }
+
+      // Show loading state
+      select.innerHTML = '<option value="">Loading meets...</option>';
+      info.textContent = 'Loading meets...';
+
+      try {
+        // Build candidate prefixes to try (be tolerant of capitalization/inconsistencies)
+        const candidates = [];
+        if (/track/i.test(sport)) {
+          candidates.push('Track', 'track');
+        }
+        if (/cross/i.test(sport) || /xc/i.test(sport)) {
+          candidates.push('crosscountry', 'CrossCountry', 'crossCountry');
+        }
+
+        // Fallback to common prefixes if nothing matched
+        if (candidates.length === 0) {
+          candidates.push('Track', 'crosscountry', 'CrossCountry');
+        }
+
+        let meets = [];
+        let usedPath = null;
+        let source = 'primary';
+        let primaryDiag = null;
+        let altDiag = null;
+
+        // Prefer the ALT DB (mountainstatemiles) for CrossCountry/Track, since site pages use that project
+        const preferAlt = /cross/i.test(sport) || /xc/i.test(sport) || /track/i.test(sport);
+
+        if (preferAlt) {
+          const altDb = await ensureAltDb();
+          if (altDb) {
+            const altResult = await _tryLoadFromDb(altDb, candidates);
+            meets = altResult.meets || [];
+            usedPath = altResult.usedPath;
+            altDiag = altResult.diagnostics;
+            if (meets.length > 0) source = 'alt';
+          }
+        }
+
+        // If ALT didn't yield anything, try primary SDK DB
+        if (meets.length === 0) {
+          const primaryResult = await _tryLoadFromDb(database, candidates);
+          primaryDiag = primaryResult.diagnostics;
+          meets = primaryResult.meets || [];
+          usedPath = primaryResult.usedPath || usedPath;
+          if (meets.length > 0) source = 'primary';
+        }
+
+        // REST fallbacks if SDKs didn't find meets
+        let restDiagnostics = null;
+        if (meets.length === 0) {
+          try {
+            const primaryRest = await _tryFetchFromRest(firebaseConfig.databaseURL, candidates);
+            restDiagnostics = { primary: primaryRest.diagnostics };
+            if (primaryRest.meets && primaryRest.meets.length > 0) {
+              meets = primaryRest.meets;
+              usedPath = primaryRest.usedPath;
+              source = 'primary-rest';
+            }
+
+            if (meets.length === 0) {
+              const altRest = await _tryFetchFromRest(ALT_FIREBASE_CONFIG.databaseURL, candidates);
+              restDiagnostics.alt = altRest.diagnostics;
+              if (altRest.meets && altRest.meets.length > 0) {
+                meets = altRest.meets;
+                usedPath = altRest.usedPath;
+                source = 'alt-rest';
+              }
+            }
+          } catch (restErr) {
+            console.debug('REST fallback error:', restErr && restErr.message ? restErr.message : restErr);
+          }
+        }
+
+        const parseDate = d => {
+          if (!d) return 0;
+          const t = Date.parse(d);
+          return isNaN(t) ? 0 : t;
+        };
+
+        if (meets.length === 0) {
+          select.innerHTML = '<option value="">No meets found</option>';
+
+          const primarySummary = (primaryDiag || []).map(d => `${d.path}: ${d.exists ? d.count : (d.error ? 'err' : 'no')}`).join(' | ');
+          const altSummary = altDiag ? altDiag.map(d => `${d.path}: ${d.exists ? d.count : (d.error ? 'err' : 'no')}`).join(' | ') : null;
+          const restSummaryPrim = restDiagnostics && restDiagnostics.primary ? JSON.stringify(restDiagnostics.primary) : null;
+          const restSummaryAlt = restDiagnostics && restDiagnostics.alt ? JSON.stringify(restDiagnostics.alt) : null;
+
+          info.textContent = `No meets found. Tried SDK: ${primarySummary}${altSummary ? ' | Alt: ' + altSummary : ''}${restSummaryPrim ? ' | RestPrim: ' + restSummaryPrim : ''}${restSummaryAlt ? ' | RestAlt: ' + restSummaryAlt : ''}`;
+
+          if (diagEl) {
+            diagEl.style.display = 'block';
+            diagEl.textContent = 'Primary SDK diagnostics:\n' + JSON.stringify(primaryDiag, null, 2) + (altDiag ? ('\n\nAlt SDK diagnostics:\n' + JSON.stringify(altDiag, null, 2)) : '') + (restDiagnostics ? ('\n\nREST diagnostics:\n' + JSON.stringify(restDiagnostics, null, 2)) : '');
+          }
+
+          console.debug('Meet load diagnostics:', { primary: primaryDiag, alt: altDiag, rest: restDiagnostics });
+          return;
+        }
+
+        meets.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+
+        // Set select options with data attributes to remember source db and path
+        select.innerHTML = '<option value="">Select a Meet</option>' + meets.map(m => 
+          `<option value="${m.id}" data-db="${source}" data-path="${usedPath}">${m.name} (${m.date || 'Date TBD'})</option>`
+        ).join('');
+
+        // Store the source used so generateSummary can pick the right DB
+        select.dataset.dbSource = source;
+        select.dataset.usedPath = usedPath || '';
+
+        // Update selection info display
+        updateSelectedMeetInfo();
+
+        info.textContent = `Loaded ${meets.length} meet(s) from ${usedPath || 'database'} (${source}).`;
+      } catch (error) {
+        console.error('Error loading meets:', error);
+        select.innerHTML = '<option value="">Error loading meets</option>';
+        info.textContent = 'Error loading meets: ' + error.message;
+        showAlert('Error loading meets: ' + error.message, 'error');
+      }
+    }
+
+    async function diagnoseMeetsDb() {
+      const info = document.getElementById('meets-info');
+      const diagEl = document.getElementById('meets-diagnostics');
+      if (diagEl) { diagEl.style.display = 'block'; diagEl.textContent = ''; }
+      info.textContent = 'Running DB diagnostics...';
+
+      try {
+        const sport = document.getElementById('auto-sport').value || 'CrossCountry';
+        const candidates = [];
+        if (/track/i.test(sport)) candidates.push('Track', 'track');
+        if (/cross/i.test(sport) || /xc/i.test(sport)) candidates.push('crosscountry', 'CrossCountry', 'crossCountry');
+        if (candidates.length === 0) candidates.push('Track', 'crosscountry', 'CrossCountry');
+
+        const primaryResult = await _tryLoadFromDb(database, candidates);
+        let out = `Primary DB (${firebaseConfig.databaseURL})\nUsed Path: ${primaryResult.usedPath || 'none'}\nDiagnostics:\n${JSON.stringify(primaryResult.diagnostics, null, 2)}`;
+
+        try {
+          let altApp;
+          const ALT_NAME = 'altMSM_app';
+          if (firebase.apps.some(a => a.name === ALT_NAME)) altApp = firebase.app(ALT_NAME);
+          else altApp = firebase.initializeApp(ALT_FIREBASE_CONFIG, ALT_NAME);
+          const altDb = altApp.database();
+          const altResult = await _tryLoadFromDb(altDb, candidates);
+          out += `\n\nAlternate DB (${ALT_FIREBASE_CONFIG.databaseURL})\nUsed Path: ${altResult.usedPath || 'none'}\nDiagnostics:\n${JSON.stringify(altResult.diagnostics, null, 2)}`;
+        } catch (altErr) {
+          out += `\n\nAlternate DB init error: ${altErr && altErr.message ? altErr.message : altErr}`;
+        }
+
+        if (diagEl) diagEl.textContent = out;
+        info.textContent = 'Diagnostics complete. See details below.';
+      } catch (err) {
+        if (diagEl) diagEl.textContent = 'Error running diagnostics: ' + (err.message || err);
+        info.textContent = 'Diagnostics failed';
+      }
+    }
+
+    // Show which DB and path the selected meet came from
+    function updateSelectedMeetInfo() {
+      const select = document.getElementById('auto-meet');
+      const info = document.getElementById('meets-info');
+      const opt = select.options[select.selectedIndex];
+      if (!opt || !opt.value) {
+        // if no selection, keep the existing info
+        return;
+      }
+
+      const dbSource = opt.dataset.db || select.dataset.dbSource || 'primary';
+      const usedPath = opt.dataset.path || select.dataset.usedPath || 'unknown';
+      info.textContent = `Selected meet loaded from ${usedPath} (${dbSource})`;
+    }
+
+    // Set today's date as default
+    document.getElementById('article-date').valueAsDate = new Date();
+
+    // Form submission
+    document.getElementById('article-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const athletes = [];
+      document.querySelectorAll('.athlete-input').forEach(input => {
+        if (input.value.trim()) {
+          athletes.push(input.value.trim());
+        }
+      });
+
+      const articleData = {
+        title: document.getElementById('title').value,
+        date: document.getElementById('article-date').value,
+        sport: document.getElementById('sport').value,
+        meetName: document.getElementById('meet-name').value,
+        type: document.getElementById('article-type').value,
+        summary: document.getElementById('summary').value,
+        highlights: document.getElementById('highlights').value.split('\n').filter(h => h.trim()),
+        standoutAthletes: athletes,
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        await database.ref('news').push(articleData);
+        showAlert('✅ Article published successfully!', 'success');
+        document.getElementById('article-form').reset();
+        document.getElementById('athletes-list').innerHTML = '';
+        addAthleteInput();
+        document.getElementById('article-date').valueAsDate = new Date();
+        loadArticles();
+      } catch (error) {
+        showAlert('Error publishing article: ' + error.message, 'error');
+      }
+    });
+
+    function addAthleteInput() {
+      const container = document.getElementById('athletes-list');
+      const row = document.createElement('div');
+      row.className = 'athlete-input-row';
+      row.innerHTML = `
+        <input type="text" class="athlete-input" placeholder="Athlete Name (Team)">
+        <button type="button" class="btn btn-secondary btn-small" onclick="this.parentElement.remove()">Remove</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function switchTab(e, tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(tabName).classList.add('active');
+
+      // Mark the clicked button active when possible
+      try {
+        if (e && e.currentTarget) e.currentTarget.classList.add('active');
+        else if (e && e.target) e.target.classList.add('active');
+        else {
+          const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+          if (btn) btn.classList.add('active');
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      if (tabName === 'manage') {
+        loadArticles();
+      } else if (tabName === 'auto-gen') {
+        // Ensure meets are loaded when opening the Auto-Generate tab
+        loadMeets();
+      }
+    }
+
+    // Generate summary using REST calls if SDK-based analytics fail or DB is REST-only
+    async function generateSummaryViaRest(baseUrl, prefix, meetId, sport) {
+      const base = baseUrl.replace(/\/$/, '');
+
+      // Helper to fetch JSON and return parsed object
+      async function fetchJson(url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+        return res.json();
+      }
+
+      // Attempt to load meet by ID
+      let meetData = null;
+      let actualMeetId = meetId;
+
+      try {
+        const url = `${base}/${prefix}/meets/${encodeURIComponent(meetId)}.json`;
+        const data = await fetchJson(url);
+        if (data) {
+          meetData = data;
+        }
+      } catch (err) {
+        // ignore and try slug lookup
+      }
+
+      if (!meetData) {
+        try {
+          const url = `${base}/${prefix}/meets.json?orderBy=${encodeURIComponent('"slug"')}&equalTo=${encodeURIComponent('"' + meetId + '"')}`;
+          const data = await fetchJson(url);
+          if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+            const key = Object.keys(data)[0];
+            actualMeetId = key;
+            meetData = data[key];
+          }
+        } catch (err) {
+          // ignore
+        }
+      }
+
+      if (!meetData) {
+        throw new Error(`Meet '${meetId}' not found via REST in ${prefix}`);
+      }
+
+      // Try grouped results under results/{meetId}
+      let results = [];
+      try {
+        const url = `${base}/${prefix}/results/${encodeURIComponent(actualMeetId)}.json`;
+        const data = await fetchJson(url);
+        if (data && typeof data === 'object') {
+          Object.keys(data).forEach(k => results.push({ athleteId: k, ...data[k] }));
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      // Fallback: flat results with meet_slug
+      if (results.length === 0) {
+        try {
+          const slugToQuery = meetData.slug || actualMeetId;
+          const url = `${base}/${prefix}/results.json?orderBy=${encodeURIComponent('"meet_slug"')}&equalTo=${encodeURIComponent('"' + slugToQuery + '"')}`;
+          const data = await fetchJson(url);
+          if (data && typeof data === 'object') {
+            Object.keys(data).forEach(k => results.push({ athleteId: k, ...data[k] }));
+          }
+        } catch (err) {
+          // ignore
+        }
+      }
+
+      if (!results || results.length === 0) {
+        return null;
+      }
+
+      // Use MeetAnalytics internal analyzer to build summary
+      const analytics = new MeetAnalytics(null);
+      const analysis = analytics._analyzeResults(meetData, results, sport === 'track' ? 'track' : 'xc');
+
+      return {
+        title: `${meetData.name} — Meet Recap`,
+        date: new Date().toISOString().split('T')[0],
+        meetName: meetData.name,
+        sport: sport === 'track' ? 'Track' : 'Cross Country',
+        type: 'Auto-Generated',
+        meetId: actualMeetId,
+        summary: analysis.summary,
+        highlights: analysis.highlights,
+        standoutAthletes: analysis.standoutAthletes,
+        teamPerformance: analysis.teamPerformance,
+        metadata: {
+          totalAthletes: results.length,
+          analysisDate: new Date().toISOString(),
+          autoGenerated: true,
+          source: 'rest',
+          baseUrl
+        }
+      };
+    }
+
+    async function generateSummary() {
+      const sport = document.getElementById('auto-sport').value;
+      const select = document.getElementById('auto-meet');
+      const selectedOption = select.options[select.selectedIndex];
+      const meetId = select.value;
+
+      if (!sport || !meetId) {
+        showAlert('Please select both sport and meet', 'error');
+        return;
+      }
+
+      // Determine base URL and whether alt DB was used to load meets
+      let isAlt = false;
+      let baseUrl = firebaseConfig.databaseURL;
+
+      if (selectedOption && selectedOption.dataset && selectedOption.dataset.db) {
+        if (selectedOption.dataset.db.indexOf('alt') !== -1) isAlt = true;
+      } else if (select.dataset && select.dataset.dbSource) {
+        if (select.dataset.dbSource.indexOf('alt') !== -1) isAlt = true;
+      }
+
+      // Also prefer alt for Track/CrossCountry since main site uses mountainstatemiles project
+      if (!isAlt && (/cross/i.test(sport) || /xc/i.test(sport) || /track/i.test(sport))) {
+        isAlt = true;
+      }
+
+      if (isAlt) {
+        baseUrl = ALT_FIREBASE_CONFIG.databaseURL;
+      }
+
+      // Try using SDK analytics first (prefer SDK for structured queries)
+      let dbForAnalytics = database;
+      if (isAlt) {
+        try {
+          const altDb = await ensureAltDb();
+          if (altDb) dbForAnalytics = altDb;
+        } catch (err) {
+          console.debug('Could not init alt SDK DB - falling back to REST if needed:', err && err.message ? err.message : err);
+        }
+      }
+
+      try {
+        const analytics = new MeetAnalytics(dbForAnalytics);
+        const sportKey = /track/i.test(sport) ? 'track' : 'xc';
+        const summary = await analytics.generateMeetSummary(sportKey, meetId);
+
+        if (!summary) {
+          showAlert('No results found for this meet yet', 'error');
+          return;
+        }
+
+        currentPreview = summary;
+        displayPreview(summary);
+        return;
+      } catch (sdkErr) {
+        console.debug('SDK-based summary failed, trying REST fallback:', sdkErr && sdkErr.message ? sdkErr.message : sdkErr);
+      }
+
+      // REST fallback
+      try {
+        const sportKey = /track/i.test(sport) ? 'track' : 'xc';
+        const prefix = sportKey === 'track' ? 'Track' : 'crosscountry';
+        const summary = await generateSummaryViaRest(baseUrl, prefix, meetId, sportKey);
+        if (!summary) {
+          showAlert('No results found for this meet (REST)', 'error');
+          return;
+        }
+
+        currentPreview = summary;
+        displayPreview(summary);
+      } catch (restErr) {
+        showAlert('Error generating summary: ' + (restErr && restErr.message ? restErr.message : restErr), 'error');
+      }
+    }
+
+    async function publishPreview() {
+      if (!currentPreview) return;
+
+      try {
+        await database.ref('news').push(currentPreview);
+        showAlert('✅ Summary published successfully!', 'success');
+        document.getElementById('preview-section').style.display = 'none';
+        currentPreview = null;
+      } catch (error) {
+        showAlert('Error publishing summary: ' + error.message, 'error');
+      }
+    }
+
+    function closePreview() {
+      document.getElementById('preview-section').style.display = 'none';
+      currentPreview = null;
+    }
+
+    async function loadArticles() {
+      try {
+        const snapshot = await database.ref('news').once('value');
+        const articles = [];
+
+        snapshot.forEach(child => {
+          articles.push({
+            id: child.key,
+            ...child.val()
+          });
+        });
+
+        articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const container = document.getElementById('articles-list');
+        if (articles.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">No articles yet</div>';
+          return;
+        }
+
+        container.innerHTML = articles.map(article => `
+          <div class="news-card">
+            <div class="news-card-header">
+              <div>
+                <h3 class="news-card-title">${article.title}</h3>
+                <p class="news-card-date">${article.date} · ${article.sport} · ${article.type}</p>
+              </div>
+              <div class="news-card-actions">
+                <button onclick="deleteArticle('${article.id}')" class="btn btn-danger btn-small">Delete</button>
+              </div>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">${article.summary.substring(0, 150)}...</p>
+          </div>
+        `).join('');
+      } catch (error) {
+        showAlert('Error loading articles: ' + error.message, 'error');
+      }
+    }
+
+    async function deleteArticle(id) {
+      if (!confirm('Delete this article?')) return;
+
+      try {
+        await database.ref('news').child(id).remove();
+        showAlert('✅ Article deleted', 'success');
+        loadArticles();
+      } catch (error) {
+        showAlert('Error deleting article: ' + error.message, 'error');
+      }
+    }
+
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert show alert-${type}`;
+      setTimeout(() => alert.classList.remove('show'), 4000);
+    }
+
+    // Ensure the select updates info when user changes selection
+    document.addEventListener('DOMContentLoaded', () => {
+      addAthleteInput();
+
+      const select = document.getElementById('auto-meet');
+      if (select) select.addEventListener('change', updateSelectedMeetInfo);
+
+      // If serving via file://, warn about possible CORS restrictions when fetching DB via REST
+      if (location && location.protocol === 'file:') {
+        const info = document.getElementById('meets-info');
+        if (info) info.textContent = 'Note: Serving via file:// may block remote DB fetches. Try serving via HTTP (e.g., `python -m http.server`).';
+      }
+
+      // Preload meets so the Auto-Generate tab has options quickly
+      setTimeout(() => {
+        try { loadMeets(); } catch (err) { console.debug('Preload meets failed', err); }
+      }, 350);
+    });
+  </script>
+</body>
+</html>
