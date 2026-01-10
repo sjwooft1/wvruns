@@ -303,13 +303,14 @@
   <script>
     // Initialize Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyB3u6WU8dKLdvNqT6RQbKGqPvv3i45NdcI",
-      authDomain: "wvruns-8a73f.firebaseapp.com",
-      databaseURL: "https://wvruns-8a73f-default-rtdb.firebaseio.com",
-      projectId: "wvruns-8a73f",
-      storageBucket: "wvruns-8a73f.appspot.com",
-      messagingSenderId: "833073282866",
-      appId: "1:833073282866:web:a99c01f3e6c2b8a54c5e3b"
+      apiKey: "AIzaSyCBQt9I_OSoUuTM61F-JXNBkD98f7PCJcA",
+      authDomain: "mountainstatemiles-1326f.firebaseapp.com",
+      databaseURL: "https://mountainstatemiles-1326f-default-rtdb.firebaseio.com",
+      projectId: "mountainstatemiles-1326f",
+      storageBucket: "mountainstatemiles-1326f.firebasestorage.app",
+      messagingSenderId: "605911511756",
+      appId: "1:605911511756:web:0e99071a816f0a39210869",
+      measurementId: "G-N3DNFRQNF9"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -358,14 +359,11 @@
               <div class="news-date">${formatDate(item.date)}</div>
             </div>
             <div class="news-meta">
-              ${item.sport ? `<span class="meta-tag sport-${item.sport.toLowerCase()}">${item.sport}</span>` : ''}
-              ${item.meetName ? `<span class="meta-tag">${item.meetName}</span>` : ''}
-              ${item.type ? `<span class="meta-tag">${item.type}</span>` : ''}
+              ${item.category ? `<span class="meta-tag">${item.category}</span>` : ''}
             </div>
             <div class="news-content">
-              ${item.summary || ''}
-              ${item.highlights ? `<div class="highlight"><strong>Key Highlights:</strong><br>${item.highlights}</div>` : ''}
-              ${item.standoutAthletes ? `<div><strong>Standout Athletes:</strong><div>${item.standoutAthletes.map(a => `<div class="athlete-callout">⭐ ${a}</div>`).join('')}</div></div>` : ''}
+              ${item.content || ''}
+              ${item.highlights && item.highlights.length > 0 ? `<div class="highlight"><strong>Key Points:</strong><br>${item.highlights.map(h => `• ${h}`).join('<br>')}</div>` : ''}
             </div>
           </div>
         `).join('');

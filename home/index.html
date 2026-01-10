@@ -389,72 +389,71 @@
     <script>
         // Initialize Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyB3u6WU8dKLdvNqT6RQbKGqPvv3i45NdcI",
-            authDomain: "wvruns-8a73f.firebaseapp.com",
-            databaseURL: "https://wvruns-8a73f-default-rtdb.firebaseio.com",
-            projectId: "wvruns-8a73f",
-            storageBucket: "wvruns-8a73f.appspot.com",
-            messagingSenderId: "833073282866",
-            appId: "1:833073282866:web:a99c01f3e6c2b8a54c5e3b"
+            apiKey: "AIzaSyCBQt9I_OSoUuTM61F-JXNBkD98f7PCJcA",
+            authDomain: "mountainstatemiles-1326f.firebaseapp.com",
+            databaseURL: "https://mountainstatemiles-1326f-default-rtdb.firebaseio.com",
+            projectId: "mountainstatemiles-1326f",
+            storageBucket: "mountainstatemiles-1326f.firebasestorage.app",
+            messagingSenderId: "605911511756",
+            appId: "1:605911511756:web:0e99071a816f0a39210869",
+            measurementId: "G-N3DNFRQNF9"
         };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        async function loadRecentMeets() {
-            const container = document.getElementById('meets-grid');
+        async function loadRecentNews() {
+            const newsGrid = document.getElementById('news-grid');
             try {
-                const snapshot = await database.ref('CrossCountry/meets').limitToLast(6).once('value');
-                const meets = [];
+                const snapshot = await database.ref('news').once('value');
+                const articles = [];
                 
                 snapshot.forEach(child => {
-                    meets.push({ slug: child.key, ...child.val() });
+                    articles.push({
+                        id: child.key,
+                        ...child.val()
+                    });
                 });
 
-                // Sort by date descending (most recent first)
-                meets.sort((a, b) => {
-                    const dateA = a.date || '';
-                    const dateB = b.date || '';
-                    return dateB.localeCompare(dateA);
+                // Sort by date descending (most recent first) and limit to 3
+                articles.sort((a, b) => {
+                    const dateA = new Date(a.date || 0);
+                    const dateB = new Date(b.date || 0);
+                    return dateB - dateA;
                 });
 
-                if (!meets.length) {
-                    container.innerHTML = '<div class="loading-state">No recent meets found.</div>';
+                const recentArticles = articles.slice(0, 3);
+
+                if (!recentArticles.length) {
+                    newsGrid.innerHTML = '<div class="loading-state">No articles yet. Check back soon!</div>';
                     return;
                 }
 
                 function formatDate(dateString) {
-                    if (!dateString) return 'Date TBD';
-                    const parts = dateString.split('-');
-                    if (parts.length === 3) {
-                        const year = parseInt(parts[0], 10);
-                        const month = parseInt(parts[1], 10) - 1;
-                        const day = parseInt(parts[2], 10);
-                        const date = new Date(year, month, day);
-                        return date.toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric'
-                        });
-                    }
-                    return dateString;
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric'
+                    });
                 }
 
-                container.innerHTML = meets.map(meet => `
-                    <a href="/CrossCountry/meet.html?slug=${encodeURIComponent(meet.slug)}" class="meet-card">
-                        <h3 class="meet-title">${meet.name}</h3>
-                        <p class="meet-date">📅 ${formatDate(meet.date)}</p>
-                        ${meet.location ? `<p class="meet-location">📍 ${meet.location}</p>` : ''}
-                    </a>
+                newsGrid.innerHTML = recentArticles.map(article => `
+                    <div class="meet-card" style="cursor: default;">
+                        <h3 class="meet-title">${article.title}</h3>
+                        <p class="meet-date">📅 ${formatDate(article.date)}</p>
+                        ${article.category ? `<p class="meet-location">${article.category}</p>` : ''}
+                        <p style="font-size: 0.9rem; color: #6b7280; margin: 0;">${article.content.substring(0, 100)}...</p>
+                    </div>
                 `).join('');
             } catch (error) {
-                console.error('Error loading meets:', error);
-                container.innerHTML = '<div class="loading-state">Error loading meets. Please try again later.</div>';
+                console.error('Error loading news:', error);
+                newsGrid.innerHTML = '<div class="loading-state">Error loading articles.</div>';
             }
         }
 
-        // Load meets when page is ready
+        // Load news when page is ready
         document.addEventListener('DOMContentLoaded', () => {
-          loadRecentMeets();
+          loadRecentNews();
           
           // Mobile menu toggle
           const menuToggle = document.querySelector('.mobile-menu-toggle');
