@@ -301,7 +301,7 @@ a:hover {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
-  display: flex;
+  display: relative;
   align-items: center;
   justify-content: space-between;
   height: 70px;
