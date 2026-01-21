@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecasts — Mountain State Miles</title>
+    <meta property="og:image" content="/assets/Wvruns Logo.png" />
+    <link rel="icon" type="image/png" href="/assets/Favicon Generator/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon Generator/favicon.svg" />
+    <link rel="shortcut icon" href="/assets/Favicon Generator/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon Generator/apple-touch-icon.png" />
+    <link rel="manifest" href="/assets/Favicon Generator/site.webmanifest" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            padding-bottom: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        @media (min-width: 769px) {
+            body {
+                padding-bottom: 0;
+            }
+        }
+
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            color: white;
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .weather-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .weather-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .weather-card h3 {
+            color: #002855;
+            font-size: 1.5rem;
+            margin: 0 0 0.5rem;
+            font-weight: 700;
+        }
+
+        .weather-card .sport-label {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .weather-card .sport-label.xc {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .weather-card .sport-label.track {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .meet-info {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .meet-info p {
+            margin: 0.5rem 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .meet-info p strong {
+            color: #002855;
+            font-weight: 600;
+        }
+
+        .weather-content {
+            display: flex;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .weather-icon {
+            font-size: 3rem;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .weather-details {
+            flex: 1;
+        }
+
+        .weather-condition {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #002855;
+            margin-bottom: 0.5rem;
+        }
+
+        .temperature {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .weather-info-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .weather-info-item {
+            flex: 1;
+        }
+
+        .weather-info-item span {
+            font-weight: 600;
+            color: #002855;
+        }
+
+        .loading-state {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 3rem;
+        }
+
+        .error-state {
+            background: #fee;
+            color: #c33;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 3rem 0 2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 1rem;
+        }
+
+        .sport-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .sport-button {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sport-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sport-button.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .page-header p {
+                font-size: 0.95rem;
+            }
+
+            .weather-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .page-container {
+                padding: 1rem;
+            }
+
+            .weather-content {
+                flex-direction: column;
+            }
+
+            .weather-icon {
+                min-width: auto;
+            }
+
+            .sport-selector {
+                gap: 0.5rem;
+            }
+
+            .sport-button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="navbar-content">
+                <a href="/home/index" class="navbar-brand">🏔️ Mountain State Miles</a>
+                <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+                <ul class="navbar-nav" id="main-nav">
+                    <li><a href="/home/index" class="navbar-link">Home</a></li>
+                    <li><a href="/home/about" class="navbar-link">About</a></li>
+                    <li><a href="/Track/index" class="navbar-link">Track & Field</a></li>
+                    <li><a href="/CrossCountry/xc" class="navbar-link">Cross Country</a></li>
+                    <li><a href="/weather" class="navbar-link active">Weather</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>🌤️ Meet Location Forecasts</h1>
+            <p>Weather forecasts for upcoming meet locations across West Virginia</p>
+        </div>
+
+        <div class="sport-selector">
+            <button class="sport-button active" data-sport="both">Both</button>
+            <button class="sport-button" data-sport="xc">Cross Country</button>
+            <button class="sport-button" data-sport="track">Track</button>
+        </div>
+
+        <div id="weather-container" class="weather-grid">
+            <div class="loading-state">Loading weather data...</div>
+        </div>
+
+        <div class="last-updated" id="last-updated"></div>
+    </div>
+
+    <footer>
+        <div class="row">
+            <div class="footer-col">
+                <h4>General</h4>
+                <ul>
+                    <li><a href="/home/index">Home</a></li>
+                    <li><a href="/home/admin">Admin</a></li>
+                    <li><a href="/news">News</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Cross Country</h4>
+                <ul>
+                    <li><a href="/CrossCountry/xc">Home</a></li>
+                    <li><a href="/CrossCountry/meets">Meets</a></li>
+                    <li><a href="/CrossCountry/schools">Schools</a></li>
+                    <li><a href="/CrossCountry/rankings">Rankings</a></li>
+                    <li><a href="/CrossCountry/analytics">Analytics</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Track</h4>
+                <ul>
+                    <li><a href="/Track/index">Home</a></li>
+                    <li><a href="/Track/meets">Meets</a></li>
+                    <li><a href="/Track/teams">Teams</a></li>
+                    <li><a href="/Track/rankings">Rankings</a></li>
+                    <li><a href="/Track/analytics">Analytics</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="footer-bottom">
+                <p>&#169; 2026 Mountain State Miles — Built by runners, for runners.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <!-- Footer Toggle Script -->
+    <script src="footer-toggle.js"></script>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBQt9I_OSoUuTM61F-JXNBkD98f7PCJcA",
+            authDomain: "mountainstatemiles-1326f.firebaseapp.com",
+            databaseURL: "https://mountainstatemiles-1326f-default-rtdb.firebaseio.com",
+            projectId: "mountainstatemiles-1326f",
+            storageBucket: "mountainstatemiles-1326f.firebasestorage.app",
+            messagingSenderId: "605911511756",
+            appId: "1:605911511756:web:0e99071a816f0a39210869",
+            measurementId: "G-N3DNFRQNF9"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Map school names to their geographic coordinates for weather lookup
+        const schoolCoordinatesMap = {
+            'grafton high school': { lat: 39.34, lon: -80.03, city: 'Grafton' },
+            'parkersburg high school': { lat: 39.27, lon: -81.56, city: 'Parkersburg' },
+            'parkersburg south high school': { lat: 39.27, lon: -81.56, city: 'Parkersburg' },
+            'morgantown high school': { lat: 39.64, lon: -79.96, city: 'Morgantown' },
+            'bridgeport high school': { lat: 39.29, lon: -80.26, city: 'Bridgeport' },
+            'buckhannon sampson high school': { lat: 38.99, lon: -80.23, city: 'Buckhannon' },
+            'cabell midland high school': { lat: 38.54, lon: -82.45, city: 'Huntington' },
+            'capital high school': { lat: 38.35, lon: -81.64, city: 'Charleston' },
+            'george washington high school': { lat: 38.35, lon: -81.64, city: 'Charleston' },
+            'hedgesville high school': { lat: 39.18, lon: -78.05, city: 'Hedgesville' },
+            'huntington high school': { lat: 38.42, lon: -82.45, city: 'Huntington' },
+            'hurricane high school': { lat: 38.49, lon: -82.48, city: 'Hurricane' },
+            'jefferson high school': { lat: 39.33, lon: -77.74, city: 'Harpers Ferry' },
+            'martinsburg high school': { lat: 39.47, lon: -77.97, city: 'Martinsburg' },
+            'musselman high school': { lat: 39.48, lon: -78.03, city: 'Inwood' },
+            'oak hill high school': { lat: 38.41, lon: -81.60, city: 'Oak Hill' },
+            'preston high school': { lat: 39.34, lon: -80.03, city: 'Kingwood' },
+            'riverside high school': { lat: 38.46, lon: -81.75, city: 'Williamson' },
+            'spring mills high school': { lat: 39.47, lon: -77.97, city: 'Martinsburg' },
+            'spring valley high school': { lat: 38.42, lon: -82.45, city: 'Huntington' },
+            'st albans high school': { lat: 38.54, lon: -81.83, city: 'Saint Albans' },
+            'university high school': { lat: 39.64, lon: -79.96, city: 'Morgantown' },
+            'washington high school': { lat: 38.35, lon: -81.64, city: 'Charleston' },
+            'wheeling park high school': { lat: 40.07, lon: -80.71, city: 'Wheeling' },
+            'woodrow wilson high school': { lat: 37.78, lon: -81.19, city: 'Beckley' }
+        };
+
+        function getWeatherIcon(code) {
+            const iconMap = {
+                0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️',
+                51: '🌦️', 53: '🌧️', 55: '🌧️', 61: '🌧️', 63: '🌧️', 65: '⛈️',
+                71: '❄️', 73: '❄️', 75: '❄️', 77: '❄️', 80: '🌧️', 81: '⛈️',
+                82: '⛈️', 85: '🌨️', 86: '🌨️', 95: '⛈️', 96: '⛈️', 99: '⛈️'
+            };
+            return iconMap[code] || '❓';
+        }
+
+        function getWeatherDescription(code) {
+            const descMap = {
+                0: 'Clear', 1: 'Mostly Clear', 2: 'Partly Cloudy', 3: 'Overcast', 45: 'Foggy', 48: 'Foggy',
+                51: 'Light Drizzle', 53: 'Drizzle', 55: 'Heavy Drizzle', 61: 'Light Rain', 63: 'Rain', 65: 'Heavy Rain',
+                71: 'Light Snow', 73: 'Snow', 75: 'Heavy Snow', 77: 'Snow', 80: 'Light Showers', 81: 'Showers',
+                82: 'Heavy Showers', 85: 'Snow Showers', 86: 'Heavy Snow Showers', 95: 'Thunderstorm',
+                96: 'Hail Thunderstorm', 99: 'Hail Thunderstorm'
+            };
+            return descMap[code] || 'Unknown';
+        }
+
+        async function fetchWeatherData(lat, lon) {
+            try {
+                const response = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max&temperature_unit=fahrenheit&timezone=auto`
+                );
+                const data = await response.json();
+                
+                if (data.daily && data.daily.time.length > 0) {
+                    const todayIndex = 0;
+                    return {
+                        maxTemp: Math.round(data.daily.temperature_2m_max[todayIndex]),
+                        minTemp: Math.round(data.daily.temperature_2m_min[todayIndex]),
+                        weatherCode: data.daily.weather_code[todayIndex],
+                        precipitation: Math.round(data.daily.precipitation_sum[todayIndex] * 100) / 100,
+                        windSpeed: Math.round(data.daily.wind_speed_10m_max[todayIndex])
+                    };
+                }
+            } catch (error) {
+                console.error('Weather fetch error:', error);
+            }
+            return null;
+        }
+
+        async function loadWeatherForMeets() {
+            const container = document.getElementById('weather-container');
+            
+            try {
+                // Fetch meets from both CrossCountry and Track
+                const [ccSnapshot, trackSnapshot] = await Promise.all([
+                    database.ref('crosscountry/meets').once('value'),
+                    database.ref('Track/meets').once('value')
+                ]);
+
+                const locations = new Map();
+
+                // Process CrossCountry meets
+                ccSnapshot.forEach(child => {
+                    const meet = child.val();
+                    if (meet.location) {
+                        const key = meet.location.toLowerCase();
+                        if (!locations.has(key)) {
+                            locations.set(key, {
+                                location: meet.location,
+                                sport: 'crosscountry',
+                                meets: []
+                            });
+                        } else {
+                            if (locations.get(key).sport === 'track') {
+                                locations.get(key).sport = 'both';
+                            }
+                        }
+                        locations.get(key).meets.push({ ...meet, sport: 'CrossCountry' });
+                    }
+                });
+
+                // Process Track meets
+                trackSnapshot.forEach(child => {
+                    const meet = child.val();
+                    if (meet.location) {
+                        const key = meet.location.toLowerCase();
+                        if (!locations.has(key)) {
+                            locations.set(key, {
+                                location: meet.location,
+                                sport: 'track',
+                                meets: []
+                            });
+                        } else {
+                            if (locations.get(key).sport === 'crosscountry') {
+                                locations.get(key).sport = 'both';
+                            }
+                        }
+                        locations.get(key).meets.push({ ...meet, sport: 'Track' });
+                    }
+                });
+
+                if (locations.size === 0) {
+                    container.innerHTML = '<div class="error-state">No meets scheduled yet.</div>';
+                    return;
+                }
+
+                // Fetch weather for each location and render
+                const weatherPromises = Array.from(locations.values()).map(async (locData) => {
+                    const normalizedLocation = locData.location.toLowerCase().trim();
+                    const coords = schoolCoordinatesMap[normalizedLocation] || 
+                                 Object.values(schoolCoordinatesMap).find(c => 
+                                   c.city.toLowerCase() === normalizedLocation
+                                 );
+
+                    let weather = null;
+                    if (coords) {
+                        weather = await fetchWeatherData(coords.lat, coords.lon);
+                    }
+
+                    return { ...locData, weather, coords };
+                });
+
+                const weatherResults = await Promise.all(weatherPromises);
+                
+                // Sort by location name
+                weatherResults.sort((a, b) => a.location.localeCompare(b.location));
+
+                // Render weather cards
+                container.innerHTML = weatherResults.map(item => {
+                    const { location, weather, coords, meets } = item;
+                    const sportLabel = meets.some(m => m.sport === 'CrossCountry') && 
+                                     meets.some(m => m.sport === 'Track') ? 'both' :
+                                     meets.some(m => m.sport === 'CrossCountry') ? 'xc' : 'track';
+
+                    const weatherHtml = weather ? `
+                        <div class="weather-content">
+                            <div class="weather-icon">${getWeatherIcon(weather.weatherCode)}</div>
+                            <div class="weather-details">
+                                <div class="weather-condition">${getWeatherDescription(weather.weatherCode)}</div>
+                                <div class="temperature">${weather.maxTemp}°F / ${weather.minTemp}°F</div>
+                                <div class="weather-info-row">
+                                    <div class="weather-info-item">💨 <span>${weather.windSpeed} mph</span></div>
+                                    <div class="weather-info-item">💧 <span>${weather.precipitation}"</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : '<div class="weather-info-row"><p>Weather data unavailable</p></div>';
+
+                    return `
+                        <div class="weather-card" data-sport="${sportLabel}">
+                            <div class="sport-label ${sportLabel}">${
+                                sportLabel === 'both' ? 'XC & Track' :
+                                sportLabel === 'xc' ? 'Cross Country' : 'Track'
+                            }</div>
+                            <h3>${location}</h3>
+                            <div class="meet-info">
+                                <p><strong>Meets:</strong> ${meets.length} scheduled</p>
+                                ${coords ? `<p><strong>City:</strong> ${coords.city}</p>` : ''}
+                            </div>
+                            ${weatherHtml}
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('last-updated').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+
+            } catch (error) {
+                console.error('Error loading meets:', error);
+                container.innerHTML = '<div class="error-state">Error loading weather data. Please try again later.</div>';
+            }
+        }
+
+        // Initialize mobile menu
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const navMenu = document.getElementById('main-nav');
+            
+            if (menuToggle && navMenu) {
+                menuToggle.addEventListener('click', () => {
+                    navMenu.classList.toggle('mobile-open');
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+                        navMenu.classList.remove('mobile-open');
+                    }
+                });
+            }
+
+            loadWeatherForMeets();
+
+            // Sport filter buttons
+            const sportButtons = document.querySelectorAll('.sport-button');
+            sportButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    sportButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const selectedSport = button.getAttribute('data-sport');
+                    filterWeatherCards(selectedSport);
+                });
+            });
+        });
+
+        function filterWeatherCards(sport) {
+            const cards = document.querySelectorAll('.weather-card');
+            cards.forEach(card => {
+                if (sport === 'both' || card.getAttribute('data-sport') === sport) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
